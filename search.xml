@@ -160,11 +160,82 @@
 </ul>
 ]]></content>
       <categories>
-        <category>算法基础</category>
+        <category>基础算法</category>
       </categories>
       <tags>
         <tag>二分法</tag>
         <tag>数组</tag>
+        <tag>leetcode</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>数组双指针</title>
+    <url>/2023/09/06/%E6%95%B0%E7%BB%84%E5%8F%8C%E6%8C%87%E9%92%88/</url>
+    <content><![CDATA[<h1 id="双指针"><a href="#双指针" class="headerlink" title="双指针"></a>双指针</h1><p>Leetcode-27移除元素：<a href="https://leetcode.cn/problems/remove-element/">27. 移除元素 - 力扣（LeetCode）</a></p>
+<p><strong>相似题目：</strong></p>
+<p><a href="https://leetcode.cn/problems/remove-duplicates-from-sorted-array/">26. 删除有序数组中的重复项 - 力扣（LeetCode）</a></p>
+<p><a href="https://leetcode.cn/problems/move-zeroes/">283. 移动零 - 力扣（LeetCode）</a></p>
+<p><a href="https://leetcode.cn/problems/backspace-string-compare/">844. 比较含退格的字符串 - 力扣（LeetCode）</a>、</p>
+<p><a href="https://leetcode.cn/problems/squares-of-a-sorted-array/">977. 有序数组的平方 - 力扣（LeetCode）</a></p>
+<p><strong>关键知识点：</strong></p>
+<ul>
+<li>数组删除元素本质是<strong>覆盖</strong></li>
+<li><code>vector</code>中<code>erase</code> 是<code>O(n)</code>的操作</li>
+</ul>
+<h2 id="1-leetcode-27"><a href="#1-leetcode-27" class="headerlink" title="1.leetcode-27"></a>1.leetcode-27</h2><p>双指针：一层for循环</p>
+<ol>
+<li><p><strong>快慢指针</strong>-可以不改变原来数组的位置</p>
+<p>快指针：获取新数组的元素的指针，若当时指针的值指向为要覆盖的元素则跳过。</p>
+<p>慢指针：需要覆盖的位置的指针。</p>
+<p>相对于一个是前方的探子<code>fast</code>，一个在后方部署策略<code>slow</code>。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> slow = <span class="number">0</span>；</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> fast = <span class="number">0</span>; fast &lt; nums.<span class="built_in">size</span>(); fast++)&#123;</span><br><span class="line">	<span class="comment">//判断是否是要覆盖的值</span></span><br><span class="line">    <span class="keyword">if</span>(nums[fast] != val)&#123;</span><br><span class="line">        nums[slow] = nums[fast];<span class="comment">//更新新数组</span></span><br><span class="line">        slow++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> slow;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>左右指针</strong></p>
+<p><code>left</code>指针用于判断当前元素是否是需要覆盖的元素，如果是的话则用<code>right</code>指针指向的元素进行覆盖，并对<code>right</code>进行<code>--</code>，如果不是则进行<code>++</code>迭代。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> left = <span class="number">0</span>, right = nums.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line"><span class="keyword">while</span> (left &lt; right)&#123;</span><br><span class="line">    <span class="keyword">if</span> (nums[left] == val)&#123;</span><br><span class="line">        nums[left] = num[right];</span><br><span class="line">        right--;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        left++;<span class="comment">//不是target元素则自加</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> left;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="2-leetcode-26"><a href="#2-leetcode-26" class="headerlink" title="2.leetcode-26"></a>2.leetcode-26</h2><p>题目要求<strong>删除重复元素且不改变相对顺序</strong>。</p>
+<p>快指针：寻找新数组的元素。</p>
+<p>慢指针：新数组元素的集合。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> slow = <span class="number">0</span>, fast = <span class="number">1</span>;</span><br><span class="line"><span class="keyword">while</span> (right &lt; nums.<span class="built_in">size</span>())&#123;</span><br><span class="line">    <span class="comment">//当数组中快慢指针指向元素相等时，快指针++</span></span><br><span class="line">    <span class="keyword">if</span> (nums[slow] == nums[fast])&#123;</span><br><span class="line">        fast++;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="comment">//快慢指针指向元素不相等时，则慢指针保留快指针的元素</span></span><br><span class="line">        nums[++slow] = nums[fast];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> slow + <span class="number">1</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3-leetcode-283-移动零"><a href="#3-leetcode-283-移动零" class="headerlink" title="3.leetcode-283 移动零"></a>3.leetcode-283 移动零</h2><p>将数组的所有<code>0</code>元素移动到数组末尾，保持非零元素的顺序。</p>
+<p>快指针：待处理数组元素，遇到非0的元素则进行交换</p>
+<p>慢指针：新的数组，慢指针左边均为非零的数</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> slow = <span class="number">0</span>, fast = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span> (fast &lt;= nums.<span class="built_in">size</span>() - <span class="number">1</span>)&#123;</span><br><span class="line">    <span class="keyword">if</span> (nums[fast] != <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="comment">//进行快慢指针元素替换</span></span><br><span class="line">        <span class="type">int</span> temp = nums[slow];</span><br><span class="line">        nums[slow] = nums[fast];</span><br><span class="line">        nums[fast] = nums[slow];</span><br><span class="line">        slow++;</span><br><span class="line">    &#125;</span><br><span class="line">    fast++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-leetcode-844-比较含退格的字符串"><a href="#4-leetcode-844-比较含退格的字符串" class="headerlink" title="4.leetcode-844 比较含退格的字符串"></a>4.leetcode-844 比较含退格的字符串</h2><ul>
+<li>题目：文本中含有退格符<code>#</code>比较两个字符串是否相等</li>
+<li>思路：<strong>逆序遍历，退格符只会影响前一个字符</strong>。并且用<code>skip</code>表示带删除字符的数量</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> i = s.<span class="built_in">size</span>() - <span class="number">1</span>, j = t.<span class="built_in">size</span>() - <span class="number">1</span>, skipS = <span class="number">0</span>, skipT = <span class="number">0</span>;</span><br><span class="line"><span class="keyword">while</span> (i &gt;= <span class="number">0</span> || j &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="comment">//s字符串的逆序遍历</span></span><br><span class="line">    <span class="keyword">while</span> (i &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (s[i] == <span class="string">&#x27;#&#x27;</span>) &#123;</span><br><span class="line">            skipS++;<span class="comment">//需要删除字符+1</span></span><br><span class="line">        	i--;<span class="comment">//遍历字符减一</span></span><br><span class="line">    	&#125;<span class="keyword">else</span> <span class="keyword">if</span>(skipS &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        	skipS--;<span class="comment">//若skip不为0 则说明当前字符需要删去</span></span><br><span class="line">        	i--;</span><br><span class="line">    	&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">//退出循环的唯一条件</span></span><br><span class="line">       	 	<span class="keyword">break</span>;<span class="comment">//如果既不为‘#’且skip=0，则跳出循环进行比较</span></span><br><span class="line">    	&#125;</span><br><span class="line">     &#125;</span><br><span class="line">    <span class="comment">//同理</span></span><br><span class="line">    <span class="keyword">while</span>(j &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (t[j] == <span class="string">&#x27;#&#x27;</span>) &#123;</span><br><span class="line">            skipT++;</span><br><span class="line">            j--;</span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span> (skipT &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            skipT--;</span><br><span class="line">            j--;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (i &gt;= <span class="number">0</span> &amp;&amp; j &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (s[i] != t[j])&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;<span class="comment">//不相等则返回false</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">//至少有一个出界</span></span><br><span class="line">        <span class="keyword">if</span> (i &gt;= <span class="number">0</span> || j &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    i--;<span class="comment">//判断完进行迭代</span></span><br><span class="line">    j--;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> <span class="literal">true</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>举个栗子：</strong></p>
+<p><code>s-&gt;&quot;a##c&quot;</code>和<code>t-&gt;&quot;#a#c&quot;</code></p>
+<ol>
+<li>第一次循环，两个指针均指向<code>c</code>相等，则进行<code>i--（i = 2）</code>和<code>j--</code></li>
+<li>第二次循环<code>s</code>字符串为<code>#</code>，<code>skipT++(1)</code>，<code>i--（i = 1）</code>，进入子循环，依然为<code>#</code>，<code>skipT++(2)</code>和<code>i--(0)</code> ，然后因为<code>skipT &gt;= 0</code>,所以进入 <code>skipT--(1)</code>和<code>i--(-1)</code>，然后退出子<code>while</code></li>
+<li>t字符串同理，最后返回<code>true</code></li>
+</ol>
+<h2 id="5-leetcode-977有序数组的平方"><a href="#5-leetcode-977有序数组的平方" class="headerlink" title="5.leetcode-977有序数组的平方"></a>5.leetcode-977有序数组的平方</h2><p>题目：nums为非递减顺序的数组，要求返回每个数字平方组成的新数组，也为非递减顺序。</p>
+<p>法一：用库函数<code>sort()</code></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> n = nums,<span class="built_in">size</span>();</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; i++)&#123;</span><br><span class="line">    nums[i] *= num[i];</span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in">sort</span>(nums.<span class="built_in">begin</span>(), nums.<span class="built_in">end</span>());</span><br><span class="line"><span class="keyword">return</span> nums;</span><br></pre></td></tr></table></figure>
+
+<p>法二：利用题目中已按照升序排序这个条件 双指针 <strong>用时间换空间</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> n = nums.<span class="built_in">size</span>();</span><br><span class="line"><span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">ans</span><span class="params">(n)</span></span>;</span><br><span class="line"><span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>, j = n - <span class="number">1</span>, pos = n - <span class="number">1</span>; i &lt;= j;) &#123;</span><br><span class="line">    <span class="comment">//前后两个元素比较，若前这元素大于后面的则把放在后面</span></span><br><span class="line">    <span class="keyword">if</span>(nums[i] * nums[i] &gt; nums[j] * nums[j]) &#123;</span><br><span class="line">        ans[pos] = nums[i] * nums[i];</span><br><span class="line">        ++i;<span class="comment">//前面元素放在了后面 所以前面进行更新</span></span><br><span class="line">    &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">        ans[pos] = nums[j] * nums[j];<span class="comment">//反之同理</span></span><br><span class="line">        --j;</span><br><span class="line">    &#125;</span><br><span class="line">    --pos;<span class="comment">//ans元素进行迭代</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">return</span> ans;<span class="comment">//用时间换空间</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>基础算法</category>
+      </categories>
+      <tags>
+        <tag>数组</tag>
+        <tag>leetcode</tag>
+        <tag>双指针法</tag>
       </tags>
   </entry>
 </search>
