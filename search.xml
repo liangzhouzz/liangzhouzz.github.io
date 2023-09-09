@@ -321,4 +321,70 @@
         <tag>边界确定</tag>
       </tags>
   </entry>
+  <entry>
+    <title>BFS和DFSleetcode汇总</title>
+    <url>/2023/09/09/BFS%E5%92%8CDFSleetcode%E6%B1%87%E6%80%BB/</url>
+    <content><![CDATA[<h1 id="BFS-DFS"><a href="#BFS-DFS" class="headerlink" title="BFS&amp;DFS"></a>BFS&amp;DFS</h1><p><strong>思路：</strong>构建拓扑序列+深度优先或广度优先</p>
+<h2 id="1-leetcode-207-课程表"><a href="#1-leetcode-207-课程表" class="headerlink" title="1.leetcode-207-课程表"></a>1.leetcode-207-课程表</h2><p>题目：<a href="https://leetcode.cn/problems/course-schedule/description/?envType=daily-question&envId=2023-09-09">207. 课程表 - 力扣（LeetCode）</a></p>
+<p>题解：<a href="https://leetcode.cn/problems/course-schedule/solutions/359392/ke-cheng-biao-by-leetcode-solution/?envType=daily-question&envId=2023-09-09">207. 课程表 - 力扣（LeetCode）</a></p>
+<p><strong>有向图思路：</strong></p>
+<ol>
+<li>可以用有向图来表示课程间的拓扑关系，用箭头来表示课程之间的修习关系</li>
+<li>显然的可以从有向图中得出结论，若图中存在环，则图不存在拓扑排序，无法满足：对于图<code> G</code> 中的任意一条有向边 <code>(u,v)</code>，<code>u</code>在排列中都出现在 <code>v</code> 的前面。因此也不存在一个满足要求的排列。</li>
+<li>如果图<code>G</code>是有向无环图，那么它的拓扑排列可能都不止一种。图<code>G</code>包含<code>n</code>个节点却没有任何的边，那么任意一种编号的排列都可以作为拓扑排列。</li>
+</ol>
+<p><strong>本题思路：</strong></p>
+<ul>
+<li>将每一门课看作一个节点，</li>
+<li>如果想要学习<code>课程A</code>之前必须完成<code>课程B</code>，那么我们从<code>B</code>到<code>A</code>连接一条有向边。这样以来，在拓扑排序中，<code>B</code>一定出现在<code>A</code>的前面。</li>
+</ul>
+<h3 id="1-1DFS"><a href="#1-1DFS" class="headerlink" title="1.1DFS"></a>1.1DFS</h3><p>对于图中的任意一个节点，它在搜索的过程中有三种状态，即：</p>
+<ul>
+<li><code>「未搜索」</code>：我们还没有搜索到这个节点；</li>
+<li><code>「搜索中」</code>：我们搜索过这个节点，但还没有回溯到该节点，<strong>即该节点还没有入栈，还有相邻的节点没有搜索完成</strong>；</li>
+<li><code>「已完成」</code>：我们搜索过并且回溯过这个节点，<strong>即该节点已经入栈，并且所有该节点的相邻节点都出现在栈的更底部的位置，满足拓扑排序的要求。</strong></li>
+</ul>
+<p>通过上述的三种状态，我们就可以给出使用深度优先搜索得到拓扑排序的算法流程，在每一轮的搜索搜索开始时，我们任取一个<code>「未搜索」</code>的节点开始进行深度优先搜索。</p>
+<ul>
+<li><p>我们将当前搜索的节点 <code>u</code> 标记为<code>「搜索中」</code>，遍历该节点的每一个相邻节点 <code>v</code>：</p>
+<p>如果 <code>v</code> 为<code>「未搜索」</code>，那么我们开始搜索 <code>v</code>，待搜索完成回溯到 <code>u</code>；</p>
+<p>如果 <code>v</code>为<code>「搜索中」</code>，<strong>那么我们就找到了图中的一个环</strong>，因此是不存在拓扑排序的；</p>
+<p>如果 <code>v</code> 为<code>「已完成」</code>，那么说明 <code>v</code>已经在栈中了，而 <code>u</code> 还不在栈中，因此 <code>u </code>无论何时入栈都不会影响到 <code>(u,v)</code> 之前的拓扑关系，以及不用进行任何操作。</p>
+</li>
+<li><p>当 <code>u</code>的所有相邻节点都为<code>「已完成」</code>时，我们将<code> u</code> 放入栈中，并将其标记为<code>「已完成」</code>。</p>
+</li>
+</ul>
+<p>在整个深度优先搜索的过程结束后，<strong>如果我们没有找到图中的环，那么栈中存储这所有的 <code>n</code> 个节点，从栈顶到栈底的顺序即为一种拓扑排序。</strong></p>
+<p><img src="/2023/09/09/BFS%E5%92%8CDFSleetcode%E6%B1%87%E6%80%BB/image-20230909153850172.png" alt="image-20230909153850172"></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; edges;<span class="comment">//用于表示课程之间的依赖关系，edge[u]表示课程u是哪些课程的先修课程列表</span></span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; visited;<span class="comment">//用于标记课程的访问状态，0表示未访问，1表示正在访问，2表示已经访问</span></span><br><span class="line">    <span class="type">bool</span> valid = <span class="literal">true</span>;<span class="comment">//返回值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//深度优先搜索函数，用于检查是否存在环，u表示正在访问的课程</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">dfs</span><span class="params">(<span class="type">int</span> u)</span> </span>&#123;</span><br><span class="line">        visited[u] = <span class="number">1</span>;<span class="comment">//设为1，表示正在访问该课程</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> v: edges[u]) &#123;<span class="comment">//遍历u的先修列表edge[u]的课程v</span></span><br><span class="line">            <span class="keyword">if</span> (visited[v] == <span class="number">0</span>) &#123;<span class="comment">//如果v没有被访问过则递归调用搜索先修课程v</span></span><br><span class="line">                <span class="built_in">dfs</span>(v);</span><br><span class="line">                <span class="keyword">if</span> (!valid) &#123;</span><br><span class="line">                    <span class="keyword">return</span>;<span class="comment">//发现了环，直接返回</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (visited[v] == <span class="number">1</span>) &#123;<span class="comment">//如果v已经被访问过，则表示存在环</span></span><br><span class="line">                valid = <span class="literal">false</span>;<span class="comment">//设置为false</span></span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        visited[u] = <span class="number">2</span>;<span class="comment">//标记为2 表示已经访问完毕</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">canFinish</span><span class="params">(<span class="type">int</span> numCourses, vector&lt;vector&lt;<span class="type">int</span>&gt;&gt;&amp; prerequisites)</span> </span>&#123;</span><br><span class="line">        edges.<span class="built_in">resize</span>(numCourses);</span><br><span class="line">        visited.<span class="built_in">resize</span>(numCourses);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">const</span> <span class="keyword">auto</span>&amp; info: prerequisites) &#123;</span><br><span class="line">            edges[info[<span class="number">1</span>]].<span class="built_in">push_back</span>(info[<span class="number">0</span>]);<span class="comment">//构建有向图</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; numCourses &amp;&amp; valid; ++i) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!visited[i]) &#123;</span><br><span class="line">                <span class="built_in">dfs</span>(i);<span class="comment">//遍历所有课程，如果存在课程尚未被访问则调用dfs</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> valid;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="1-2BFS"><a href="#1-2BFS" class="headerlink" title="1.2BFS"></a>1.2BFS</h3><p>DFS是<strong>逆向思维</strong>，所以可以<strong>使用BFS来正向的考虑</strong>拓扑排序中最前面的节点，即没有入度的节点。</p>
+<p><strong>当我们将一个节点加入答案中后，我们就可以移除它的所有出边，代表着它的相邻节点少了一门先修课程的要求。如果某个相邻节点变成了<code>「没有任何入边的节点」</code>，那么就代表着这门课可以开始学习了。</strong>按照这样的流程，我们不断地将没有入边的节点加入答案，直到答案中包含所有的节点（得到了一种拓扑排序）或者不存在没有入边的节点（图中包含环）。</p>
+<p><strong>算法设计：</strong></p>
+<p>我们使用一个队列来进行广度优先搜索。初始时，所有<code>入度为 0</code> 的节点都被放入队列中，<strong>它们就是可以作为拓扑排序最前面的节点，并且它们之间的相对顺序是无关紧要的。</strong></p>
+<p>在广度优先搜索的每一步中，我们取出队首的<code>节点 u</code>：</p>
+<ul>
+<li><p>我们将<code>u</code>放入答案中；</p>
+</li>
+<li><p>我们移除 <code>u</code> 的所有出边，也就是将 <code>u</code> 的所有相邻节点的<code>入度减少 1</code>。如果某个相邻节点 <code>v</code>的入度变为<code> 0</code>，那么我们就将 <code>v</code>放入队列中。</p>
+</li>
+</ul>
+<p>在广度优先搜索的过程结束后。如果答案中包含了这 <code>n</code> 个节点，那么我们就找到了一种拓扑排序，否则说明图中存在环，也就不存在拓扑排序了。\</p>
+<p><img src="/2023/09/09/BFS%E5%92%8CDFSleetcode%E6%B1%87%E6%80%BB/image-20230909161315935.png" alt="image-20230909161315935"></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; edges;<span class="comment">//边的依赖关系，edge[u]表示u作为了多少其他课程的先修课程</span></span><br><span class="line">    vector&lt;<span class="type">int</span>&gt; indeg;<span class="comment">//表示每个课程的入度</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">canFinish</span><span class="params">(<span class="type">int</span> numCourses, vector&lt;vector&lt;<span class="type">int</span>&gt;&gt;&amp; prerequisites)</span> </span>&#123;</span><br><span class="line">        edges.<span class="built_in">resize</span>(numCourses);</span><br><span class="line">        indeg.<span class="built_in">resize</span>(numCourses);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">const</span> <span class="keyword">auto</span>&amp; info: prerequisites) &#123;</span><br><span class="line">            edges[info[<span class="number">1</span>]].<span class="built_in">push_back</span>(info[<span class="number">0</span>]);<span class="comment">//有向图的构建</span></span><br><span class="line">            ++indeg[info[<span class="number">0</span>]];<span class="comment">//入度</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        queue&lt;<span class="type">int</span>&gt; q;<span class="comment">//创建一个拓扑排序</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; numCourses; ++i) &#123;</span><br><span class="line">            <span class="keyword">if</span> (indeg[i] == <span class="number">0</span>) &#123;</span><br><span class="line">                q.<span class="built_in">push</span>(i);<span class="comment">//如果入度为0，则将该课程加入队列，表示这个课程可以直接学习</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> visited = <span class="number">0</span>;<span class="comment">//用于表示已访问过的课程数量</span></span><br><span class="line">        <span class="keyword">while</span> (!q.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">            ++visited;</span><br><span class="line">            <span class="type">int</span> u = q.<span class="built_in">front</span>();<span class="comment">//每次从队列中取出一个课程</span></span><br><span class="line">            q.<span class="built_in">pop</span>();</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> v: edges[u]) &#123;</span><br><span class="line">                --indeg[v];<span class="comment">//遍历u作为先修课程，减少v的入度</span></span><br><span class="line">                <span class="keyword">if</span> (indeg[v] == <span class="number">0</span>) &#123;</span><br><span class="line">                    q.<span class="built_in">push</span>(v);<span class="comment">//如果v的入度变为了0，则加入队列</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> visited == numCourses;<span class="comment">//判断是否所有课程都已经学完</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>BFS &amp; DFS</category>
+      </categories>
+      <tags>
+        <tag>leetcode</tag>
+        <tag>BFS</tag>
+        <tag>DFS</tag>
+      </tags>
+  </entry>
 </search>
