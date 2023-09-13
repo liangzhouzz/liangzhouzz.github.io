@@ -467,4 +467,26 @@
         <tag>链表</tag>
       </tags>
   </entry>
+  <entry>
+    <title>leetcode每日一题</title>
+    <url>/2023/09/13/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98/</url>
+    <content><![CDATA[<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>这里记录一下leetcode中每日一题。</p>
+<h1 id="1-leetcode-2596-检查骑士巡视方案-20230913"><a href="#1-leetcode-2596-检查骑士巡视方案-20230913" class="headerlink" title="1.leetcode-2596-检查骑士巡视方案-20230913"></a>1.leetcode-2596-检查骑士巡视方案-20230913</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/check-knight-tour-configuration/description/?envType=daily-question&envId=2023-09-12">2596. 检查骑士巡视方案 - 力扣（LeetCode）</a></p>
+<p><strong>题解：</strong><a href="https://leetcode.cn/problems/check-knight-tour-configuration/solutions/2431329/jian-cha-qi-shi-xun-shi-fang-an-by-leetc-iw17/?envType=daily-question&envId=2023-09-12">2596. 检查骑士巡视方案 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong>要求骑士<code>日</code>字移动。—-&gt;检测每一次跳跃的行动路径是否为<code>日</code>字。</p>
+<p>​			<code>grid[i][j]</code>的值表示第几个访问的顺序</p>
+<p><img src="/2023/09/13/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98/image-20230913101938885.png" alt="image-20230913101938885"></p>
+<p><strong>代码：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">checkValidGrid</span><span class="params">(vector&lt;vector&lt;<span class="type">int</span>&gt;&gt;&amp; grid)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (grid[<span class="number">0</span>][<span class="number">0</span>] != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;<span class="comment">//看骑手是否从左上角出发</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> n = grid.<span class="built_in">size</span>();</span><br><span class="line">        <span class="comment">//array&lt;int,2&gt;表示元素为int，大小为2的数组，即数组中有两个元素</span></span><br><span class="line">        vector&lt;array&lt;<span class="type">int</span>, 2&gt;&gt; <span class="built_in">indices</span>(n * n);<span class="comment">//长度为n*n的数组 存放grid的顺序</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; n; j++) &#123;</span><br><span class="line">                indices[grid[i][j]] = &#123;i, j&#125;;<span class="comment">//遍历存放grid顺序</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; indices.<span class="built_in">size</span>(); i++)&#123;</span><br><span class="line">            <span class="comment">//检查每一次跳跃起点和终点的坐标插值</span></span><br><span class="line">            <span class="type">int</span> dx = <span class="built_in">abs</span>(indices[i][<span class="number">0</span>] - indices[i - <span class="number">1</span>][<span class="number">0</span>]);</span><br><span class="line">            <span class="type">int</span> dy = <span class="built_in">abs</span>(indices[i][<span class="number">1</span>] - indices[i - <span class="number">1</span>][<span class="number">1</span>]);</span><br><span class="line">            <span class="keyword">if</span> (dx * dy != <span class="number">2</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;<span class="comment">//判断积是否为二，不为2则不为日字</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度：</strong>时间复杂度为O(n^2)——–&gt;嵌套循环</p>
+<p>​				空间复杂度为O(n^2)——–&gt;二维数组 indices；</p>
+]]></content>
+      <categories>
+        <category>基础算法</category>
+      </categories>
+      <tags>
+        <tag>每日一题</tag>
+      </tags>
+  </entry>
 </search>
