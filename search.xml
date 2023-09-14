@@ -472,6 +472,20 @@
 <li>空间复杂度O(1)</li>
 </ul>
 <h1 id="6-leetcode-19-删除链表的倒数第N个节点"><a href="#6-leetcode-19-删除链表的倒数第N个节点" class="headerlink" title="6.leetcode-19-删除链表的倒数第N个节点"></a>6.leetcode-19-删除链表的倒数第N个节点</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/remove-nth-node-from-end-of-list/description/">19. 删除链表的倒数第 N 个结点 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>删除节点—&gt;操作指针一定要指向前一个节点</li>
+<li>虚拟头节点</li>
+<li>快慢指针，<code>fast</code>先移动<code>n+1步</code>，然后<code>fast</code>和<code>slow</code>一起动，直到<code>fast</code>指向<code>NULL</code>.</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">ListNode* <span class="title">removeNthFromEnd</span><span class="params">(ListNode* head, <span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">        ListNode* dummyHead = <span class="keyword">new</span> <span class="built_in">ListNode</span>(<span class="number">0</span>);<span class="comment">//虚拟头节点</span></span><br><span class="line">        dummyHead-&gt;next = head;</span><br><span class="line">        ListNode* fast = dummyHead; </span><br><span class="line">        ListNode* slow = dummyHead;</span><br><span class="line">        n++;<span class="comment">//用于让fast多走一步</span></span><br><span class="line">        <span class="keyword">while</span> (n-- &amp;&amp; fast != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            fast = fast-&gt;next;<span class="comment">//快指针先走 </span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">while</span> (fast != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            fast = fast-&gt;next;</span><br><span class="line">            slow = slow-&gt;next;<span class="comment">//一起走</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//进行交换</span></span><br><span class="line">        ListNode* temp = slow-&gt;next;</span><br><span class="line">        slow-&gt;next = slow-&gt;next-&gt;next;</span><br><span class="line">        <span class="keyword">delete</span> temp;</span><br><span class="line">        temp = <span class="literal">nullptr</span>;<span class="comment">//防止temp成为野指针</span></span><br><span class="line">        <span class="keyword">return</span> dummyHead-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n)—-&gt;n是要删除第n个节点</li>
+<li>空间复杂度：O(1)</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
