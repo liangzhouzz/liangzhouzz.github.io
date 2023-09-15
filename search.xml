@@ -486,6 +486,52 @@
 <li>时间复杂度：O(n)—-&gt;n是要删除第n个节点</li>
 <li>空间复杂度：O(1)</li>
 </ul>
+<h1 id="7-面试题02-07-链表相交"><a href="#7-面试题02-07-链表相交" class="headerlink" title="7.面试题02.07-链表相交"></a>7.面试题02.07-链表相交</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/intersection-of-two-linked-lists-lcci/description/">面试题 02.07. 链表相交 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>求两个链表交点节点的指针</li>
+<li>交点不是数值相等<strong>而是指针相等！！!</strong></li>
+<li>先求出两个链表的长度，然算出插值，然后让<code>curA</code>移动到和<code>curB</code>末尾对齐的位置，此时进行判断，不相同则同时向后移动。</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for singly-linked list.</span></span><br><span class="line"><span class="comment"> * struct ListNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     ListNode *next;</span></span><br><span class="line"><span class="comment"> *     ListNode(int x) : val(x), next(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">ListNode *<span class="title">getIntersectionNode</span><span class="params">(ListNode *headA, ListNode *headB)</span> </span>&#123;</span><br><span class="line">        ListNode* curA = headA;</span><br><span class="line">        ListNode* curB = headB;</span><br><span class="line">        <span class="comment">//求链表长度</span></span><br><span class="line">        <span class="type">int</span> lenA = <span class="number">0</span>, lenB = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span>(curA != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            lenA++;</span><br><span class="line">            curA = curA-&gt;next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">while</span> (curB != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            lenB++;</span><br><span class="line">            curB = curB-&gt;next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//重新赋值</span></span><br><span class="line">        curA = headA;</span><br><span class="line">        curB = headB;</span><br><span class="line">        <span class="comment">//让curA为最长链表的头 lenA为长度</span></span><br><span class="line">        <span class="keyword">if</span> (lenB &gt; lenA) &#123;</span><br><span class="line">            <span class="built_in">swap</span>(lenA, lenB);</span><br><span class="line">            <span class="built_in">swap</span>(curA, curB);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//长度差</span></span><br><span class="line">        <span class="type">int</span> gap  = lenA - lenB;</span><br><span class="line">        <span class="comment">//移动a与b尾部对齐</span></span><br><span class="line">        <span class="keyword">while</span> (gap--) &#123;</span><br><span class="line">            curA = curA-&gt;next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//判断</span></span><br><span class="line">        <span class="keyword">while</span> (curA != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (curA == curB) &#123;</span><br><span class="line">                <span class="keyword">return</span> curA;<span class="comment">//指针相等 ---不是数值相等喔</span></span><br><span class="line">            &#125;</span><br><span class="line">            curA = curA-&gt;next;</span><br><span class="line">            curB = curB-&gt;next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n+m)遍历两个链表的长度</li>
+<li>空间复杂度：O(1)</li>
+</ul>
+<h1 id="8-leetcode-142-环形链表Ⅱ"><a href="#8-leetcode-142-环形链表Ⅱ" class="headerlink" title="8.leetcode-142-环形链表Ⅱ"></a>8.leetcode-142-环形链表Ⅱ</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/linked-list-cycle-ii/description/">142. 环形链表 II - 力扣（LeetCode）</a></p>
+<p><strong>解法一：</strong></p>
+<ul>
+<li>遍历链表，用哈希表存储节点出现的次数</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for singly-linked list.</span></span><br><span class="line"><span class="comment"> * struct ListNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     ListNode *next;</span></span><br><span class="line"><span class="comment"> *     ListNode(int x) : val(x), next(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">ListNode *<span class="title">detectCycle</span><span class="params">(ListNode *head)</span> </span>&#123;</span><br><span class="line">        ListNode* cur = head;</span><br><span class="line">        unordered_map&lt;ListNode*, <span class="type">int</span>&gt;cnt;<span class="comment">//构建哈希表</span></span><br><span class="line">        <span class="keyword">while</span> (cur != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            cnt[cur]++;<span class="comment">//遍历链表</span></span><br><span class="line">            <span class="keyword">if</span> (cnt[cur] &gt; <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> cur;<span class="comment">//重复出现则返回</span></span><br><span class="line">            &#125;</span><br><span class="line">            cur = cur-&gt;next;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n)遍历节点</li>
+<li>空间复杂度：O(n)将链表每个节点存在哈希表中</li>
+</ul>
+<p><strong>法二—双指针：</strong><a href="https://www.bilibili.com/video/BV1if4y1d7ob/?vd_source=fa4d4e7f9b99f8e27a2b9dca08ea044a">把环形链表讲清楚！ 如何判断环形链表？如何找到环形链表的入口？ LeetCode：142.环形链表II_哔哩哔哩_bilibili</a></p>
+<p>用快慢指针降低空间复杂度！！！</p>
+<p>链表无环则不可能相遇，有环必定相遇！</p>
+<p>快指针走两个节点，慢指针走一个节点。相对于慢指针，快指针每次移动一个节点。</p>
+<p>要求<code>x</code>入口处节点</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for singly-linked list.</span></span><br><span class="line"><span class="comment"> * struct ListNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     ListNode *next;</span></span><br><span class="line"><span class="comment"> *     ListNode(int x) : val(x), next(NULL) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">ListNode *<span class="title">detectCycle</span><span class="params">(ListNode *head)</span> </span>&#123;</span><br><span class="line">        ListNode* fast = head;</span><br><span class="line">        ListNode* slow = head;</span><br><span class="line">        <span class="keyword">while</span>(fast != <span class="literal">NULL</span> &amp;&amp; fast-&gt;next != <span class="literal">NULL</span>) &#123;</span><br><span class="line">            slow = slow-&gt;next;</span><br><span class="line">            fast = fast-&gt;next-&gt;next;</span><br><span class="line">            <span class="comment">// 快慢指针相遇，此时从head 和 相遇点，同时查找直至他们相遇</span></span><br><span class="line">            <span class="keyword">if</span> (slow == fast) &#123;</span><br><span class="line">                ListNode* index1 = fast;</span><br><span class="line">                ListNode* index2 = head;</span><br><span class="line">                <span class="keyword">while</span> (index1 != index2) &#123;</span><br><span class="line">                    index1 = index1-&gt;next;</span><br><span class="line">                    index2 = index2-&gt;next;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> index2; <span class="comment">// 返回环的入口</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
 ]]></content>
       <categories>
         <category>基础算法</category>
