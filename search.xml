@@ -554,7 +554,7 @@
 
 <p><strong>复杂度：</strong>时间复杂度为O(n^2)——–&gt;嵌套循环</p>
 <p>​				空间复杂度为O(n^2)——–&gt;二维数组 indices；</p>
-<h1 id="2-leetcode-1222-可以攻击国王的皇后"><a href="#2-leetcode-1222-可以攻击国王的皇后" class="headerlink" title="2.leetcode-1222-可以攻击国王的皇后"></a>2.leetcode-1222-可以攻击国王的皇后</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/queens-that-can-attack-the-king/description/?envType=daily-question&envId=2023-09-14">1222. 可以攻击国王的皇后 - 力扣（LeetCode）</a></p>
+<h1 id="2-leetcode-1222-可以攻击国王的皇后-20230914"><a href="#2-leetcode-1222-可以攻击国王的皇后-20230914" class="headerlink" title="2.leetcode-1222-可以攻击国王的皇后-20230914"></a>2.leetcode-1222-可以攻击国王的皇后-20230914</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/queens-that-can-attack-the-king/description/?envType=daily-question&envId=2023-09-14">1222. 可以攻击国王的皇后 - 力扣（LeetCode）</a></p>
 <p><strong>思路：</strong></p>
 <ul>
 <li>枚举每个<code>皇后</code>是否在<code>国王</code>的<code>八个方向</code>上，若在，选择<code>最近</code>那个说明可以攻击到国王。</li>
@@ -569,6 +569,18 @@
 <li>时间复杂度：O(n)—–&gt;遍历queens数组n</li>
 <li>空间复杂度：O(1)—–&gt;哈希表</li>
 </ul>
+<h1 id="3-leetcode-198-打家劫舍-20230916"><a href="#3-leetcode-198-打家劫舍-20230916" class="headerlink" title="3.leetcode-198-打家劫舍-20230916"></a>3.leetcode-198-打家劫舍-20230916</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/house-robber/?envType=daily-question&envId=2023-09-16">198. 打家劫舍 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong><a href="https://leetcode.cn/problems/house-robber/solutions/138131/dong-tai-gui-hua-jie-ti-si-bu-zou-xiang-jie-cjavap/?envType=daily-question&envId=2023-09-16">198. 打家劫舍 - 力扣（LeetCode）</a></p>
+<ul>
+<li>动态规划DP：定义子问题—-&gt;写出子问题的递推关系—-&gt;确定DP数组的计算顺序—-&gt;空间优化</li>
+<li>原问题：从全部房间中能偷到的最大金额<code>f(n)</code>。子问题：从<code>k</code>个房间中能偷到的最大金额<code>f(k)</code>。</li>
+<li>。。。</li>
+</ul>
+<p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">rob</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (nums.<span class="built_in">size</span>() == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;<span class="comment">//边界</span></span><br><span class="line">      &#125;</span><br><span class="line">		</span><br><span class="line">      <span class="type">int</span> n = nums.<span class="built_in">size</span>();</span><br><span class="line">      <span class="comment">//方便对齐 dp[1]表示第一间房屋nums[0] </span></span><br><span class="line">      vector&lt;<span class="type">int</span>&gt;<span class="built_in">dp</span>(n+<span class="number">1</span>, <span class="number">0</span>);<span class="comment">//n+1大小 0初始化 </span></span><br><span class="line">      dp[<span class="number">0</span>] = <span class="number">0</span>;<span class="comment">//没有房屋可以盗窃</span></span><br><span class="line">      dp[<span class="number">1</span>] = nums[<span class="number">0</span>];<span class="comment">//只有一个房屋可以盗窃</span></span><br><span class="line">      <span class="comment">//从第二个数组开始遍历，数组下标为1 - n-1</span></span><br><span class="line">      <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">2</span>; i &lt;= n; i++) &#123;</span><br><span class="line">        <span class="comment">//dp[i-1]表示不盗窃当前的房屋，nums[i-1]表示盗窃当前房屋与dp数组下标差了1 </span></span><br><span class="line">        <span class="comment">//dp[n-2]表示在前两个房屋处的最大财产值，就是选择dp[n-1]，还是dp[n-2]加上当前房屋的价值</span></span><br><span class="line">        dp[i] = <span class="built_in">max</span>(dp[i - <span class="number">1</span>], nums[i - <span class="number">1</span>] + dp[i - <span class="number">2</span>]);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> dp[n];<span class="comment">//返回最大财产值</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
 ]]></content>
       <categories>
         <category>基础算法</category>
