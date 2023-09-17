@@ -579,8 +579,46 @@
 <p>代码实现：</p>
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">rob</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">      <span class="keyword">if</span> (nums.<span class="built_in">size</span>() == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;<span class="comment">//边界</span></span><br><span class="line">      &#125;</span><br><span class="line">		</span><br><span class="line">      <span class="type">int</span> n = nums.<span class="built_in">size</span>();</span><br><span class="line">      <span class="comment">//方便对齐 dp[1]表示第一间房屋nums[0] </span></span><br><span class="line">      vector&lt;<span class="type">int</span>&gt;<span class="built_in">dp</span>(n+<span class="number">1</span>, <span class="number">0</span>);<span class="comment">//n+1大小 0初始化 </span></span><br><span class="line">      dp[<span class="number">0</span>] = <span class="number">0</span>;<span class="comment">//没有房屋可以盗窃</span></span><br><span class="line">      dp[<span class="number">1</span>] = nums[<span class="number">0</span>];<span class="comment">//只有一个房屋可以盗窃</span></span><br><span class="line">      <span class="comment">//从第二个数组开始遍历，数组下标为1 - n-1</span></span><br><span class="line">      <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">2</span>; i &lt;= n; i++) &#123;</span><br><span class="line">        <span class="comment">//dp[i-1]表示不盗窃当前的房屋，nums[i-1]表示盗窃当前房屋与dp数组下标差了1 </span></span><br><span class="line">        <span class="comment">//dp[n-2]表示在前两个房屋处的最大财产值，就是选择dp[n-1]，还是dp[n-2]加上当前房屋的价值</span></span><br><span class="line">        dp[i] = <span class="built_in">max</span>(dp[i - <span class="number">1</span>], nums[i - <span class="number">1</span>] + dp[i - <span class="number">2</span>]);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> dp[n];<span class="comment">//返回最大财产值</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n)遍历数组</li>
+<li>空间复杂度：O(n) 维护dp数组</li>
+</ul>
+<p><strong>对空间复杂度进行优化：</strong></p>
+<ul>
+<li><p>不需要保存dp的全部子结果</p>
+</li>
+<li><p>只需要用两个变量保存子问题的结果</p>
+</li>
+<li><p><img src="/2023/09/13/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98/image-20230917095711405.png" alt="dp空间优化"></p>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">rob</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> prev = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> curr = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 每次循环，计算“偷到当前房子为止的最大金额”</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i : nums) &#123;</span><br><span class="line">        <span class="comment">// 循环开始时，curr 表示 dp[k-1]，prev 表示 dp[k-2]</span></span><br><span class="line">        <span class="comment">// dp[k] = max&#123; dp[k-1], dp[k-2] + i &#125;</span></span><br><span class="line">        <span class="type">int</span> temp = <span class="built_in">max</span>(curr, prev + i);</span><br><span class="line">        prev = curr;</span><br><span class="line">        curr = temp;</span><br><span class="line">        <span class="comment">// 循环结束时，curr 表示 dp[k]，prev 表示 dp[k-1]</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> curr;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n)遍历数组</li>
+<li>空间复杂度：O(1)创建整型变量</li>
+</ul>
+<h1 id="4-leetcode-213-打家劫舍Ⅱ-20230917"><a href="#4-leetcode-213-打家劫舍Ⅱ-20230917" class="headerlink" title="4.leetcode-213-打家劫舍Ⅱ-20230917"></a>4.leetcode-213-打家劫舍Ⅱ-20230917</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/house-robber-ii/description/?envType=daily-question&envId=2023-09-17">213. 打家劫舍 II - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>房屋首尾相连</li>
+<li>如果偷盗了第一间房屋，则不能偷盗最后一间，因此偷盗范围是第一间到倒数第二间<code>[0, n-2]</code></li>
+<li>如果偷盗了最后一间房屋，则不能偷盗第一间，因此偷盗范围是第二间到最后一间<code>[1, n-1]</code></li>
+<li>分别用前一天的DP计算最大金额，作为返回值。</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">robRange</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums, <span class="type">int</span> start, <span class="type">int</span> end)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> first  = nums[start], second = <span class="built_in">max</span>(nums[start], nums[start + <span class="number">1</span>]);<span class="comment">//first第一间房屋价值，second表示当前房屋的最大价值</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = start + <span class="number">2</span>; i &lt;= end; i++) &#123;</span><br><span class="line">            <span class="type">int</span> temp = second;<span class="comment">//保存旧的second值 下一次迭代需要用到</span></span><br><span class="line">            <span class="comment">//first+nums[i]前两个房屋被盗+当前房屋被盗，</span></span><br><span class="line">            <span class="comment">//second 前一个房屋被盗</span></span><br><span class="line">            second = <span class="built_in">max</span>(first + nums[i], second);</span><br><span class="line">            first = temp;<span class="comment">//迭代 first 向后移动一位 画图既可以理解</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> second;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">rob</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> n = nums.<span class="built_in">size</span>();</span><br><span class="line">        <span class="keyword">if</span> (n == <span class="number">1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> nums[<span class="number">0</span>];<span class="comment">//一个房屋则返回第一间</span></span><br><span class="line">        &#125;<span class="keyword">else</span> <span class="keyword">if</span>(n == <span class="number">2</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">max</span>(nums[<span class="number">0</span>], nums[<span class="number">1</span>]);<span class="comment">//两间房屋，返回最大价值那间</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//不满足上面条件则比较[0,n-2]和[1,n-1]</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">max</span>(<span class="built_in">robRange</span>(nums, <span class="number">0</span>, n - <span class="number">2</span>), <span class="built_in">robRange</span>(nums, <span class="number">1</span>, n - <span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
 
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n) 遍历数据</li>
+<li>空间复杂度：O(1)创建first 和second整型变量</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
