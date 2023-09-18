@@ -642,4 +642,33 @@
         <tag>每日一题</tag>
       </tags>
   </entry>
+  <entry>
+    <title>哈希表</title>
+    <url>/2023/09/18/%E5%93%88%E5%B8%8C%E8%A1%A8/</url>
+    <content><![CDATA[<h1 id="1-引言"><a href="#1-引言" class="headerlink" title="1.引言"></a>1.引言</h1><p><strong>哈希表：</strong>根据关键码的值而直接进行访问的数据结构。</p>
+<p>一般的哈希表都是用来快速判断一个元素是否出现在集合里</p>
+<p>常见哈希结构：详细见<a href="https://programmercarl.com/%E5%93%88%E5%B8%8C%E8%A1%A8%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80.html#%E5%B8%B8%E8%A7%81%E7%9A%84%E4%B8%89%E7%A7%8D%E5%93%88%E5%B8%8C%E7%BB%93%E6%9E%84">代码随想录 (programmercarl.com)</a></p>
+<p><img src="/2023/09/18/%E5%93%88%E5%B8%8C%E8%A1%A8/image-20230918104630195.png" alt="image-20230918104630195"></p>
+<h1 id="2-leetcode-242-有效的字母异位词"><a href="#2-leetcode-242-有效的字母异位词" class="headerlink" title="2.leetcode-242-有效的字母异位词"></a>2.leetcode-242-有效的字母异位词</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/valid-anagram/">242. 有效的字母异位词 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>利用一个哈希表对s中字符进行存储，然后对t中字符进行删减 若最后哈希表中存在小于0或大于1的值则返回false。</li>
+<li>其实可以用普通数组 因为字母26个元素数量比较少，用数组就可以实现。</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">isAnagram</span><span class="params">(string s, string t)</span> </span>&#123;</span><br><span class="line">        <span class="function">unordered_map&lt;<span class="type">char</span>, <span class="type">int</span>&gt; <span class="title">cnt</span><span class="params">(s.size())</span></span>;<span class="comment">//哈希表</span></span><br><span class="line">        <span class="keyword">if</span> (s.<span class="built_in">size</span>() != t.<span class="built_in">size</span>()) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; s.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">            cnt[s[i]]++;<span class="comment">//存储s中的字符</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; t.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">            cnt[t[i]]--;<span class="comment">//减去t中的字符</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">auto</span> &amp;[key, val] : cnt) &#123;</span><br><span class="line">            <span class="keyword">if</span>(val &gt; <span class="number">0</span> || val &lt;<span class="number">0</span>) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n)遍历字符串</li>
+<li>空间复杂度：O(n)哈希表</li>
+</ul>
+]]></content>
+      <categories>
+        <category>基础算法</category>
+      </categories>
+      <tags>
+        <tag>哈希表</tag>
+      </tags>
+  </entry>
 </search>
