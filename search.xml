@@ -619,7 +619,22 @@
 <li>时间复杂度：O(n) 遍历数据</li>
 <li>空间复杂度：O(1)创建first 和second整型变量</li>
 </ul>
-]]></content>
+<h1 id="5-leetcode-337-打家劫舍Ⅲ-20230918"><a href="#5-leetcode-337-打家劫舍Ⅲ-20230918" class="headerlink" title="5.leetcode-337-打家劫舍Ⅲ-20230918"></a>5.leetcode-337-打家劫舍Ⅲ-20230918</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/house-robber-iii/description/?envType=daily-question&envId=2023-09-18">337. 打家劫舍 III - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<p>用<code>f(o)</code>表示选择<code>o</code>节点情况下最大价值，<code>g(o)</code>表示不选择<code>o</code>节点情况下<code>o</code>节点最大价值，<code>l</code>和<code>r</code>代表<code>o</code>的左右子节点。</p>
+<ul>
+<li>当<code>o</code>被选中时，<code>o</code>的左右孩子都不能被选中，故<code>o</code>被选中情况下子树上被选中点的最大权值和相加，即<code>f(o)=g(l)+g(r)</code>。</li>
+<li>当<code>o</code>不被选中时，<code>o</code>的左右孩子可以被选中，也可以不被选中，对于某个具体的孩子<code>x</code>，它对<code>o</code>的贡献是<code>x</code>被选中或不被选中情况下的权值和的最大值。<code>g(x)=max&#123;f(l), g(l)&#125;+max&#123;f(r),g(r)&#125;</code></li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//结构体 用于表示在给定节点为根的子树中可以获取的最大值两种情况</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">SubtreeStatus</span> &#123;</span><br><span class="line">    <span class="type">int</span> selected;<span class="comment">//选择当前节点</span></span><br><span class="line">    <span class="type">int</span> notselected;<span class="comment">//不选择当前节点</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">SubtreeStatus <span class="title">dfs</span><span class="params">(TreeNode* node)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span>(!node) &#123;</span><br><span class="line">            <span class="keyword">return</span>&#123;<span class="number">0</span>, <span class="number">0</span>&#125;;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">auto</span> l = <span class="built_in">dfs</span>(node-&gt;left);<span class="comment">//递归计算左右子树</span></span><br><span class="line">        <span class="keyword">auto</span> r = <span class="built_in">dfs</span>(node-&gt;right);</span><br><span class="line">        <span class="type">int</span> selected = node-&gt;val + l.notselected + r.notselected;<span class="comment">//当前节点被选择的值计算 当前节点的值+左右子节点不被选择的值</span></span><br><span class="line">        <span class="type">int</span> notselected = <span class="built_in">max</span>(l.selected, l.notselected) + <span class="built_in">max</span>(r.selected, r.notselected);<span class="comment">//当前节点不被选择，则计算左右子节点被选择与不被选择最大值之和</span></span><br><span class="line">        <span class="keyword">return</span> &#123;selected, notselected&#125;;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">rob</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">auto</span> rootStatus = <span class="built_in">dfs</span>(root);</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">max</span>(rootStatus.selected, rootStatus.notselected);<span class="comment">//比较最大值</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li><strong>时间复杂度：</strong>O(n)对二叉树做一次后序遍历。</li>
+<li><strong>空间复杂度：</strong>O(n)递归使用栈空间。、</li>
+</ul>
+<h1 id="6"><a href="#6" class="headerlink" title="6."></a>6.</h1>]]></content>
       <categories>
         <category>基础算法</category>
       </categories>
