@@ -634,7 +634,7 @@
 <li><strong>时间复杂度：</strong>O(n)对二叉树做一次后序遍历。</li>
 <li><strong>空间复杂度：</strong>O(n)递归使用栈空间。、</li>
 </ul>
-<h1 id="6-leetcode-2560-打家劫舍Ⅳ"><a href="#6-leetcode-2560-打家劫舍Ⅳ" class="headerlink" title="6.leetcode-2560-打家劫舍Ⅳ"></a>6.leetcode-2560-打家劫舍Ⅳ</h1><p><strong>题目：</strong>[2560. 打家劫舍 IV - 力扣（LeetCode）](<a href="https://leetcode.cn/problems/house-robber-iv/?envType=daily-question&envId=Invalid">https://leetcode.cn/problems/house-robber-iv/?envType=daily-question&amp;envId=Invalid</a> Date)</p>
+<h1 id="6-leetcode-2560-打家劫舍Ⅳ-20230919"><a href="#6-leetcode-2560-打家劫舍Ⅳ-20230919" class="headerlink" title="6.leetcode-2560-打家劫舍Ⅳ-20230919"></a>6.leetcode-2560-打家劫舍Ⅳ-20230919</h1><p><strong>题目：</strong>[2560. 打家劫舍 IV - 力扣（LeetCode）](<a href="https://leetcode.cn/problems/house-robber-iv/?envType=daily-question&envId=Invalid">https://leetcode.cn/problems/house-robber-iv/?envType=daily-question&amp;envId=Invalid</a> Date)</p>
 <p><strong>思路:</strong></p>
 <p><strong>最小化最大值问题（窃取房间的最大金额定义为窃取能力 求最小的窃取能力）——&gt;二分法</strong></p>
 <p>假设小偷偷取房屋的最大金额为<code>y</code>，显然<code>y∈[nums_min, nums_max]</code>，设<code>f(y)</code>为在最大金额<code>y</code>情况下，小偷可以偷盗房间的数目，<code>f(y)</code>的计算方式为：</p>
@@ -682,6 +682,32 @@
 <ul>
 <li>时间复杂度：O(n)遍历字符串</li>
 <li>空间复杂度：O(n)哈希表</li>
+</ul>
+<h1 id="3-leetcode-349-两个数组的交集"><a href="#3-leetcode-349-两个数组的交集" class="headerlink" title="3.leetcode-349-两个数组的交集"></a>3.leetcode-349-两个数组的交集</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/intersection-of-two-arrays/description/">349. 两个数组的交集 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li><p>因为<code>nums.size()∈[0, 1000]</code>，所以直接使用数组，并且<code>res</code>返回值必须是唯一的，所新建访问数组，判断是否已经添加到<code>res</code>中。</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">intersection</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums1, vector&lt;<span class="type">int</span>&gt;&amp; nums2)</span> </span>&#123;</span><br><span class="line">        vector&lt;<span class="type">int</span>&gt; res;</span><br><span class="line">        <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">visited</span><span class="params">(<span class="number">1000</span>, <span class="number">0</span>)</span></span>;<span class="comment">//访问数组</span></span><br><span class="line">        <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">cnt</span><span class="params">(<span class="number">1000</span>, <span class="number">0</span>)</span></span>;<span class="comment">//计数数组</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> x : nums1) &#123;</span><br><span class="line">            cnt[x]++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> x : nums2) &#123;</span><br><span class="line">            <span class="keyword">if</span> (cnt[x] &gt;= <span class="number">1</span> &amp;&amp; visited[x] == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">//判断是否存在在nums2中，并且还未访问过</span></span><br><span class="line">                res.<span class="built_in">push_back</span>(x);</span><br><span class="line">                visited[x] = <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>复杂度分析：</p>
+<ul>
+<li><input disabled type="checkbox"> 时间复杂度：O(m+n)两次数组循环</li>
+<li><input disabled type="checkbox"> 空间复杂度：O(n)数组创建</li>
+</ul>
+</li>
+<li><p>正常解法：如果没有传入数组大小的限制，则用<code>unordered_set</code></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">intersection</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums1, vector&lt;<span class="type">int</span>&gt;&amp; nums2)</span> </span>&#123;</span><br><span class="line">        unordered_set&lt;<span class="type">int</span>&gt; result_set; <span class="comment">// 存放结果，之所以用set是为了给结果集 去重！！！</span></span><br><span class="line">        <span class="function">unordered_set&lt;<span class="type">int</span>&gt; <span class="title">nums_set</span><span class="params">(nums1.begin(), nums1.end())</span></span>;<span class="comment">//传入nums1的元素</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> num : nums2) &#123;</span><br><span class="line">            <span class="comment">// 发现nums2的元素 在nums_set里又出现过</span></span><br><span class="line">            <span class="keyword">if</span> (nums_set.<span class="built_in">find</span>(num) != nums_set.<span class="built_in">end</span>()) &#123;</span><br><span class="line">                <span class="comment">//find迭代器查找，若找到元素则返回一个指向该元素的迭代器</span></span><br><span class="line">                <span class="comment">//若不存在 则返回nums_Set.end()</span></span><br><span class="line">                result_set.<span class="built_in">insert</span>(num);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(result_set.<span class="built_in">begin</span>(), result_set.<span class="built_in">end</span>());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>复杂度分析：</p>
+<ul>
+<li><p><input disabled type="checkbox"> 
+时间复杂度：O(mn)遍历数组并查找元素</p>
+</li>
+<li><p><input disabled type="checkbox"> 
+空间复杂度：O(n)哈希表</p>
+</li>
+</ul>
+</li>
 </ul>
 ]]></content>
       <categories>
