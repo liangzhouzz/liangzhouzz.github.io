@@ -634,7 +634,27 @@
 <li><strong>时间复杂度：</strong>O(n)对二叉树做一次后序遍历。</li>
 <li><strong>空间复杂度：</strong>O(n)递归使用栈空间。、</li>
 </ul>
-<h1 id="6"><a href="#6" class="headerlink" title="6."></a>6.</h1>]]></content>
+<h1 id="6-leetcode-2560-打家劫舍Ⅳ"><a href="#6-leetcode-2560-打家劫舍Ⅳ" class="headerlink" title="6.leetcode-2560-打家劫舍Ⅳ"></a>6.leetcode-2560-打家劫舍Ⅳ</h1><p><strong>题目：</strong>[2560. 打家劫舍 IV - 力扣（LeetCode）](<a href="https://leetcode.cn/problems/house-robber-iv/?envType=daily-question&envId=Invalid">https://leetcode.cn/problems/house-robber-iv/?envType=daily-question&amp;envId=Invalid</a> Date)</p>
+<p><strong>思路:</strong></p>
+<p><strong>最小化最大值问题（窃取房间的最大金额定义为窃取能力 求最小的窃取能力）——&gt;二分法</strong></p>
+<p>假设小偷偷取房屋的最大金额为<code>y</code>，显然<code>y∈[nums_min, nums_max]</code>，设<code>f(y)</code>为在最大金额<code>y</code>情况下，小偷可以偷盗房间的数目，<code>f(y)</code>的计算方式为：</p>
+<ul>
+<li>记当前偷取的房屋数目为<code>count</code>，遍历数组<code>nums</code>，假设当前遍历的房屋的金额为<code>x</code>，若<code>x&lt;y</code>成立，且上一遍历，那么令<code>count+1</code>，表示该房屋被偷取，遍历之后<code>f(y)=count</code>，显然<code>f(y)</code>是非递减函数。</li>
+</ul>
+<p>使用二分查找的方法，找到满足<code>f(y)&gt;k</code>的最小<code>y</code>，即题目所求的最小窃取能力</p>
+<ul>
+<li>初始化<code>lower = nums_min</code>，<code>upper = nums_max</code>;</li>
+<li>令<code>middle = (lower+upper) /2</code>，如果<code>f(middle) &gt;= k</code>，那么<code>upper = middle - 1</code>；否则<code>lower = middle + 1</code>；</li>
+<li>当<code>lower &lt;= upper</code>时，继续执行<code>步骤2</code>；否则返回<code>lower</code>为结果。</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">minCapability</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums, <span class="type">int</span> k)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> lower = *<span class="built_in">min_element</span>(nums.<span class="built_in">begin</span>(), nums.<span class="built_in">end</span>());<span class="comment">//最大最小值获取</span></span><br><span class="line">        <span class="type">int</span> upper = *<span class="built_in">max_element</span>(nums.<span class="built_in">begin</span>(), nums.<span class="built_in">end</span>());</span><br><span class="line">        <span class="comment">//二分法</span></span><br><span class="line">        <span class="keyword">while</span> (lower &lt;= upper) &#123;</span><br><span class="line">            <span class="type">int</span> middle = (lower + upper) / <span class="number">2</span>;</span><br><span class="line">            <span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line">            <span class="type">bool</span> visited = <span class="literal">false</span>;<span class="comment">//访问标志</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> x : nums) &#123;</span><br><span class="line">                <span class="keyword">if</span> (x &lt;= middle &amp;&amp; !visited) &#123;</span><br><span class="line">                    <span class="comment">//x&lt;middle且visited = false</span></span><br><span class="line">                    count++;<span class="comment">//表示已经访问了一个满足条件的元素</span></span><br><span class="line">                    visited = <span class="literal">true</span>;<span class="comment">//用于判断相邻元素是否已经被偷盗，若为true则不能继续偷盗</span></span><br><span class="line">                &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    visited = <span class="literal">false</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//count与k进行比较</span></span><br><span class="line">            <span class="keyword">if</span> (count &gt;= k) &#123;</span><br><span class="line">                upper = middle - <span class="number">1</span>;<span class="comment">// &lt;= middle的值已经判断过了</span></span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                lower = middle + <span class="number">1</span>;<span class="comment">//同理 &gt;=middle的值已经判断过了</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> lower;<span class="comment">//返回lower 满足k个房屋的最小偷盗金额发</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(nlogT) n是数组大小， T是最大与最小值之差 O(logT)为二分查找的次数，O(n)为数组遍历时间</li>
+<li>空间复杂度：O(1)</li>
+</ul>
+]]></content>
       <categories>
         <category>基础算法</category>
       </categories>
