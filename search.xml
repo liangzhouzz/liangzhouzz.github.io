@@ -654,6 +654,13 @@
 <li>时间复杂度：O(nlogT) n是数组大小， T是最大与最小值之差 O(logT)为二分查找的次数，O(n)为数组遍历时间</li>
 <li>空间复杂度：O(1)</li>
 </ul>
+<h1 id="7-leetcode-LP06-拿硬币-20230920"><a href="#7-leetcode-LP06-拿硬币-20230920" class="headerlink" title="7.leetcode-LP06-拿硬币-20230920"></a>7.leetcode-LP06-拿硬币-20230920</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/na-ying-bi/description/?envType=daily-question&envId=2023-09-20">LCP 06. 拿硬币 - 力扣（LeetCode）</a></p>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">minCount</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; coins)</span> </span>&#123;</span><br><span class="line">      <span class="type">int</span> res = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (<span class="type">int</span> num : coins) &#123;</span><br><span class="line">        res += num / <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span> (num % <span class="number">2</span> == <span class="number">1</span>) res++;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<p>时间复杂度：O(n)遍历数组</p>
+<p>空间复杂度：O(1)</p>
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -695,7 +702,7 @@
 <li><input disabled type="checkbox"> 空间复杂度：O(n)数组创建</li>
 </ul>
 </li>
-<li><p>正常解法：如果没有传入数组大小的限制，则用<code>unordered_set</code></p>
+<li><p>正常解法：如果<strong>没有传入数组大小的限制</strong>，则用<code>unordered_set</code></p>
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">intersection</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums1, vector&lt;<span class="type">int</span>&gt;&amp; nums2)</span> </span>&#123;</span><br><span class="line">        unordered_set&lt;<span class="type">int</span>&gt; result_set; <span class="comment">// 存放结果，之所以用set是为了给结果集 去重！！！</span></span><br><span class="line">        <span class="function">unordered_set&lt;<span class="type">int</span>&gt; <span class="title">nums_set</span><span class="params">(nums1.begin(), nums1.end())</span></span>;<span class="comment">//传入nums1的元素</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> num : nums2) &#123;</span><br><span class="line">            <span class="comment">// 发现nums2的元素 在nums_set里又出现过</span></span><br><span class="line">            <span class="keyword">if</span> (nums_set.<span class="built_in">find</span>(num) != nums_set.<span class="built_in">end</span>()) &#123;</span><br><span class="line">                <span class="comment">//find迭代器查找，若找到元素则返回一个指向该元素的迭代器</span></span><br><span class="line">                <span class="comment">//若不存在 则返回nums_Set.end()</span></span><br><span class="line">                result_set.<span class="built_in">insert</span>(num);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">vector</span>&lt;<span class="type">int</span>&gt;(result_set.<span class="built_in">begin</span>(), result_set.<span class="built_in">end</span>());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>复杂度分析：</p>
@@ -708,6 +715,34 @@
 </li>
 </ul>
 </li>
+</ul>
+<h1 id="4-leetcode-202-快乐数"><a href="#4-leetcode-202-快乐数" class="headerlink" title="4.leetcode-202-快乐数"></a>4.leetcode-202-快乐数</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/happy-number/description/">202. 快乐数 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>题目中表示会无限循环，也就是sum会重复出现</li>
+<li>所以需要用哈希表存储sum，如果sum重复出现了就返回false，否则一直查找直到找到sum为1为止。</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">getSum</span><span class="params">(<span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> (n) &#123;</span><br><span class="line">            sum += (n % <span class="number">10</span>) * (n % <span class="number">10</span>);<span class="comment">//平方</span></span><br><span class="line">            n /= <span class="number">10</span>;<span class="comment">//迭代</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> sum;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">isHappy</span><span class="params">(<span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">        unordered_set&lt;<span class="type">int</span>&gt; set;<span class="comment">//哈希表</span></span><br><span class="line">        <span class="comment">//无限循环</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">            <span class="type">int</span> sum = <span class="built_in">getSum</span>(n);<span class="comment">//求和函数</span></span><br><span class="line">            <span class="keyword">if</span> (sum == <span class="number">1</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;<span class="comment">//如果为1，贼返回true</span></span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (set.<span class="built_in">find</span>(sum) != set.<span class="built_in">end</span>())&#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;<span class="comment">//如果已经在哈希表钟出现则进入死循环，马上返回false</span></span><br><span class="line">            &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">                set.<span class="built_in">insert</span>(sum);<span class="comment">//插入哈希表钟</span></span><br><span class="line">            &#125;</span><br><span class="line">            n = sum;<span class="comment">//迭代n的值</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(logn)循环遍历</li>
+<li>空间复杂度：O(logn)哈希表</li>
+</ul>
+<h1 id="5-leetcode-1-两数之和"><a href="#5-leetcode-1-两数之和" class="headerlink" title="5.leetcode-1-两数之和"></a>5.leetcode-1-两数之和</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/two-sum/description/">1. 两数之和 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>需要存已经遍历过的元素，和元素的数组下标—–&gt;用map，key（元素）我们要查找的是元素，所以用key存放元素，value存放元素位置。</li>
+<li><img src="/2023/09/18/%E5%93%88%E5%B8%8C%E8%A1%A8/image-20230920103120479.png" alt="image-20230920103120479"></li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">twoSum</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums, <span class="type">int</span> target)</span> </span>&#123;</span><br><span class="line">        unordered_map&lt;<span class="type">int</span>,<span class="type">int</span>&gt; map;<span class="comment">//哈希表</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; nums.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">            <span class="type">int</span> temp = target - nums[i];<span class="comment">//差</span></span><br><span class="line">            <span class="keyword">auto</span> it = map.<span class="built_in">find</span>(temp);</span><br><span class="line">            <span class="keyword">if</span> (it != map.<span class="built_in">end</span>()) &#123;</span><br><span class="line">                <span class="comment">//找到了元素，则返回下标</span></span><br><span class="line">                <span class="keyword">return</span> &#123; it-&gt;second, i&#125;;</span><br><span class="line">            &#125;</span><br><span class="line">            map.<span class="built_in">insert</span>(<span class="built_in">pair</span>&lt;<span class="type">int</span>,<span class="type">int</span>&gt;(nums[i], i));<span class="comment">//将元素插入哈希表中</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> &#123;&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n)遍历数组</li>
+<li>空间复杂度：O(n)哈希表</li>
 </ul>
 ]]></content>
       <categories>
@@ -761,6 +796,23 @@
         <tag>多尺度</tag>
         <tag>C++</tag>
         <tag>条件滤波</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CSAPP</title>
+    <url>/2023/09/19/CSAPP/</url>
+    <content><![CDATA[<h1 id="1-第一章"><a href="#1-第一章" class="headerlink" title="1.第一章"></a>1.第一章</h1><h2 id="1-2编译"><a href="#1-2编译" class="headerlink" title="1.2编译"></a>1.2编译</h2><p>源文件编译成可执行文件：预处理器—&gt;编译器—&gt;汇编器—&gt;链接器</p>
+<p>在Linux上:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -o hello hello.c</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2023/09/19/CSAPP/image-20230919212328818.png" alt="image-20230919212328818"></p>
+]]></content>
+      <categories>
+        <category>CSAPP</category>
+      </categories>
+      <tags>
+        <tag>c</tag>
+        <tag>操作系统</tag>
       </tags>
   </entry>
 </search>
