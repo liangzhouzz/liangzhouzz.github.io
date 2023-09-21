@@ -654,13 +654,31 @@
 <li>时间复杂度：O(nlogT) n是数组大小， T是最大与最小值之差 O(logT)为二分查找的次数，O(n)为数组遍历时间</li>
 <li>空间复杂度：O(1)</li>
 </ul>
-<h1 id="7-leetcode-LP06-拿硬币-20230920"><a href="#7-leetcode-LP06-拿硬币-20230920" class="headerlink" title="7.leetcode-LP06-拿硬币-20230920"></a>7.leetcode-LP06-拿硬币-20230920</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/na-ying-bi/description/?envType=daily-question&envId=2023-09-20">LCP 06. 拿硬币 - 力扣（LeetCode）</a></p>
+<h1 id="7-leetcode-LP06-拿硬币-20230920-easy"><a href="#7-leetcode-LP06-拿硬币-20230920-easy" class="headerlink" title="7.leetcode-LP06-拿硬币-20230920-easy"></a>7.leetcode-LP06-拿硬币-20230920-easy</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/na-ying-bi/description/?envType=daily-question&envId=2023-09-20">LCP 06. 拿硬币 - 力扣（LeetCode）</a></p>
 <p><strong>代码实现：</strong></p>
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">minCount</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; coins)</span> </span>&#123;</span><br><span class="line">      <span class="type">int</span> res = <span class="number">0</span>;</span><br><span class="line">      <span class="keyword">for</span> (<span class="type">int</span> num : coins) &#123;</span><br><span class="line">        res += num / <span class="number">2</span>;</span><br><span class="line">        <span class="keyword">if</span> (num % <span class="number">2</span> == <span class="number">1</span>) res++;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
 <p><strong>复杂度分析：</strong></p>
 <p>时间复杂度：O(n)遍历数组</p>
 <p>空间复杂度：O(1)</p>
+<h1 id="8-leetcode-2603-收集树中金币-20230921-hard"><a href="#8-leetcode-2603-收集树中金币-20230921-hard" class="headerlink" title="8.leetcode-2603-收集树中金币-20230921-hard"></a>8.leetcode-2603-收集树中金币-20230921-hard</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/collect-coins-in-a-tree/description/?envType=daily-question&envId=2023-09-21">2603. 收集树中金币 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong>来自官方题解</p>
+<ul>
+<li><p>两次拓扑排序</p>
+</li>
+<li><p>对于无根树中的<code>度为1</code>的节点，称之为<code>叶节点l</code>，对于每一个叶节点如果没有金币，那么没有走到<code>叶节点l</code>，因为可以在他的相邻节点收集到。那么：</p>
+<p>如果从<code>l</code>开始出发，那么就可以改成从<code>l&#39;</code>开始出发，经过边的次数一定会减少。</p>
+<p>如果不从<code>l</code>开始出发，那么到达<code>l&#39;</code>后不必再走到<code>l</code>，经过边的次数一定会减少</p>
+</li>
+<li><p>因此，可以<strong>不断移除给定无根树中没有金币的叶节点</strong>，不断迭代这个过程，会有新的叶节点加入，直到所有的叶节点上都有金币为止</p>
+</li>
+</ul>
+<p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">collectTheCoins</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; coins, vector&lt;vector&lt;<span class="type">int</span>&gt;&gt;&amp; edges)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> n = coins.<span class="built_in">size</span>();</span><br><span class="line">        vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">g</span>(n);</span><br><span class="line">        <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">degree</span><span class="params">(n)</span></span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">const</span> <span class="keyword">auto</span>&amp; edge: edges) &#123;</span><br><span class="line">            <span class="type">int</span> x = edge[<span class="number">0</span>], y = edge[<span class="number">1</span>];</span><br><span class="line">            g[x].<span class="built_in">push_back</span>(y);</span><br><span class="line">            g[y].<span class="built_in">push_back</span>(x);</span><br><span class="line">            ++degree[x];</span><br><span class="line">            ++degree[y];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> rest = n;</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">/* 删除树中所有无金币的叶子节点，直到树中所有的叶子节点都是含有金币的 */</span></span><br><span class="line">            queue&lt;<span class="type">int</span>&gt; q;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">                <span class="keyword">if</span> (degree[i] == <span class="number">1</span> &amp;&amp; !coins[i]) &#123;</span><br><span class="line">                    q.<span class="built_in">push</span>(i);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">while</span> (!q.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">                <span class="type">int</span> u = q.<span class="built_in">front</span>();</span><br><span class="line">                --degree[u];</span><br><span class="line">                q.<span class="built_in">pop</span>();</span><br><span class="line">                --rest;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> v: g[u]) &#123;</span><br><span class="line">                    --degree[v];</span><br><span class="line">                    <span class="keyword">if</span> (degree[v] == <span class="number">1</span> &amp;&amp; !coins[v]) &#123;</span><br><span class="line">                        q.<span class="built_in">push</span>(v);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="comment">/* 删除树中所有的叶子节点, 连续删除2次 */</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> _ = <span class="number">0</span>; _ &lt; <span class="number">2</span>; ++_) &#123;</span><br><span class="line">                queue&lt;<span class="type">int</span>&gt; q;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; ++i) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (degree[i] == <span class="number">1</span>) &#123;</span><br><span class="line">                        q.<span class="built_in">push</span>(i);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">while</span> (!q.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">                    <span class="type">int</span> u = q.<span class="built_in">front</span>();</span><br><span class="line">                    --degree[u];</span><br><span class="line">                    q.<span class="built_in">pop</span>();</span><br><span class="line">                    --rest;</span><br><span class="line">                    <span class="keyword">for</span> (<span class="type">int</span> v: g[u]) &#123;</span><br><span class="line">                        --degree[v];</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> rest == <span class="number">0</span> ? <span class="number">0</span> : (rest - <span class="number">1</span>) * <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<p>时间复杂度：O(n)拓扑排序</p>
+<p>空间复杂度：O(n)构造图的邻接表</p>
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -744,6 +762,49 @@
 <li>时间复杂度：O(n)遍历数组</li>
 <li>空间复杂度：O(n)哈希表</li>
 </ul>
+<h1 id="6-leetcode-454-四数相加Ⅱ-M"><a href="#6-leetcode-454-四数相加Ⅱ-M" class="headerlink" title="6.leetcode-454-四数相加Ⅱ-M"></a>6.leetcode-454-四数相加Ⅱ-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/4sum-ii/description/">454. 四数相加 II - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>暴力遍历四个数组<code>O(n^4)</code>。</li>
+<li>先遍历<code>AB</code>两个数组，然后去剩下<code>CD</code>数组搜索<code>a+b</code>的哈希表中<code>0-(c+d)</code>有无出现。、</li>
+<li><img src="/2023/09/18/%E5%93%88%E5%B8%8C%E8%A1%A8/image-20230921103123646.png" alt="image-20230921103123646"></li>
+</ul>
+<p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">fourSumCount</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums1, vector&lt;<span class="type">int</span>&gt;&amp; nums2, vector&lt;<span class="type">int</span>&gt;&amp; nums3, vector&lt;<span class="type">int</span>&gt;&amp; nums4)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> res = <span class="number">0</span>;</span><br><span class="line">        unordered_map&lt;<span class="type">int</span>, <span class="type">int</span>&gt;cnt;</span><br><span class="line">        <span class="comment">//遍历ab数组，并存入哈希表</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> a : nums1) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> b : nums2) &#123;</span><br><span class="line">                cnt[a + b]++;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//遍历cd数组，并在哈希表中查找</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> c : nums3) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> d :nums4) &#123;</span><br><span class="line">                <span class="type">int</span> target = <span class="number">0</span> - (c + d);</span><br><span class="line">                <span class="keyword">if</span> (cnt.<span class="built_in">find</span>(target) != cnt.<span class="built_in">end</span>()) &#123;</span><br><span class="line">                    res += cnt[target];<span class="comment">//注意加的值是哈希表统计的出现次数</span></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n^2) 遍历循环</li>
+<li>空间复杂度：O(n^2)最坏的情况下，ab的值各不相同，相加产生的数字个数为n*n</li>
+</ul>
+<h1 id="7-leetcode-383-赎金信-E"><a href="#7-leetcode-383-赎金信-E" class="headerlink" title="7.leetcode-383-赎金信-E"></a>7.leetcode-383-赎金信-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/ransom-note/">383. 赎金信 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>用一个map统计ransomNote中出现字母的次数，然后遍历magazine，对map进行减减操作</li>
+<li>我这用了两个，其实用一个就行</li>
+<li>也可以用数组去实现，因为26个字母数量比较少，用数组则空间复杂度会少很多</li>
+</ul>
+<p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">canConstruct</span><span class="params">(string ransomNote, string magazine)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//可以用一个哈希表实现，第一次+=，第二次-=</span></span><br><span class="line">        unordered_map&lt;<span class="type">char</span>, <span class="type">int</span>&gt; ranmap, magamap;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">char</span> c : ransomNote)&#123;</span><br><span class="line">            ranmap[c]++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">char</span> c : magazine)&#123;</span><br><span class="line">            magamap[c]++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">char</span> c : ransomNote)&#123;</span><br><span class="line">            <span class="keyword">if</span>(ranmap[c] &gt; magamap[c])&#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n) 遍历数组</li>
+<li>空间复杂度：O(n) 哈希表</li>
+</ul>
+<h1 id="8-leetcode-15-三数之和-M"><a href="#8-leetcode-15-三数之和-M" class="headerlink" title="8.leetcode-15-三数之和-M"></a>8.leetcode-15-三数之和-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/3sum/description/">15. 三数之和 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>用哈希表，因为要<strong>去重</strong>容易超时，这题可以用双指针</li>
+<li>对数组进行排序，a+b+c&#x3D;0，a可以设置成i，b对应left，c对应right。</li>
+<li>若之和大于0，right–</li>
+<li>若小于0，left++；</li>
+<li>注意去重。不要判断结果集里两个元素是否相等例如（<code>nums[i] == nums[i+1]</code>），可以写成判断<code>nums[i] == nums[i-1]</code>需要判断<code>i&gt;0</code></li>
+<li><img src="/2023/09/18/%E5%93%88%E5%B8%8C%E8%A1%A8/image-20230921144953122.png" alt="image-20230921144953122"></li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">threeSum</span>(vector&lt;<span class="type">int</span>&gt;&amp; nums) &#123;</span><br><span class="line">        <span class="built_in">sort</span>(nums.<span class="built_in">begin</span>(), nums.<span class="built_in">end</span>());</span><br><span class="line">        <span class="type">int</span> n = nums.<span class="built_in">size</span>();</span><br><span class="line">        vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; res;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (nums[i] &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> res;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">//注意判断条件</span></span><br><span class="line">            <span class="keyword">if</span> (i &gt; <span class="number">0</span> &amp;&amp; nums[i] == nums[i - <span class="number">1</span>]) <span class="keyword">continue</span>;<span class="comment">//对a去重！！！</span></span><br><span class="line">            <span class="type">int</span> left = i + <span class="number">1</span>;</span><br><span class="line">            <span class="type">int</span> right = n - <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">while</span> (left &lt; right) &#123;</span><br><span class="line">                <span class="keyword">if</span> (nums[i] + nums[left] + nums[right] &lt; <span class="number">0</span>) &#123;</span><br><span class="line">                    left = left + <span class="number">1</span>;<span class="comment">//left右移变大</span></span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (nums[i] + nums[left] + nums[right] &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    right = right - <span class="number">1</span>;<span class="comment">//right 变小</span></span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    res.<span class="built_in">push_back</span>(&#123;nums[i], nums[left], nums[right]&#125;);</span><br><span class="line">                    <span class="comment">//对b，c去重</span></span><br><span class="line">                    <span class="keyword">while</span> (left &lt; right &amp;&amp; nums[left] == nums[left + <span class="number">1</span>]) left++;</span><br><span class="line">                    <span class="keyword">while</span> (left &lt; right &amp;&amp; nums[right] == nums[right - <span class="number">1</span>]) right--;</span><br><span class="line">					<span class="comment">//找到答案时双指针同时收缩</span></span><br><span class="line">                    left++;</span><br><span class="line">                    right--;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -806,6 +867,19 @@
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">gcc -o hello hello.c</span><br></pre></td></tr></table></figure>
 
 <p><img src="/2023/09/19/CSAPP/image-20230919212328818.png" alt="image-20230919212328818"></p>
+<h1 id="2-第二章：信息的表示和处理"><a href="#2-第二章：信息的表示和处理" class="headerlink" title="2.第二章：信息的表示和处理"></a>2.第二章：信息的表示和处理</h1><p><strong>三种符号表示：</strong></p>
+<ul>
+<li>无符号编码 unsigned encodings ：传统的二进制编码，用于表示大于等于0的数。</li>
+<li>补码编码 Two‘s-complement encodings：表示有符号整数，用于表示正数和负数。</li>
+<li>浮点数编码 Floating-point encodings：表示实数以2为基数的科学计数法。</li>
+</ul>
+<p><strong>浮点数溢出：</strong></p>
+<ul>
+<li>浮点数计算没有乘法结合律。其溢出的大小是<code>+∞</code>，即<code>(3.14+1e20)-1e20</code>答案会是<code>0</code>，<code>3.14+(1e20-1e20)</code>的结果是<code>3.14</code>。</li>
+</ul>
+<h2 id="2-1信息存储"><a href="#2-1信息存储" class="headerlink" title="2.1信息存储"></a>2.1信息存储</h2><p>机器层级程序将内存视为大的字节数组，即为<strong>虚拟内存</strong>。</p>
+<h3 id="2-1-1-hexadecimal-notation-十六进制表示法"><a href="#2-1-1-hexadecimal-notation-十六进制表示法" class="headerlink" title="2.1.1 hexadecimal notation 十六进制表示法"></a>2.1.1 hexadecimal notation 十六进制表示法</h3><p>16进制表示位操作比较方便，其用数字0-9，以及字母A-F表示16位数。</p>
+<p><img src="/2023/09/19/CSAPP/image-20230920221427329.png" alt="2，10，16进制转换表"></p>
 ]]></content>
       <categories>
         <category>CSAPP</category>
