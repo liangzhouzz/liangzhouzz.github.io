@@ -765,6 +765,24 @@
 <li>时间复杂度：<code>get</code>何<code>put</code>的时间<code>O(1)</code>，都只是用了哈希表的插入删除和链表的插入删除</li>
 <li>空间复杂度：<code>O(capacity)</code></li>
 </ul>
+<h1 id="13-leetcode-2582-递枕头-20230926-E"><a href="#13-leetcode-2582-递枕头-20230926-E" class="headerlink" title="13.leetcode-2582-递枕头-20230926-E"></a>13.leetcode-2582-递枕头-20230926-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/pass-the-pillow/description/?envType=daily-question&envId=2023-09-26">2582. 递枕头 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>暴力直接模拟，时间复杂度为<code>O(n)</code>，空间为<code>O(1)</code></li>
+<li>优化：每经过<code>2x(n-1)</code>的时间，枕头都会传回起点，可以让<code>time</code>对<code>2x(n-1)</code>取模求余<ul>
+<li>如果<code>time&lt;n</code>，枕头没有传递到队尾，传递到<code>time +1</code>.</li>
+<li>如果<code>time&gt;=n</code>，枕头已传递过队尾，传递到<code>n-(time-(n-1)) = 2n - time -1</code>。</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">passThePillow</span><span class="params">(<span class="type">int</span> n, <span class="type">int</span> time)</span> </span>&#123;</span><br><span class="line">        time %= (n - <span class="number">1</span>) *<span class="number">2</span>;<span class="comment">//</span></span><br><span class="line">        <span class="keyword">return</span> time &lt; n ? time + <span class="number">1</span> : n * <span class="number">2</span> - time - <span class="number">1</span>; </span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(1)</li>
+<li>空间复杂度：O(1)</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -1084,6 +1102,78 @@
 <p><strong>复杂度分析：</strong></p>
 <ul>
 <li>时间复杂度：O(n)</li>
+<li>空间复杂度：O(1)</li>
+</ul>
+<h1 id="4-leetcode-151-反转字符串中的单词-M"><a href="#4-leetcode-151-反转字符串中的单词-M" class="headerlink" title="4.leetcode-151-反转字符串中的单词-M"></a>4.leetcode-151-反转字符串中的单词-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/reverse-words-in-a-string/">151. 反转字符串中的单词 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>先把字符串反转，在针对单个单词进行反转</li>
+<li>删除多于的空格：快慢指针<ul>
+<li><code>erase()</code>复杂度<code>O(n)</code>，如果嵌套<code>for</code>循环则复杂度到<code>O(n^2)</code></li>
+<li>优化：空间复杂度<code>O(1)</code> 原地修改字符串</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">string <span class="title">reverseWords</span><span class="params">(string s)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//反转整个字符串</span></span><br><span class="line">        <span class="built_in">reverse</span>(s.<span class="built_in">begin</span>(), s.<span class="built_in">end</span>());</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> n = s.<span class="built_in">size</span>();</span><br><span class="line">        <span class="type">int</span> idx = <span class="number">0</span>;<span class="comment">//用于记录已处理的字符位置</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> start = <span class="number">0</span>; start &lt; n; start++)&#123;</span><br><span class="line">            <span class="comment">//如果不是空格则遇到了单词</span></span><br><span class="line">            <span class="keyword">if</span>(s[start] != <span class="string">&#x27; &#x27;</span>)&#123;</span><br><span class="line">                <span class="comment">//idx不等于0，则说明不是第一个单词 需要加空格</span></span><br><span class="line">                <span class="keyword">if</span>(idx != <span class="number">0</span>)&#123;</span><br><span class="line">                    s[idx++] = <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//用于找到当前单词的末尾位置</span></span><br><span class="line">                <span class="type">int</span> end = start;<span class="comment">//快慢指针</span></span><br><span class="line">                <span class="keyword">while</span>(end &lt; n &amp;&amp; s[end] != <span class="string">&#x27; &#x27;</span>)&#123;</span><br><span class="line">                    s[idx++] = s[end++];<span class="comment">//不是空格则补上该单词</span></span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">//反转整个单词 有一些空格删去了</span></span><br><span class="line">                <span class="built_in">reverse</span>(s.<span class="built_in">begin</span>() + idx - (end - start), s.<span class="built_in">begin</span>() + idx);</span><br><span class="line">                <span class="comment">//更新start 寻找下一个单词</span></span><br><span class="line">                start = end;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        s.<span class="built_in">erase</span>(s.<span class="built_in">begin</span>() + idx, s.<span class="built_in">end</span>());<span class="comment">//将字符多余部分删除，可能有多余的空格</span></span><br><span class="line">        <span class="keyword">return</span> s;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n)</li>
+<li>空间复杂度：O(1)</li>
+</ul>
+<h1 id="5-leecode-LCR-182-动态口令-E"><a href="#5-leecode-LCR-182-动态口令-E" class="headerlink" title="5.leecode-LCR-182-动态口令-E"></a>5.leecode-LCR-182-动态口令-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/zuo-xuan-zhuan-zi-fu-chuan-lcof/description/">LCR 182. 动态口令 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li><p>不能申请额外空间，只能在本字符串上操作。</p>
+</li>
+<li><p>通过局部反转+整体反转</p>
+</li>
+<li><p>具体步骤：</p>
+<ul>
+<li>反转区间为前n的子串</li>
+<li>反转区间为n到末尾的子串</li>
+<li>反转整个字符串</li>
+</ul>
+</li>
+<li><p><img src="/2023/09/25/%E5%AD%97%E7%AC%A6%E4%B8%B2/image-20231004102501904.png" alt="image-20231004102501904"></p>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">string <span class="title">dynamicPassword</span><span class="params">(string password, <span class="type">int</span> target)</span> </span>&#123;</span><br><span class="line">        <span class="built_in">reverse</span>(password.<span class="built_in">begin</span>(), password.<span class="built_in">begin</span>() + target);<span class="comment">//第一次反转</span></span><br><span class="line">        <span class="built_in">reverse</span>(password.<span class="built_in">begin</span>() + target, password.<span class="built_in">end</span>());<span class="comment">//第二次反转</span></span><br><span class="line">        <span class="built_in">reverse</span>(password.<span class="built_in">begin</span>(), password.<span class="built_in">end</span>());<span class="comment">//最后反转</span></span><br><span class="line">        <span class="keyword">return</span> password;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n) 反转字符串</li>
+<li>空间复杂度：O(1) 在原字符串上操作</li>
+</ul>
+<h1 id="6-leetcode-28-找出字符串中第一个匹配项的下标-E"><a href="#6-leetcode-28-找出字符串中第一个匹配项的下标-E" class="headerlink" title="6.leetcode-28-找出字符串中第一个匹配项的下标-E"></a>6.leetcode-28-找出字符串中第一个匹配项的下标-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/find-the-index-of-the-first-occurrence-in-a-string/description/">28. 找出字符串中第一个匹配项的下标 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li><code>KMP</code>算法：解决字符串匹配的问题<ul>
+<li>前缀：包含首字母，不包含尾字母的所有子串</li>
+<li>后缀：包含尾字母，不包含首字符的所有子串</li>
+<li>求最长相等前后缀</li>
+<li><img src="/2023/09/25/%E5%AD%97%E7%AC%A6%E4%B8%B2/image-20231004105940218.png" alt="前缀表"></li>
+<li><code>next</code>数组作为前缀表存储数组</li>
+</ul>
+</li>
+<li>i表示后缀末尾，j表示前缀末尾以及最长相等前后缀的值</li>
+</ul>
+<p><strong>kmp代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">getNext</span><span class="params">(<span class="type">int</span>* next, <span class="type">const</span> string&amp; s)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> j = <span class="number">0</span>;</span><br><span class="line">        next[<span class="number">0</span>] = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">1</span>; i &lt; s.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">            <span class="keyword">while</span> (j &gt; <span class="number">0</span> &amp;&amp; s[i] != s[j]) &#123;</span><br><span class="line">                j = next[j - <span class="number">1</span>];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (s[i] == s[j]) &#123;</span><br><span class="line">                j++;</span><br><span class="line">            &#125;</span><br><span class="line">            next[i] = j;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">strStr</span><span class="params">(string haystack, string needle)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (needle.<span class="built_in">size</span>() == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> next[needle.<span class="built_in">size</span>()];</span><br><span class="line">        <span class="built_in">getNext</span>(next, needle);</span><br><span class="line">        <span class="type">int</span> j = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; haystack.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">            <span class="keyword">while</span>(j &gt; <span class="number">0</span> &amp;&amp; haystack[i] != needle[j]) &#123;</span><br><span class="line">                j = next[j - <span class="number">1</span>];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (haystack[i] == needle[j]) &#123;</span><br><span class="line">                j++;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (j == needle.<span class="built_in">size</span>() ) &#123;</span><br><span class="line">                <span class="keyword">return</span> (i - needle.<span class="built_in">size</span>() + <span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n+m)</li>
+<li>空间复杂度：O(m)</li>
+</ul>
+<p><strong>暴力法代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">strStr</span><span class="params">(string haystack, string needle)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> n = haystack.<span class="built_in">size</span>(), m = needle.<span class="built_in">size</span>(), ans = <span class="number">-1</span>;</span><br><span class="line">        <span class="keyword">if</span>(m &gt; n) <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; i++)&#123;</span><br><span class="line">            <span class="keyword">if</span>(haystack[i] == needle[<span class="number">0</span>])&#123;</span><br><span class="line">                <span class="type">int</span> count = <span class="number">0</span>;</span><br><span class="line">                <span class="keyword">for</span>(<span class="type">int</span> j = m - <span class="number">1</span>; j &gt;= <span class="number">0</span>; j--)&#123;</span><br><span class="line">                    <span class="keyword">if</span>(i + j &lt; n &amp;&amp; needle[j] == haystack[i + j])&#123;</span><br><span class="line">                        count++;<span class="comment">//向后匹配</span></span><br><span class="line">                        <span class="keyword">continue</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span>(count == m)&#123;</span><br><span class="line">                    ans = i;</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ans;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n+m)</li>
 <li>空间复杂度：O(1)</li>
 </ul>
 ]]></content>
