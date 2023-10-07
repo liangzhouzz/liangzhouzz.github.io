@@ -783,7 +783,7 @@
 <li>时间复杂度：O(1)</li>
 <li>空间复杂度：O(1)</li>
 </ul>
-<h1 id="14-leetcode-714-买卖股票的最佳时机含手续费-M"><a href="#14-leetcode-714-买卖股票的最佳时机含手续费-M" class="headerlink" title="14.leetcode-714-买卖股票的最佳时机含手续费-M"></a>14.leetcode-714-买卖股票的最佳时机含手续费-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/?envType=daily-question&envId=2023-10-06">714. 买卖股票的最佳时机含手续费 - 力扣（LeetCode）</a></p>
+<h1 id="14-leetcode-714-买卖股票的最佳时机含手续费-20231006-M"><a href="#14-leetcode-714-买卖股票的最佳时机含手续费-20231006-M" class="headerlink" title="14.leetcode-714-买卖股票的最佳时机含手续费-20231006-M"></a>14.leetcode-714-买卖股票的最佳时机含手续费-20231006-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/?envType=daily-question&envId=2023-10-06">714. 买卖股票的最佳时机含手续费 - 力扣（LeetCode）</a></p>
 <p><strong>思路：</strong><a href="https://leetcode.cn/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/solutions/524669/mai-mai-gu-piao-de-zui-jia-shi-ji-han-sh-rzlz/?envType=daily-question&envId=2023-10-06">714. 买卖股票的最佳时机含手续费 - 力扣（LeetCode）</a></p>
 <ul>
 <li>方法一：DP</li>
@@ -804,6 +804,24 @@
 <ul>
 <li>时间复杂度：O(n)，遍历数组</li>
 <li>空间复杂度：O(1)</li>
+</ul>
+<h1 id="15-leetcode-901-股票价格跨度-20231007-M"><a href="#15-leetcode-901-股票价格跨度-20231007-M" class="headerlink" title="15.leetcode-901-股票价格跨度-20231007-M"></a>15.leetcode-901-股票价格跨度-20231007-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/online-stock-span/description/?envType=daily-question&envId=2023-10-07">901. 股票价格跨度 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong><a href="https://www.bilibili.com/video/BV1VN411J7S7/?vd_source=fa4d4e7f9b99f8e27a2b9dca08ea044a">单调栈【基础算法精讲 26】_哔哩哔哩_bilibili</a></p>
+<ul>
+<li>初始化类对象<code>StockSpanner()</code></li>
+<li><code>int next (int price)</code> 给出今天的股价<code>price</code>，返回该股票当日价格的跨度。</li>
+<li>单调栈<ul>
+<li>调用<code>next</code>时，输入是新的一天的股票价格，需要返回包含此日在内的，往前数最多有多少个连续日的股票价格是小于今日股票价格的。</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">StockSpanner</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//构造函数</span></span><br><span class="line">    <span class="built_in">StockSpanner</span>() &#123;</span><br><span class="line">        <span class="comment">//在stk栈中插入一个初始元素，使用emplace插入一个pair 第一个元素是-1，第二个元素是INT_MAX，第一个元素表示没有比它更小的元素的索引，第二个元素表示个非常大的价格，以确保后续价格都可以比较</span></span><br><span class="line">        <span class="keyword">this</span>-&gt;stk.<span class="built_in">emplace</span>(<span class="number">-1</span>, INT_MAX);</span><br><span class="line">        <span class="keyword">this</span>-&gt;idx = <span class="number">-1</span>;<span class="comment">//初始化为-1，表示还没有输入任何价格的股票</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">next</span><span class="params">(<span class="type">int</span> price)</span> </span>&#123;</span><br><span class="line">        idx++;<span class="comment">//表示输入了一个新的股票价格</span></span><br><span class="line">        <span class="comment">//不断出栈，知道栈顶元素的价格小于当前输入的价格----》用于确保栈中的所有元素都是小于当前价格的</span></span><br><span class="line">        <span class="keyword">while</span> (price &gt;= stk.<span class="built_in">top</span>().second) &#123;</span><br><span class="line">            stk.<span class="built_in">pop</span>();<span class="comment">//出栈</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> ret = idx - (stk.<span class="built_in">top</span>().first);<span class="comment">//统计股票跨度</span></span><br><span class="line">        stk.<span class="built_in">emplace</span>(idx, price);<span class="comment">//当前股票的索引和价格插入到栈stk中，以便后续计算</span></span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    stack&lt;pair&lt;<span class="type">int</span>, <span class="type">int</span>&gt;&gt; stk;</span><br><span class="line">    <span class="type">int</span> idx;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>复杂度分析：</p>
+<ul>
+<li>时间复杂度：O(n)，调用next的次数</li>
+<li>空间复杂度：O(n)，栈中元素</li>
 </ul>
 ]]></content>
       <categories>
@@ -1093,7 +1111,35 @@
 <li><img src="/2023/09/19/CSAPP/image-20231004204849433.png" alt="例子"></li>
 <li><img src="/2023/09/19/CSAPP/image-20231004205315694.png" alt="例子2"></li>
 </ul>
-<h3 id="2-2-5-signed-versus-unsigned-in-C-c语言中的有符号和无符号"><a href="#2-2-5-signed-versus-unsigned-in-C-c语言中的有符号和无符号" class="headerlink" title="2.2.5 signed versus unsigned in C c语言中的有符号和无符号"></a>2.2.5 signed versus unsigned in C c语言中的有符号和无符号</h3>]]></content>
+<h3 id="2-2-5-signed-versus-unsigned-in-C-c语言中的有符号和无符号"><a href="#2-2-5-signed-versus-unsigned-in-C-c语言中的有符号和无符号" class="headerlink" title="2.2.5 signed versus unsigned in C c语言中的有符号和无符号"></a>2.2.5 signed versus unsigned in C c语言中的有符号和无符号</h3><ul>
+<li>大多数都默认有符号，若要采用无符号时。则添加后缀<code>U</code>或者<code>u</code>。</li>
+<li>当C语言处理包含一个有符号，另一个无符号的数量表达式时，会隐式的将有符号参数转换为无符号参数进行操作，如下图（<code>*</code>号表示隐式转换）<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231006211527406.png" alt="有符号和无符号操作"></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-2-6-expanding-the-bit-representation-of-a-number-拓展数字的位表示"><a href="#2-2-6-expanding-the-bit-representation-of-a-number-拓展数字的位表示" class="headerlink" title="2.2.6 expanding the bit representation of a number 拓展数字的位表示"></a>2.2.6 expanding the bit representation of a number 拓展数字的位表示</h3><ul>
+<li>当使用无符号数向大的数据格式进行转换时，可以使用零扩展</li>
+<li>将补码数（有符号数）转换为更大的数据格式进行转换时，进行符号拓展，即将最高有效位的副本添加在表示中<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231006214135381.png" alt="符号拓展"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231006214245178.png" alt="栗子"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231006214318187.png" alt="栗子2"></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-2-7-truncating-numbers-截断数字"><a href="#2-2-7-truncating-numbers-截断数字" class="headerlink" title="2.2.7 truncating numbers 截断数字"></a>2.2.7 truncating numbers 截断数字</h3><ul>
+<li><img src="/2023/09/19/CSAPP/image-20231006215059758.png" alt="image-20231006215059758"></li>
+<li>将w位数字截断为k位数字的时候，首先删除W-K位，然后截断一个数字 表征他的溢出形式<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231006215547234.png" alt="image-20231006215547234"></li>
+</ul>
+</li>
+<li>对于有符号数，类似，但需要将最高位转换为符号位：<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231006215712492.png" alt="image-20231006215712492"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231006215737301.png" alt="image-20231006215737301"></li>
+</ul>
+</li>
+</ul>
+<h2 id="2-3-integer-arithmetic-整数算数"><a href="#2-3-integer-arithmetic-整数算数" class="headerlink" title="2.3 integer arithmetic 整数算数"></a>2.3 integer arithmetic 整数算数</h2><h3 id="2-3-1-unsigned-addition-无符号相加"><a href="#2-3-1-unsigned-addition-无符号相加" class="headerlink" title="2.3.1 unsigned addition 无符号相加"></a>2.3.1 unsigned addition 无符号相加</h3>]]></content>
       <categories>
         <category>CSAPP</category>
       </categories>
