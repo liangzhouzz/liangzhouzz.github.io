@@ -808,6 +808,7 @@
 <h1 id="15-leetcode-901-股票价格跨度-20231007-M"><a href="#15-leetcode-901-股票价格跨度-20231007-M" class="headerlink" title="15.leetcode-901-股票价格跨度-20231007-M"></a>15.leetcode-901-股票价格跨度-20231007-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/online-stock-span/description/?envType=daily-question&envId=2023-10-07">901. 股票价格跨度 - 力扣（LeetCode）</a></p>
 <p><strong>思路：</strong><a href="https://www.bilibili.com/video/BV1VN411J7S7/?vd_source=fa4d4e7f9b99f8e27a2b9dca08ea044a">单调栈【基础算法精讲 26】_哔哩哔哩_bilibili</a></p>
 <ul>
+<li>及时去掉无用的数据</li>
 <li>初始化类对象<code>StockSpanner()</code></li>
 <li><code>int next (int price)</code> 给出今天的股价<code>price</code>，返回该股票当日价格的跨度。</li>
 <li>单调栈<ul>
@@ -837,6 +838,41 @@
 <ul>
 <li>时间复杂度：O(logn) 更新操作和返回股票最低最高价格</li>
 <li>空间复杂度：O(n) n是更新操作次数</li>
+</ul>
+<h1 id="17-leetcode-2578-最小和分割-20231009-E"><a href="#17-leetcode-2578-最小和分割-20231009-E" class="headerlink" title="17.leetcode-2578-最小和分割-20231009-E"></a>17.leetcode-2578-最小和分割-20231009-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/split-with-minimum-sum/description/?envType=daily-question&envId=2023-10-09">2578. 最小和分割 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>需要保证<code>num1</code>和<code>num2</code>所有数字出现的次数与<code>num</code>中次数一致</li>
+<li>毫无疑问，<code>num1</code>与<code>num2</code>中的值都是单调递增的，否则则可以获得更小的值</li>
+<li>任何一个数字，都不能大于任何一个数中比它位数更小的数字，例如23和32</li>
+<li><code>num1</code>与<code>num2</code>的位数差不能超过<code>1</code>位</li>
+<li>因此得出最小和分割的方法<ul>
+<li><code>num</code>数字进行排序</li>
+<li>然后按照递增顺序进行交替分割</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">splitNum</span><span class="params">(<span class="type">int</span> num)</span> </span>&#123;</span><br><span class="line">        string stnum = <span class="built_in">to_string</span>(num);<span class="comment">//分割每个数字出来</span></span><br><span class="line">        <span class="built_in">sort</span>(stnum.<span class="built_in">begin</span>(), stnum.<span class="built_in">end</span>());<span class="comment">//排序</span></span><br><span class="line">        <span class="type">int</span> num1 = <span class="number">0</span>, num2 = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; stnum.<span class="built_in">size</span>(); ++i)&#123;</span><br><span class="line">            <span class="comment">//交替分配</span></span><br><span class="line">            <span class="keyword">if</span>(i % <span class="number">2</span> == <span class="number">0</span>) &#123;</span><br><span class="line">                num1 = num1 * <span class="number">10</span> + (stnum[i] - <span class="string">&#x27;0&#x27;</span>);</span><br><span class="line">            &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">                num2 = num2 * <span class="number">10</span> + (stnum[i] - <span class="string">&#x27;0&#x27;</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> num1 + num2;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：<code>O(logn * loglogn)</code>。 <code>num</code>的数位个数为<code>O(log num)</code>，因此排序需要<code>O(log num * loglog num)</code></li>
+<li>空间复杂度：<code>O(log n)</code> 数位个数</li>
+</ul>
+<h1 id="18-leetcode-2731-移动机器人-20231010-M"><a href="#18-leetcode-2731-移动机器人-20231010-M" class="headerlink" title="18.leetcode-2731-移动机器人-20231010-M"></a>18.leetcode-2731-移动机器人-20231010-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/movement-of-robots/description/?envType=daily-question&envId=2023-10-10">2731. 移动机器人 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong><a href="https://leetcode.cn/problems/movement-of-robots/solutions/2470646/yi-dong-ji-qi-ren-by-leetcode-solution-tm4n/?envType=daily-question&envId=2023-10-10">2731. 移动机器人 - 力扣（LeetCode）</a></p>
+<ul>
+<li>当两个机器人碰撞时，会沿着原本相反的方向移动，但机器人没有任何区别，相撞可以看为穿透，即原本左边的相撞后看成右边的，原本右边的相撞后交换为左边的，因此<strong>可以无视相撞</strong></li>
+<li>用<code>pos[i]</code>表示第<code>i</code>个机器人<code>d</code>秒后的位置，然后对<code>pos</code>数组进行排序</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="type">static</span> <span class="keyword">constexpr</span> <span class="type">int</span> mod = <span class="number">1e9</span> + <span class="number">7</span>;<span class="comment">//静态常量</span></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">sumDistance</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums, string s, <span class="type">int</span> d)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> n = nums.<span class="built_in">size</span>();</span><br><span class="line">        <span class="function">vector&lt;<span class="type">long</span> <span class="type">long</span>&gt; <span class="title">pos</span><span class="params">(n)</span></span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (s[i] == <span class="string">&#x27;L&#x27;</span>) &#123;</span><br><span class="line">                pos[i] = (<span class="type">long</span> <span class="type">long</span>) nums[i] - d;<span class="comment">//左移</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                pos[i] = (<span class="type">long</span> <span class="type">long</span>) nums[i] + d;<span class="comment">//右移</span></span><br><span class="line">            &#125;</span><br><span class="line">             </span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">sort</span>(pos.<span class="built_in">begin</span>(), pos.<span class="built_in">end</span>());<span class="comment">//升序排列</span></span><br><span class="line">        <span class="type">long</span> <span class="type">long</span> res = <span class="number">0</span>;</span><br><span class="line">        <span class="comment">//遍历排序后的数组，计算两两之间的距离</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; n; i++) &#123;</span><br><span class="line">            <span class="comment">//1ll 确保乘法的结果位长整数型 然后取模防止整数溢出</span></span><br><span class="line">            res += <span class="number">1ll</span> * (pos[i] - pos[i - <span class="number">1</span>]) * i % mod * (n - i) % mod;</span><br><span class="line">            res %= mod;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n logn)排序</li>
+<li>空间复杂度：O(n) pos数组</li>
 </ul>
 ]]></content>
       <categories>
@@ -1051,12 +1087,13 @@
 <p><img src="/2023/09/19/CSAPP/image-20230919212328818.png" alt="image-20230919212328818"></p>
 <h1 id="2-第二章：信息的表示和处理"><a href="#2-第二章：信息的表示和处理" class="headerlink" title="2.第二章：信息的表示和处理"></a>2.第二章：信息的表示和处理</h1><p><strong>三种符号表示：</strong></p>
 <ul>
-<li>无符号编码 unsigned encodings ：传统的二进制编码，用于表示大于等于0的数。</li>
-<li>补码编码 Two‘s-complement encodings：表示有符号整数，用于表示正数和负数。</li>
-<li>浮点数编码 Floating-point encodings：表示实数以2为基数的科学计数法。</li>
+<li>无符号编码 unsigned encodings ：传统的二进制编码，用于表示<strong>大于等于0</strong>的数。</li>
+<li>补码编码 Two‘s-complement encodings：表示有符号整数，用于表示<strong>正数和负数</strong>。</li>
+<li>浮点数编码 Floating-point encodings：表示实数以<strong>2为基数的科学计数法</strong>。</li>
 </ul>
 <p><strong>浮点数溢出：</strong></p>
 <ul>
+<li>整数时精确表示，浮点数是近似表示</li>
 <li>浮点数计算没有乘法结合律。其溢出的大小是<code>+∞</code>，即<code>(3.14+1e20)-1e20</code>答案会是<code>0</code>，<code>3.14+(1e20-1e20)</code>的结果是<code>3.14</code>。</li>
 </ul>
 <h2 id="2-1信息存储"><a href="#2-1信息存储" class="headerlink" title="2.1信息存储"></a>2.1信息存储</h2><p>机器层级程序将内存视为大的字节数组，即为<strong>虚拟内存</strong>。</p>
@@ -1071,60 +1108,102 @@
 <h3 id="2-1-2-Data-sizes-数据大小"><a href="#2-1-2-Data-sizes-数据大小" class="headerlink" title="2.1.2 Data sizes 数据大小"></a>2.1.2 Data sizes 数据大小</h3><ul>
 <li>对于具有<code>W</code>字节大小的机器，虚拟地址的范围可以从<code>0 - (2^w-1)</code></li>
 <li>在<code>64位</code>操作系统中，<code>int</code>为<code>4字节</code>；在<code>32位</code>操作系统中，<code>long</code>为<code>4字节</code>，在<code>64位</code>时为<code>8字节</code>。</li>
-<li>为了避免编译器和操作系统的原因，在isoc99中，规定了<code>int32_t</code>和<code>int64_t</code>分别表示<code>4字节</code>和<code>8字节</code>，不受到编译器和系统的影响。</li>
+<li>为了避免编译器和操作系统的原因，在<code>iso  c99</code>中，规定了<code>int32_t</code>和<code>int64_t</code>分别表示<code>4字节</code>和<code>8字节</code>，不受到编译器和系统的影响。</li>
+<li>char * 指针，使用程序的全字长。</li>
 <li><img src="/2023/09/19/CSAPP/image-20230921193920402.png" alt="c语言中每个数据对应的字节大小"></li>
 </ul>
 <h3 id="2-1-3-Addressing-and-byte-ordering-寻址和字节顺序"><a href="#2-1-3-Addressing-and-byte-ordering-寻址和字节顺序" class="headerlink" title="2.1.3 Addressing and byte ordering 寻址和字节顺序"></a>2.1.3 Addressing and byte ordering 寻址和字节顺序</h3><ul>
-<li><p>大端：<strong>即内存低地址存放数据高位字节</strong>，内存高地址存放数据低位字节。</p>
+<li><p>大端：<strong>即内存低地址存放数据高位字节</strong>，内存高地址存放数据低位字节。最高有效字节在最前面的方式</p>
 </li>
 <li><p><img src="/2023/09/19/CSAPP/image-20230921195819228.png" alt="大端"></p>
 </li>
-<li><p>小端：<strong>即内存低地址存放数据低位字节</strong>，内存高地址存放数据高位字节。</p>
+<li><p>小端：<strong>即内存低地址存放数据低位字节</strong>，内存高地址存放数据高位字节。最低有效字节在最前面的方式</p>
 </li>
 <li><p><img src="/2023/09/19/CSAPP/image-20230921195856176.png" alt="小端"></p>
 </li>
 <li><p><img src="/2023/09/19/CSAPP/image-20230921202116110.png" alt="image-20230921202116110"></p>
 </li>
-<li><p><code>typedef</code> 提高了代码的可读性，也就是起别名。。。</p>
+<li><p><code>typedef</code> 提高了代码的可读性，也就是<strong>起别名。。。</strong></p>
 </li>
 </ul>
 <h3 id="2-1-4字符串的表示"><a href="#2-1-4字符串的表示" class="headerlink" title="2.1.4字符串的表示"></a>2.1.4字符串的表示</h3><h3 id="2-1-6-introduction-to-Boolean-algebra-布尔代数的介绍"><a href="#2-1-6-introduction-to-Boolean-algebra-布尔代数的介绍" class="headerlink" title="2.1.6 introduction to Boolean algebra 布尔代数的介绍"></a>2.1.6 introduction to Boolean algebra 布尔代数的介绍</h3><ul>
-<li><code>非~</code>、<code>与&amp;</code>、<code>或|</code>、<code>异或^</code>。</li>
-<li><img src="/2023/09/19/CSAPP/image-20230921204632371.png" alt="image-20230921204632371"></li>
+<li><p><code>非~</code>、<code>与&amp;</code>、<code>或|</code>、<code>异或^</code>。</p>
+</li>
+<li><p><img src="/2023/09/19/CSAPP/image-20230921204632371.png" alt="image-20230921204632371"></p>
+</li>
+<li><p>位向量  用int或char来单纯表示0、1过于浪费空间，只需要用一个二进制的位就够了。</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231009195826433.png" alt="位向量"></li>
+</ul>
+</li>
 </ul>
 <h3 id="2-1-7-bit-level-operations-in-C-c语言中的位操作"><a href="#2-1-7-bit-level-operations-in-C-c语言中的位操作" class="headerlink" title="2.1.7 bit-level operations in C c语言中的位操作"></a>2.1.7 bit-level operations in C c语言中的位操作</h3><ul>
-<li>进行位操作时先将16进制转换位2进制，进行位操作，操作完了在转换为16进制</li>
-<li><img src="/2023/09/19/CSAPP/image-20230921205258722.png" alt="image-20230921205258722"></li>
+<li><p>进行位操作时先将16进制转换位2进制，进行位操作，操作完了在转换为16进制</p>
+</li>
+<li><p><img src="/2023/09/19/CSAPP/image-20230921205258722.png" alt="2."></p>
+</li>
+<li><p>练习题2.13 bis&#x2F;bic实现 逻辑运算实现即可</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231009201405400.png" alt="习题2.13"></li>
+</ul>
+</li>
 </ul>
 <h3 id="2-1-8-logical-operations-in-C-c语言中的逻辑运算"><a href="#2-1-8-logical-operations-in-C-c语言中的逻辑运算" class="headerlink" title="2.1.8 logical operations in C c语言中的逻辑运算"></a>2.1.8 logical operations in C c语言中的逻辑运算</h3><ul>
 <li><p>逻辑运算符：<code>||或</code> 、<code>&amp;&amp;与</code> 、<code>！非</code>。</p>
 </li>
-<li><p>逻辑运算符将任何<code>非0</code>的参数视为<code>true</code>，将<code>参数0</code>视为<code>false</code>。</p>
+<li><p><strong>逻辑运算与位运算的功能完全不同</strong>，逻辑运算符将任何<code>非0</code>的参数视为<code>true</code>，将<code>参数0</code>视为<code>false</code>。</p>
 </li>
 <li><p>逻辑运算符与位运算符区别：</p>
 <p>只在参数<strong>严格</strong>限制为<code>0</code>或<code>1</code>的情况下，才会对应</p>
-<p>如果可以计算第一个表达式的结果，则逻辑运算符不会计算第二个表达式，例如<code>”&amp;&amp; 5/a“</code>永远不会表示被<code>0</code>除；<code>”p &amp;&amp; *p++“</code> 永远不会导致空指针的取消引用。</p>
+<p>如果可以计算第一个表达式的结果，则逻辑运算符不会计算第二个表达式，例如<code>”&amp;&amp; 5/a“</code>永远不会表示被<code>0</code>除；<code>”p &amp;&amp; *p++“</code> 永远不会导致空指针的取消引用。——–》即如果能够直接判断出结果后面就不要在判断了</p>
 </li>
 </ul>
 <h3 id="2-1-9-shift-operations-in-c-c语言中的移位运算"><a href="#2-1-9-shift-operations-in-c-c语言中的移位运算" class="headerlink" title="2.1.9 shift operations in c c语言中的移位运算"></a>2.1.9 shift operations in c c语言中的移位运算</h3><ul>
 <li>c语言还提供了移位操作，用于将位模式左移和右移</li>
-<li>分为算数左右移位和逻辑左右移位。在算数右移中，用<code>1</code>填充，其余都用<code>0</code>填充</li>
+<li>分为算数左右移位和逻辑左右移位。在算数右移中，是在左端补k个最高有效位的值<ul>
+<li>逻辑右移是在左端比k个0</li>
+</ul>
+</li>
 <li><strong>算数移位：</strong>对带符号的数进行移位。</li>
 <li><strong>逻辑移位：</strong>对无符号的数进行移位。</li>
 <li><img src="/2023/09/19/CSAPP/image-20230921213312357.png" alt="image-20230921213312357"></li>
 </ul>
-<h2 id="2-2-integer-representations-整数表示"><a href="#2-2-integer-representations-整数表示" class="headerlink" title="2.2 integer representations 整数表示"></a>2.2 integer representations 整数表示</h2><h3 id="2-2-3-Two’s-complement-encodings-二进制补码编码"><a href="#2-2-3-Two’s-complement-encodings-二进制补码编码" class="headerlink" title="2.2.3 Two’s-complement encodings 二进制补码编码"></a>2.2.3 Two’s-complement encodings 二进制补码编码</h3><ul>
+<h2 id="2-2-integer-representations-整数表示"><a href="#2-2-integer-representations-整数表示" class="headerlink" title="2.2 integer representations 整数表示"></a>2.2 integer representations 整数表示</h2><ul>
+<li><img src="/2023/09/19/CSAPP/image-20231009203048479.png" alt="操作术语"></li>
+</ul>
+<h3 id="2-2-2-无符号数编码"><a href="#2-2-2-无符号数编码" class="headerlink" title="2.2.2 无符号数编码"></a>2.2.2 无符号数编码</h3><ul>
+<li><p>定义</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231009203641561.png" alt="二进制转无符号数"></li>
+</ul>
+</li>
+<li><p>无符号数编码具有唯一性！！！</p>
+</li>
+</ul>
+<h3 id="2-2-3-Two’s-complement-encodings-二进制补码编码"><a href="#2-2-3-Two’s-complement-encodings-二进制补码编码" class="headerlink" title="2.2.3 Two’s-complement encodings 二进制补码编码"></a>2.2.3 Two’s-complement encodings 二进制补码编码</h3><ul>
+<li>定义<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231009204611983.png" alt="b2t的定义"></li>
+</ul>
+</li>
 <li>多数的计算机使用二进制补码编码</li>
-<li>最高位为符号位</li>
+<li><strong>最高位为符号位</strong></li>
 <li><img src="/2023/09/19/CSAPP/image-20231004200721043.png" alt="二进制补码示意"></li>
 <li>补码范围是不对称的—》由于0的存在是非负数</li>
 <li><img src="/2023/09/19/CSAPP/image-20231004201545347.png" alt="image-20231004201545347"></li>
 <li>为了在不同编译环境上代码通用一般使用<code>intN_t</code>和<code>uintN_t</code>，来定义整数类型。以及使用<code>INTN_MIN</code>和<code>UINTN_MAX</code>来设定最大最小值。N代表多少位。</li>
 </ul>
 <h3 id="2-2-4-conversations-between-signed-and-unsigned-有符号和无符号之间的转换"><a href="#2-2-4-conversations-between-signed-and-unsigned-有符号和无符号之间的转换" class="headerlink" title="2.2.4 conversations between signed and unsigned 有符号和无符号之间的转换"></a>2.2.4 conversations between signed and unsigned 有符号和无符号之间的转换</h3><ul>
-<li>基于位级操作，而不是基于数字，转换后位相同 但改变的是解释方式！！！从有符号到无符号</li>
-<li><img src="/2023/09/19/CSAPP/image-20231004204849433.png" alt="例子"></li>
-<li><img src="/2023/09/19/CSAPP/image-20231004205315694.png" alt="例子2"></li>
+<li><p>定义</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231009212450537.png" alt="补码转换位无符号"></li>
+</ul>
+</li>
+<li><p><strong>基于位级操作</strong>，而不是基于数字，转换后位相同 但改变的是解释方式！！！从有符号到无符号</p>
+</li>
+<li><p><img src="/2023/09/19/CSAPP/image-20231004204849433.png" alt="例子"></p>
+</li>
+<li><p><img src="/2023/09/19/CSAPP/image-20231004205315694.png" alt="例子2"></p>
+</li>
 </ul>
 <h3 id="2-2-5-signed-versus-unsigned-in-C-c语言中的有符号和无符号"><a href="#2-2-5-signed-versus-unsigned-in-C-c语言中的有符号和无符号" class="headerlink" title="2.2.5 signed versus unsigned in C c语言中的有符号和无符号"></a>2.2.5 signed versus unsigned in C c语言中的有符号和无符号</h3><ul>
 <li>大多数都默认有符号，若要采用无符号时。则添加后缀<code>U</code>或者<code>u</code>。</li>
@@ -1133,7 +1212,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="2-2-6-expanding-the-bit-representation-of-a-number-拓展数字的位表示"><a href="#2-2-6-expanding-the-bit-representation-of-a-number-拓展数字的位表示" class="headerlink" title="2.2.6 expanding the bit representation of a number 拓展数字的位表示"></a>2.2.6 expanding the bit representation of a number 拓展数字的位表示</h3><ul>
+<h3 id="2-2-6-expanding-the-bit-representation-of-a-number-拓展一个数字的位表示"><a href="#2-2-6-expanding-the-bit-representation-of-a-number-拓展一个数字的位表示" class="headerlink" title="2.2.6 expanding the bit representation of a number 拓展一个数字的位表示"></a>2.2.6 expanding the bit representation of a number 拓展一个数字的位表示</h3><ul>
 <li>当使用无符号数向大的数据格式进行转换时，可以使用零扩展</li>
 <li>将补码数（有符号数）转换为更大的数据格式进行转换时，进行符号拓展，即将最高有效位的副本添加在表示中<ul>
 <li><img src="/2023/09/19/CSAPP/image-20231006214135381.png" alt="符号拓展"></li>
@@ -1155,12 +1234,78 @@
 </li>
 </ul>
 <h2 id="2-3-integer-arithmetic-整数算数"><a href="#2-3-integer-arithmetic-整数算数" class="headerlink" title="2.3 integer arithmetic 整数算数"></a>2.3 integer arithmetic 整数算数</h2><h3 id="2-3-1-unsigned-addition-无符号加法"><a href="#2-3-1-unsigned-addition-无符号加法" class="headerlink" title="2.3.1 unsigned addition 无符号加法"></a>2.3.1 unsigned addition 无符号加法</h3><ul>
-<li>定义</li>
-<li><img src="/2023/09/19/CSAPP/image-20231008193004688.png" alt="无符号加法"></li>
+<li>定义<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231009215035060.png" alt="无符号数加法"></li>
 </ul>
-<h3 id="2-3-1Two‘s-complement-addition-有符号加法"><a href="#2-3-1Two‘s-complement-addition-有符号加法" class="headerlink" title="2.3.1Two‘s complement addition 有符号加法"></a>2.3.1Two‘s complement addition 有符号加法</h3><ul>
-<li>关键的是，结果太大（整数）和结果太小（负数）时应该如何做</li>
-<li></li>
+</li>
+<li>溢出情况需要减去2^w，<strong>相当于取模操作！！！</strong>取了2^w的模</li>
+</ul>
+<h3 id="2-3-2Two‘s-complement-addition-补码加法"><a href="#2-3-2Two‘s-complement-addition-补码加法" class="headerlink" title="2.3.2Two‘s complement addition 补码加法"></a>2.3.2Two‘s complement addition 补码加法</h3><ul>
+<li><p>关键的是，结果太大（整数）和结果太小（负数）时应该如何做</p>
+</li>
+<li><p>定义</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231010191636845.png" alt="image-补码加法"></li>
+</ul>
+</li>
+<li><p>过大过小都会截断</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231010192438753.png" alt="4位补码加法例子"></li>
+</ul>
+</li>
+<li><p><strong>习题2.29</strong></p>
+<ul>
+<li><table>
+<thead>
+<tr>
+<th align="center">x</th>
+<th align="center">y</th>
+<th align="center">x+y(6)</th>
+<th align="center">x(+t5)y</th>
+<th align="center">情况</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">-12[10100]</td>
+<td align="center">-15[10001]</td>
+<td align="center">-27[100101]</td>
+<td align="center">5[00101]</td>
+<td align="center">1负溢出</td>
+</tr>
+<tr>
+<td align="center">-8[11000]</td>
+<td align="center">-8[11000]</td>
+<td align="center">-16[110000]</td>
+<td align="center">-16[10000]???</td>
+<td align="center">2没有溢出。因为补码负数表示会多一位</td>
+</tr>
+<tr>
+<td align="center">-9[10111]</td>
+<td align="center">8[01000]</td>
+<td align="center">-1[111111]</td>
+<td align="center">-1[11111]</td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td align="center">2[00010]</td>
+<td align="center">5[00101]</td>
+<td align="center">7[000111]</td>
+<td align="center">7[00111]</td>
+<td align="center">3</td>
+</tr>
+<tr>
+<td align="center">12[01100]</td>
+<td align="center">4[00100]</td>
+<td align="center">16[010000]</td>
+<td align="center">-16[10000]</td>
+<td align="center">4正溢出</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+<li><p><strong>习题2.30</strong></p>
+</li>
 </ul>
 ]]></content>
       <categories>
@@ -1277,12 +1422,97 @@
 <li>时间复杂度：O(n+m)</li>
 <li>空间复杂度：O(1)</li>
 </ul>
+<h1 id="7-leetcode-459-重复的子字符串-E"><a href="#7-leetcode-459-重复的子字符串-E" class="headerlink" title="7.leetcode-459-重复的子字符串-E"></a>7.leetcode-459-重复的子字符串-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/repeated-substring-pattern/description/">459. 重复的子字符串 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong><a href="https://programmercarl.com/0459.%E9%87%8D%E5%A4%8D%E7%9A%84%E5%AD%90%E5%AD%97%E7%AC%A6%E4%B8%B2.html#%E6%80%9D%E8%B7%AF">代码随想录 (programmercarl.com)</a></p>
+<ul>
+<li><p>移动匹配</p>
+<ul>
+<li><p>s+s 拼接能出现新的s，在中间—&gt;必须删除首字母和尾字母</p>
+</li>
+<li><p><img src="/2023/09/25/%E5%AD%97%E7%AC%A6%E4%B8%B2/image-20231009103250314.png" alt="s+s"></p>
+</li>
+<li><p>代码实现</p>
+</li>
+<li><pre><code class="c++">class Solution &#123;
+public:
+    bool repeatedSubstringPattern(string s) &#123;
+        string t = s + s;
+        t.erase(t.begin()); t.erase(t.end() - 1); // 掐头去尾
+        if (t.find(s) != std::string::npos) return true; // 找到了子串
+        return false;
+    &#125;
+&#125;;
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">  - 复杂度分析</span><br><span class="line"></span><br><span class="line">    - 时间复杂度：O(n+m) find 函数实现</span><br><span class="line">    - 空间复杂度：O(1)</span><br><span class="line"></span><br><span class="line">- KMP</span><br><span class="line"></span><br><span class="line">  - 最长相等前后缀不包含的子串即为重复子字符串</span><br><span class="line"></span><br><span class="line">  - ![image-20231009104841909](./字符串/image-20231009104841909.png)</span><br><span class="line"></span><br><span class="line">  - ![image-20231009105432604](./字符串/image-20231009105432604.png)</span><br><span class="line"></span><br><span class="line">  - 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c++</span><br><span class="line">    //前缀表减一</span><br><span class="line">    class Solution &#123;</span><br><span class="line">    public:</span><br><span class="line">        void getNext (int* next, const string&amp; s)&#123;</span><br><span class="line">            next[0] = -1;</span><br><span class="line">            int j = -1;</span><br><span class="line">            for(int i = 1;i &lt; s.size(); i++)&#123;</span><br><span class="line">                while(j &gt;= 0 &amp;&amp; s[i] != s[j + 1]) &#123;</span><br><span class="line">                    j = next[j];//next数组</span><br><span class="line">                &#125;</span><br><span class="line">                if(s[i] == s[j + 1]) &#123;</span><br><span class="line">                    j++;</span><br><span class="line">                &#125;</span><br><span class="line">                next[i] = j;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        bool repeatedSubstringPattern (string s) &#123;</span><br><span class="line">            if (s.size() == 0) &#123;</span><br><span class="line">                return false;</span><br><span class="line">            &#125;</span><br><span class="line">            int next[s.size()];</span><br><span class="line">            getNext(next, s);</span><br><span class="line">            int len = s.size();</span><br><span class="line">            if (next[len - 1] != -1 &amp;&amp; len % (len - (next[len - 1] + 1)) == 0) &#123;</span><br><span class="line">                return true;</span><br><span class="line">            &#125;</span><br><span class="line">            return false;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;;</span><br></pre></td></tr></table></figure>
+</code></pre>
+</li>
+<li><p>复杂度分析</p>
+<ul>
+<li>时间复杂度：O(n)</li>
+<li>空间复杂度：O(n)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
       </categories>
       <tags>
         <tag>字符串</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>栈与队列</title>
+    <url>/2023/10/10/%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97/</url>
+    <content><![CDATA[<h1 id="1-引言"><a href="#1-引言" class="headerlink" title="1.引言"></a>1.引言</h1><ul>
+<li><p>参考：</p>
+<ul>
+<li><a href="https://programmercarl.com/%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80.html">代码随想录 (programmercarl.com)</a></li>
+</ul>
+</li>
+<li><p>队列：先进先出</p>
+</li>
+<li><p>栈：先进后出</p>
+</li>
+<li><p>栈和队列是<code>c++ STL</code>中的基本数据结构， 主要以<code>SGI STL</code>数据结构为例</p>
+</li>
+<li><p>栈：</p>
+<ul>
+<li>栈是以底层容器完成其所有的工作，对外提供统一的接口，底层容器是可插拔的（也就是我们可以控制那种容器来实现栈的功能</li>
+<li>STL中栈被归类位 <code>container adapter</code>（容器适配器），所有栈的底层实现可以是<code> vector</code>、<code>deque</code>、<code>list</code>等等都是可以的，<strong>若没有指定则是deque(双向队列)为缺省情况下栈底层的结构</strong></li>
+<li><img src="/2023/10/10/%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97/image-20231010102457327.png" alt="栈底层实现"></li>
+</ul>
+</li>
+<li><p>队列：</p>
+<ul>
+<li>先进先出</li>
+<li>默认为deque为底层结构，同样也可以指定其他底层实现方式</li>
+</ul>
+</li>
+</ul>
+<h1 id="2-leetcode-232-用栈实现队列-E"><a href="#2-leetcode-232-用栈实现队列-E" class="headerlink" title="2.leetcode-232-用栈实现队列-E"></a>2.leetcode-232-用栈实现队列-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/implement-queue-using-stacks/description/">232. 用栈实现队列 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>队列：先入先出。栈：先入后出  ———–&gt;两个栈，一个入栈 一个 出栈<ul>
+<li><img src="/2023/10/10/%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97/image-20231010104743117.png" alt="用栈实现队列"></li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyQueue</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    stack&lt;<span class="type">int</span>&gt; stIn;</span><br><span class="line">    stack&lt;<span class="type">int</span>&gt; stOut;</span><br><span class="line">    <span class="comment">/** Initialize your data structure here. */</span></span><br><span class="line">    <span class="built_in">MyQueue</span>() &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">/** Push element x to the back of queue. */</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">        stIn.<span class="built_in">push</span>(x);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** Removes the element from in front of queue and returns that element. */</span></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">pop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 只有当stOut为空的时候，再从stIn里导入数据（导入stIn全部数据）</span></span><br><span class="line">        <span class="keyword">if</span> (stOut.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">            <span class="comment">// 从stIn导入数据直到stIn为空</span></span><br><span class="line">            <span class="keyword">while</span>(!stIn.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">                stOut.<span class="built_in">push</span>(stIn.<span class="built_in">top</span>());</span><br><span class="line">                stIn.<span class="built_in">pop</span>();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> result = stOut.<span class="built_in">top</span>();</span><br><span class="line">        stOut.<span class="built_in">pop</span>();</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** Get the front element. */</span></span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">peek</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> res = <span class="keyword">this</span>-&gt;<span class="built_in">pop</span>(); <span class="comment">// 直接使用已有的pop函数</span></span><br><span class="line">        stOut.<span class="built_in">push</span>(res); <span class="comment">// 因为pop函数弹出了元素res，所以再添加回去</span></span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/** Returns whether the queue is empty. */</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">empty</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> stIn.<span class="built_in">empty</span>() &amp;&amp; stOut.<span class="built_in">empty</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：push 和empty 都为O(1)，pop 和peek为O(n) </li>
+<li>空间复杂度：O(n)</li>
+</ul>
+]]></content>
+      <categories>
+        <category>基础算法</category>
+      </categories>
+      <tags>
+        <tag>栈与队列</tag>
       </tags>
   </entry>
 </search>
