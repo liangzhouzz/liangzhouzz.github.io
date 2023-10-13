@@ -874,6 +874,40 @@
 <li>时间复杂度：O(n logn)排序</li>
 <li>空间复杂度：O(n) pos数组</li>
 </ul>
+<h1 id="19-leetcode-2562-找出数组的串联值-20231012-E"><a href="#19-leetcode-2562-找出数组的串联值-20231012-E" class="headerlink" title="19.leetcode-2562-找出数组的串联值-20231012-E"></a>19.leetcode-2562-找出数组的串联值-20231012-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/find-the-array-concatenation-value/description/?envType=daily-question&envId=2023-10-12">2562. 找出数组的串联值 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>直接模拟即可</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">long</span> <span class="type">long</span> <span class="title">findTheArrayConcVal</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> n = nums.<span class="built_in">size</span>();</span><br><span class="line">        <span class="type">long</span> <span class="type">long</span> res = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>, j = n - <span class="number">1</span>; i &lt;= j; i++, j--) &#123;</span><br><span class="line">            <span class="keyword">if</span> (i != j) &#123;</span><br><span class="line">                res += <span class="built_in">stoi</span>(<span class="built_in">to_string</span>(nums[i]) + <span class="built_in">to_string</span>(nums[j]));<span class="comment">//转换成字符串进行组合</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                res += nums[i];<span class="comment">//奇数，单个元素进行加减</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n log U) 遍历数组+转换成字符串进行相加</li>
+<li>空间复杂度：O(log U) 转换字符串</li>
+</ul>
+<h1 id="20-leetcode-1488-避免洪水泛滥-20231013-M"><a href="#20-leetcode-1488-避免洪水泛滥-20231013-M" class="headerlink" title="20.leetcode-1488-避免洪水泛滥-20231013-M"></a>20.leetcode-1488-避免洪水泛滥-20231013-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/avoid-flood-in-the-city/description/?envType=daily-question&envId=2023-10-13">1488. 避免洪水泛滥 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>在洪水来临的时候，对湖泊进行有选择的抽干，所以使用有序集合<code>st</code>来存储没有下雨的日子**—-&gt;**可以用来抽干湖泊。</li>
+<li><code>st</code>顺序排列，确保了我们总是在最早晴天日子进行抽干，最大限度的避免洪水发生。<ul>
+<li>若<code>rains[i] = 0</code>，则加入有序集合<code>st</code>。</li>
+<li>若<code>rains[i] &gt; 0</code>，表示第<code>rains[i]</code>个湖泊将要下雨，令<code>ans[i] = -1</code>，表示这一天不可以抽干：<ul>
+<li>若第一次下雨，则不会发生洪水</li>
+<li>否则需要在有序集合<code>st</code>中，找到大于等于该湖泊上一次下雨天数的最小索引<code>idx</code>（二分法查找），若无法找到则不能避免洪水发生，若能找到 则进行抽干操作</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">avoidFlood</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; rains)</span> </span>&#123;</span><br><span class="line">        <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">ans</span><span class="params">(rains.size(), <span class="number">1</span>)</span></span>;<span class="comment">//ans数组</span></span><br><span class="line">        set&lt;<span class="type">int</span>&gt; st;<span class="comment">//存储晴天</span></span><br><span class="line">        unordered_map&lt;<span class="type">int</span>,<span class="type">int</span>&gt; mp;<span class="comment">//无序的哈希映射，用于存储最后一次下雨的索引</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; rains.<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">            <span class="keyword">if</span> (rains[i] == <span class="number">0</span>) &#123;</span><br><span class="line">                st.<span class="built_in">insert</span>(i);<span class="comment">//晴天 加入到集合中</span></span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;<span class="comment">//下雨了</span></span><br><span class="line">                ans[i] = <span class="number">-1</span>;</span><br><span class="line">                <span class="keyword">if</span> (mp.<span class="built_in">count</span>(rains[i])) &#123;</span><br><span class="line">                    <span class="comment">//哈希表中如果已经存在rains[i]，则说明之前已经下过雨了，需要在st中找一个大于等于mp[rains[i]]的晴天，进行抽干</span></span><br><span class="line">                    <span class="keyword">auto</span> it = st.<span class="built_in">lower_bound</span>(mp[rains[i]]);</span><br><span class="line">                    <span class="keyword">if</span> (it == st.<span class="built_in">end</span>()) &#123;</span><br><span class="line">                        <span class="keyword">return</span> &#123;&#125;;<span class="comment">//不存在晴天，则返回空数组，会洪水</span></span><br><span class="line">                    &#125;</span><br><span class="line">                    ans[*it] = rains[i];</span><br><span class="line">                    st.<span class="built_in">erase</span>(it);<span class="comment">//擦去晴天</span></span><br><span class="line">                &#125;</span><br><span class="line">                mp[rains[i]] = i;<span class="comment">//存储改湖泊最后一次下雨时间</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> ans;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n*log n) 有序数组插入和查询时间为O(logn)，最坏情况下循环n次</li>
+<li>空间复杂度：O(n) 哈希表和有序集合</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -1305,7 +1339,217 @@
 </ul>
 </li>
 <li><p><strong>习题2.30</strong></p>
+<p>判断参数x和参数y相加是否溢出</p>
 </li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">tadd_ok</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> &#123;</span><br><span class="line">    <span class="type">int</span> sum = x + y;</span><br><span class="line">    <span class="type">int</span> neg_over = x &lt; <span class="number">0</span> &amp;&amp; y &lt; <span class="number">0</span> &amp;&amp; sum &gt;= <span class="number">0</span>;<span class="comment">//负数溢出</span></span><br><span class="line">    <span class="type">int</span> pos_over = x &gt;= <span class="number">0</span> &amp;&amp; y &gt;= <span class="number">0</span> ** sum &lt; <span class="number">0</span>;<span class="comment">//正数溢出</span></span><br><span class="line">    <span class="keyword">return</span> !neg_over &amp;&amp; !pos_over;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>2.31</p>
+<p><img src="/2023/09/19/CSAPP/image-20231013193801498.png" alt="习题2.31"></p>
+</li>
+</ul>
+<p><strong>因为补码本质上是一种取模运算</strong>，所以sum - x &#x3D;（x+y）-x &#x3D; （x-x）+y &#x3D; y 无论何时都成立</p>
+<ul>
+<li><p>2.32</p>
+<ul>
+<li><p><img src="/2023/09/19/CSAPP/image-20231013203103790.png" alt="练习题2.32"></p>
+</li>
+<li><p>补码取相反数的问题， 当一个数除了负数位之外的其他位全是0的时候变相反数时还会是原来的数了，如果为<code>y = INT_MIN</code>时会报错</p>
+</li>
+<li><p><code>-2^31[10000000,00000000,00000000,00000000] </code>取反后为<code>2^31[00000000,10000000,00000000,00000000,00000000]</code> 但二进制超出了4个字节限制 会发生截断，所以仍然是   <code>-2^31[10000000,00000000,00000000,00000000] </code></p>
+</li>
+<li><pre><code class="c">int tsub_ok(int x, int y)
+&#123;
+    if (y == INT_MIN) &#123;
+        if (x &gt;= 0) &#123;
+            return 0;
+        &#125; else &#123;
+            return 1;
+        &#125;
+    &#125; else &#123;
+        return tadd_ok(x, -y);
+    &#125;
+&#125;
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-3-3-补码的非"><a href="#2-3-3-补码的非" class="headerlink" title="2.3.3 补码的非"></a>2.3.3 补码的非</h3><ul>
+<li><p>定义</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013205818392.png" alt="补码的非"></li>
+</ul>
+</li>
+<li><p>习题2.33 <strong>注意Tmin</strong></p>
+<ul>
+<li><table>
+<thead>
+<tr>
+<th>x</th>
+<th>x</th>
+<th>取反</th>
+<th>取反</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>十六进制</td>
+<td>十进制</td>
+<td>十进制</td>
+<td>十六进制</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>5</td>
+<td>5</td>
+<td>-5</td>
+<td>B</td>
+</tr>
+<tr>
+<td>8</td>
+<td>-8</td>
+<td>-8</td>
+<td>8</td>
+</tr>
+<tr>
+<td>D</td>
+<td>-3</td>
+<td>3</td>
+<td>3</td>
+</tr>
+<tr>
+<td>F</td>
+<td>-1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+<li><p>补码非的位级表示</p>
+<ul>
+<li>对每一位求补在对结果加一（取反加一）<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013210716046.png" alt="取反+1"></li>
+</ul>
+</li>
+<li>找到最右边的k &#x3D; 1，然后对k的左边所有位取反<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013210745590.png" alt="k左边取反"></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-3-4无符号乘法"><a href="#2-3-4无符号乘法" class="headerlink" title="2.3.4无符号乘法"></a>2.3.4无符号乘法</h3><ul>
+<li>定义：<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013211043062.png" alt="无符号乘法"></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-3-5补码乘法"><a href="#2-3-5补码乘法" class="headerlink" title="2.3.5补码乘法"></a>2.3.5补码乘法</h3><ul>
+<li><p>定义：</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013211223094.png" alt="补码乘法"></li>
+</ul>
+</li>
+<li><p><img src="/2023/09/19/CSAPP/image-20231013211545984.png" alt="无符号和补码 位级相同"></p>
+</li>
+<li><p>习题2.34</p>
+<ul>
+<li><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>x</th>
+<th>y</th>
+<th>x*y</th>
+<th>截断后x*y</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无符号</td>
+<td>4[100]</td>
+<td>5[101]</td>
+<td>20[010100]</td>
+<td>4[100]</td>
+</tr>
+<tr>
+<td>补码</td>
+<td>-4[100]</td>
+<td>-3[101]</td>
+<td>12[001100]</td>
+<td>-4[100]</td>
+</tr>
+<tr>
+<td>无符号</td>
+<td>2[010]</td>
+<td>7[111]</td>
+<td>14[001110]</td>
+<td>6[110]</td>
+</tr>
+<tr>
+<td>补码</td>
+<td>2[010]</td>
+<td>-1[111]</td>
+<td>-2[111110]</td>
+<td>-2[110]</td>
+</tr>
+<tr>
+<td>无符号</td>
+<td>6[110]</td>
+<td>6[110]</td>
+<td>36[100100]</td>
+<td>4[100]</td>
+</tr>
+<tr>
+<td>补码</td>
+<td>-2[110]</td>
+<td>-2[110]</td>
+<td>4[000100]</td>
+<td>-4[100]</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-3-6乘以常数"><a href="#2-3-6乘以常数" class="headerlink" title="2.3.6乘以常数"></a>2.3.6乘以常数</h3><ul>
+<li>通过移位运算的方式实现乘法，减少计算器运算周期<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013214235949.png" alt="乘法的移位运算"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231013214440879.png" alt="乘法移位总结"></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-3-7除以2的幂"><a href="#2-3-7除以2的幂" class="headerlink" title="2.3.7除以2的幂"></a>2.3.7除以2的幂</h3><ul>
+<li><p>整数除法要比整数乘法更慢 </p>
+</li>
+<li><p>除以2的幂也可以用移位运算来实现 只不过用右移</p>
+</li>
+<li><p>无符号右移</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013215918001.png" alt="无符号右移"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231013220427774.png" alt="无符号除法移位"></li>
+</ul>
+</li>
+<li><p>有符号 向下舍入</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013220613662.png" alt="有符号移位"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231013220652590.png" alt="负数移位"></li>
+<li>添加适当偏置量，结果向上舍入</li>
+<li><img src="/2023/09/19/CSAPP/image-20231013220949766.png" alt="偏置"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231013221109889.png" alt="image-20231013221109889"></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-3-8总结"><a href="#2-3-8总结" class="headerlink" title="2.3.8总结"></a>2.3.8总结</h3><ul>
+<li>习题2.44</li>
+<li><img src="/2023/09/19/CSAPP/image-20231013222149344.png" alt="习题2.44"></li>
 </ul>
 ]]></content>
       <categories>
