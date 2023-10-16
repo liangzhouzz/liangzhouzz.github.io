@@ -908,6 +908,63 @@
 <li>时间复杂度：O(n*log n) 有序数组插入和查询时间为O(logn)，最坏情况下循环n次</li>
 <li>空间复杂度：O(n) 哈希表和有序集合</li>
 </ul>
+<h1 id="21-leetcode-136-只出现一次的数字-20231014-E"><a href="#21-leetcode-136-只出现一次的数字-20231014-E" class="headerlink" title="21.leetcode-136-只出现一次的数字-20231014-E"></a>21.leetcode-136-只出现一次的数字-20231014-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/single-number/description/?envType=daily-question&envId=2023-10-14">136. 只出现一次的数字 - 力扣（LeetCode）</a></p>
+<p><strong>思路：<a href="https://leetcode.cn/problems/single-number/?envType=daily-question&envId=2023-10-14">136. 只出现一次的数字 - 力扣（LeetCode）</a></strong></p>
+<ul>
+<li>线性时间复杂度，常量额外空间</li>
+<li>哈希表的空间复杂度超出了限制</li>
+<li>使用位运算，这道题可以使用 异或运算<ul>
+<li>任何数和0做异或，结果任然是原来的数</li>
+<li>任何数和其自身做异或运算，结果是0</li>
+<li>异或运算满足交换律和结合律</li>
+</ul>
+</li>
+<li><img src="/2023/09/13/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98/image-20231014152928619.png" alt="image-20231014152928619"></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">singleNumber</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> ret = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">auto</span> e : nums) ret ^= e;<span class="comment">//异或 所有元素相乘</span></span><br><span class="line">        <span class="keyword">return</span> ret;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n)循环</li>
+<li>空间复杂度：O(1)</li>
+</ul>
+<h1 id="22-leetcode-137-只出现一次的数字Ⅱ-20231015-M"><a href="#22-leetcode-137-只出现一次的数字Ⅱ-20231015-M" class="headerlink" title="22.leetcode-137-只出现一次的数字Ⅱ-20231015-M"></a>22.leetcode-137-只出现一次的数字Ⅱ-20231015-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/single-number-ii/description/?envType=daily-question&envId=2023-10-15">137. 只出现一次的数字 II - 力扣（LeetCode）</a></p>
+<p><strong>思路：<a href="https://leetcode.cn/problems/single-number-ii/solutions/746993/zhi-chu-xian-yi-ci-de-shu-zi-ii-by-leetc-23t6/?envType=daily-question&envId=2023-10-15">137. 只出现一次的数字 II - 力扣（LeetCode）</a></strong></p>
+<ul>
+<li><p>除某个元素出现一次外，其余元素出现三次，线性时间复杂度和常数空间复杂度</p>
+</li>
+<li><p>方法一：哈希表。方法二：数字电路 门电路</p>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">singleNumber</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> a = <span class="number">0</span>, b = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> num: nums) &#123;</span><br><span class="line">            b = ~a &amp; (b ^ num);</span><br><span class="line">            a = ~b &amp; (a ^ num);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n)</li>
+<li>空间复杂度：O(1)</li>
+</ul>
+<h1 id="23-leetcode-260-只出现一次的数字Ⅲ-20231016-M"><a href="#23-leetcode-260-只出现一次的数字Ⅲ-20231016-M" class="headerlink" title="23.leetcode-260-只出现一次的数字Ⅲ-20231016-M"></a>23.leetcode-260-只出现一次的数字Ⅲ-20231016-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/single-number-iii/description/?envType=daily-question&envId=2023-10-16">260. 只出现一次的数字 III - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>恰好有两个元素只出现一次，其余出现两次</li>
+<li>根据135-只出现一次元素来说 对所有元素进行异或运算，那么最终只会有x1和x2异或的和。</li>
+<li>使用位运算x &amp; -x取出x的二进制表示最低位那个1，设其为第l位，那么x1和x2中的某一个数的二进制表示的第l位为0，另一个数的二进制表示的第l位为1。—–这样情况下，x1和x2的二进制表示的第l位才能为1.</li>
+<li>所以可以把nums中的所有元素分为两类，其中一类包含所有二进制表示的第l位为0的数，另一类包含所有二进制表示的第l位为1的数。可以发现：<ul>
+<li>对于一个在数组中出现两次的元素，该元素两次出现会被包含在同一类中</li>
+<li>对于任意一个在数组中只出现了一次的元素骂他们会被包含在不同类中</li>
+</ul>
+</li>
+<li>因此只需要将某一类元素全部异或起来，其中一类会得到x1，另一类会得到x2</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">singleNumber</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> xorsum = <span class="number">0</span>;</span><br><span class="line">        <span class="comment">//对整个数组进行异或运算，成对的元素会相互抵消，只会留下两个单独数字的异或结果</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> num : nums) &#123;</span><br><span class="line">            xorsum ^= num;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//防止溢出</span></span><br><span class="line">        <span class="comment">//找到了异或结果中最低位的1，因为这两个单独的数字，在最低位上一定是不相同的</span></span><br><span class="line">        <span class="type">int</span> lsb = (xorsum == INT_MIN ? xorsum : xorsum &amp; (-xorsum));</span><br><span class="line">        <span class="type">int</span> type1 = <span class="number">0</span>, type2 = <span class="number">0</span>;</span><br><span class="line">        <span class="comment">//分别对两组进行异或操作 得到两个数字，即为单独的数字</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> num: nums) &#123;</span><br><span class="line">            <span class="keyword">if</span>(num &amp; lsb) &#123;</span><br><span class="line">                type1 ^= num;</span><br><span class="line">            &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">                type2 ^= num;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> &#123;type1, type2&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n)</li>
+<li>空间复杂度：O(1)</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -1371,187 +1428,13 @@
         return tadd_ok(x, -y);
     &#125;
 &#125;
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.3.3 补码的非</span><br><span class="line"></span><br><span class="line">- 定义</span><br><span class="line">  </span><br><span class="line">- ![补码的非](./CSAPP/image-20231013205818392.png)</span><br><span class="line">  </span><br><span class="line">- 习题2.33 **注意Tmin**</span><br><span class="line"></span><br><span class="line">  - | x        | x      | 取反   | 取反     |</span><br><span class="line">    | -------- | ------ | ------ | -------- |</span><br><span class="line">    | 十六进制 | 十进制 | 十进制 | 十六进制 |</span><br><span class="line">    | 0        | 0      | 0      | 0        |</span><br><span class="line">    | 5        | 5      | -5     | B        |</span><br><span class="line">    | 8        | -8     | -8     | 8        |</span><br><span class="line">    | D        | -3     | 3      | 3        |</span><br><span class="line">    | F        | -1     | 1      | 1        |</span><br><span class="line"></span><br><span class="line">- 补码非的位级表示</span><br><span class="line"></span><br><span class="line">  - 对每一位求补在对结果加一（取反加一）</span><br><span class="line">    - ![取反+1](./CSAPP/image-20231013210716046.png)</span><br><span class="line">  - 找到最右边的k = 1，然后对k的左边所有位取反</span><br><span class="line">    - ![k左边取反](./CSAPP/image-20231013210745590.png)</span><br><span class="line"></span><br><span class="line">### 2.3.4无符号乘法</span><br><span class="line"></span><br><span class="line">- 定义：</span><br><span class="line">  - ![无符号乘法](./CSAPP/image-20231013211043062.png)</span><br><span class="line"></span><br><span class="line">### 2.3.5补码乘法</span><br><span class="line"></span><br><span class="line">- 定义：</span><br><span class="line">  </span><br><span class="line">- ![补码乘法](./CSAPP/image-20231013211223094.png)</span><br><span class="line">  </span><br><span class="line">- ![无符号和补码 位级相同](./CSAPP/image-20231013211545984.png)</span><br><span class="line"></span><br><span class="line">- 习题2.34</span><br><span class="line"></span><br><span class="line">  - | 模式   | x       | y       | x*y        | 截断后x*y |</span><br><span class="line">    | ------ | ------- | ------- | ---------- | --------- |</span><br><span class="line">    | 无符号 | 4[100]  | 5[101]  | 20[010100] | 4[100]    |</span><br><span class="line">    | 补码   | -4[100] | -3[101] | 12[001100] | -4[100]   |</span><br><span class="line">    | 无符号 | 2[010]  | 7[111]  | 14[001110] | 6[110]    |</span><br><span class="line">    | 补码   | 2[010]  | -1[111] | -2[111110] | -2[110]   |</span><br><span class="line">    | 无符号 | 6[110]  | 6[110]  | 36[100100] | 4[100]    |</span><br><span class="line">    | 补码   | -2[110] | -2[110] | 4[000100]  | -4[100]   |</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.3.6乘以常数</span><br><span class="line"></span><br><span class="line">- 通过移位运算的方式实现乘法，减少计算器运算周期</span><br><span class="line">  - ![乘法的移位运算](./CSAPP/image-20231013214235949.png)</span><br><span class="line">  - ![乘法移位总结](./CSAPP/image-20231013214440879.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.3.7除以2的幂</span><br><span class="line"></span><br><span class="line">- 整数除法要比整数乘法更慢 </span><br><span class="line">- 除以2的幂也可以用移位运算来实现 只不过用右移</span><br><span class="line"></span><br><span class="line">- 无符号右移</span><br><span class="line">  - ![无符号右移](./CSAPP/image-20231013215918001.png)</span><br><span class="line">  - ![无符号除法移位](./CSAPP/image-20231013220427774.png)</span><br><span class="line">- 有符号 向下舍入</span><br><span class="line">  - ![有符号移位](./CSAPP/image-20231013220613662.png)</span><br><span class="line">  - ![负数移位](./CSAPP/image-20231013220652590.png)</span><br><span class="line">  - 添加适当偏置量，结果向上舍入</span><br><span class="line">  - ![偏置](./CSAPP/image-20231013220949766.png)</span><br><span class="line">  - ![image-20231013221109889](./CSAPP/image-20231013221109889.png)</span><br><span class="line"></span><br><span class="line">### 2.3.8总结</span><br><span class="line"></span><br><span class="line">- **习题2.44**</span><br><span class="line">- ![习题2.44](./CSAPP/image-20231013222149344.png)</span><br><span class="line"></span><br><span class="line">  - `||`要为假则两边都应该是假 </span><br><span class="line">- 补码正负数表示的范围是不对成的，正数`cast`到负数一般没有事，但是负数cast到正数需要考虑`Tmin`</span><br><span class="line">  - `A.`假。当x = -2147483648（Tmin32）。那么，有x-1等于2147483647（Tmax32）负溢出</span><br><span class="line"></span><br><span class="line">    - Tmin[10000000,00000000,00000000,00000000]，</span><br><span class="line">  - -1[111111111,11111111,11111111,11111111],</span><br><span class="line">    - TMIN+(-1) [1,01111111,11111111,11111111,11111111]。</span><br><span class="line">    - 负溢出---截断 [01111111,11111111,11111111,11111111]。</span><br><span class="line">  - `B.`真。如果`（x&amp;7）!= 7`这个表达式的值为0，那么必须有位x2 等于1.当左移29位时，这个位将变为符号位。</span><br><span class="line">    - `（x&amp;7）!= 7`这个表达式为0 那么左边表达式结果应该为7  所以必然有x2位 等于1，当他左移29 位会变成符号位成为负数 小于1</span><br><span class="line">  - `c.`假。正数溢出可能得到负值</span><br><span class="line">  - `d.`真。若想为假则需要两边都为假。那么如果x为非负数，则-x必然为非正，因为 取值返回不对成</span><br><span class="line">  - `e.`假。若x为负数Tmin，那么-x仍然为Tmin。</span><br><span class="line">  - `f.`真。位级运算层面比较 补码和无符号加法有相同的位级行为，所以从位级来看他们是相同的</span><br><span class="line">  - ·g·真 。~y等于 -y-1. ux*uy 等于x *y，因此等式左边等于 x\*-y -x +x \*y。 同样也是位级比较</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## 2.4浮点数</span><br><span class="line"></span><br><span class="line">### 2.4.1二进制小数</span><br><span class="line"></span><br><span class="line">- 十进制表示法：</span><br><span class="line"></span><br><span class="line">  - ![十进制的小数表示法](./CSAPP/image-20231014204221901.png)</span><br><span class="line"></span><br><span class="line">- 类似的有二进制表示</span><br><span class="line"></span><br><span class="line">  - ![二进制表示](./CSAPP/image-20231014204554054.png)</span><br><span class="line"></span><br><span class="line">- 局限性：移位长度有限编码，所以有些数只能近似表示 ，增加相应表示的长度也可以增加精度</span><br><span class="line"></span><br><span class="line">  - ![表示精度](./CSAPP/image-20231014204911872.png)</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">- 习题2.45</span><br><span class="line"></span><br><span class="line">  - | 小数值 | 二进制表示 | 十进制表示 |</span><br><span class="line">    | :----: | :--------: | :--------: |</span><br><span class="line">    |  1/8   |   0.001    |   0.125    |</span><br><span class="line">    |  3/4   |    0.11    |    0.75    |</span><br><span class="line">    | 25/16  |   1.1001   |   1.5625   |</span><br><span class="line">    | 43/16  |  10.1011   |   2.6875   |</span><br><span class="line">    |  9/8   |   1.001    |   1.125    |</span><br><span class="line">    |  47/8  |  101.111   |   5.875    |</span><br><span class="line">    | 51/16  |  11.0011   |   3.1875   |</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.2IEEE浮点表示</span><br><span class="line"></span><br><span class="line">- 定义</span><br><span class="line">  - ![image-20231014210447098](./CSAPP/image-20231014210447098.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- 根据exp的值，被编码的值可以分为三种不同的情况</span><br><span class="line">  - ![image-20231014211753784](./CSAPP/image-20231014211753784.png)</span><br><span class="line">    - 非规格化的值偏置设置为1-bias 而不是简单的-bias，主要是为了从非规格化值平滑转换到规格化值的方法</span><br><span class="line">  - 非规格化的用途：</span><br><span class="line">    - 提供了一种数值零的表示方法 +0.0位模式表示为：符号位是0，阶码字段全是0，小数域也全为0。当符号位为1 其他域全为0，则得到了-0.0。</span><br><span class="line">    - 表示非常接近于0.0的数，则提供了一种属性，称为逐渐溢出，可能的数值分布均匀的接近于0.0</span><br><span class="line">  - 特殊值：</span><br><span class="line">    - 阶码全为1，小数域为0，得到的值表示无穷，符号位为0时，表示是正无穷，符号位为1时 表示负无穷</span><br><span class="line">    - 小数域为非0时，则表示NaN = not a number 不是一个数，可以用在数据初始化的时候。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.3 数字示例</span><br><span class="line"></span><br><span class="line">- ![image-20231014213709753](./CSAPP/image-20231014213709753.png)</span><br><span class="line">- 习题2.47</span><br><span class="line">  - ![image-20231014214123591](./CSAPP/image-20231014214123591.png)</span><br><span class="line">- 有k位阶码和n位小数的浮点表示一般属性：</span><br><span class="line">  - 值 +0.0总有一个全为0的位表示</span><br><span class="line">  - ![image-20231014214419895](./CSAPP/image-20231014214419895.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.4 舍入</span><br><span class="line"></span><br><span class="line">- 表示方法限制了浮点数的范围和精度，所以浮点数只能近似的表示实数运算</span><br><span class="line">- IEEE定义了四种舍入方式 </span><br><span class="line">  - ![四种舍入方法](./CSAPP/image-20231016193726141.png)</span><br><span class="line">  - ![image-20231016193835926](./CSAPP/image-20231016193835926.png)</span><br><span class="line">  - 偶数舍入：对于不在两个整数中间的浮点数，找离其最近的整数，**而在两个数字正中间的数。则按照让舍入位的最后一位为0来进行舍入（倾向于使最低有效位为0）。**</span><br><span class="line">- 习题2.50 偶数舍入规则 以下数为2进制 考虑舍入到二分之一 小数点右边一位</span><br><span class="line">  - 10.010------10.0  ---中间值</span><br><span class="line">  - 10.011------10.1 ----不是中间值</span><br><span class="line">  - 10.110------11.0  --中间值 ，倾向于最低有效位为0</span><br><span class="line">  - 11.001------11.0 ---不是中间值</span><br><span class="line"></span><br><span class="line">- 习题2.51 2.52 略</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.5浮点运算</span><br><span class="line"></span><br><span class="line">- 浮点加法不具有结合性</span><br><span class="line">  - ![浮点加法](./CSAPP/image-20231016200701932.png)</span><br><span class="line">- 浮点数乘法满足单调性</span><br><span class="line">  - ![浮点数乘法 ](./CSAPP/image-20231016201644438.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.5c语言中浮点数转换</span><br><span class="line"></span><br><span class="line">- ![类型转换](./CSAPP/image-20231016202115282.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## 2.5 data lab</span><br><span class="line"></span><br><span class="line">### 2.5.1 bitXor</span><br><span class="line"></span><br><span class="line">- x^y only use ~ and &amp;</span><br><span class="line"></span><br><span class="line">- 异或：不相同时为1，相同为0------- 计算不是**同时为0情况**和不是**同时为1的情况** 然后进行与</span><br><span class="line"></span><br><span class="line">  - 例如 x[0011]                        y[0101]</span><br><span class="line">  - **找出同时为1的情况 则 x&amp;y = [0001]**</span><br><span class="line">  - **找出同时为0的情况 则相反 ~x[1100] &amp; ~y[1010] = [1000]**</span><br><span class="line">  - 找出这两种单独情况然后再取非 按位与就是异或门实现</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    int bitXor(int x, int y) &#123;</span><br><span class="line">        return ~(~x&amp;~y)&amp;~(x&amp;y);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 </code></pre>
 </li>
 </ul>
 </li>
 </ul>
-<h3 id="2-3-3-补码的非"><a href="#2-3-3-补码的非" class="headerlink" title="2.3.3 补码的非"></a>2.3.3 补码的非</h3><ul>
-<li><p>定义</p>
-<ul>
-<li><img src="/2023/09/19/CSAPP/image-20231013205818392.png" alt="补码的非"></li>
-</ul>
-</li>
-<li><p>习题2.33 <strong>注意Tmin</strong></p>
-<ul>
-<li><table>
-<thead>
-<tr>
-<th>x</th>
-<th>x</th>
-<th>取反</th>
-<th>取反</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>十六进制</td>
-<td>十进制</td>
-<td>十进制</td>
-<td>十六进制</td>
-</tr>
-<tr>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-<td>0</td>
-</tr>
-<tr>
-<td>5</td>
-<td>5</td>
-<td>-5</td>
-<td>B</td>
-</tr>
-<tr>
-<td>8</td>
-<td>-8</td>
-<td>-8</td>
-<td>8</td>
-</tr>
-<tr>
-<td>D</td>
-<td>-3</td>
-<td>3</td>
-<td>3</td>
-</tr>
-<tr>
-<td>F</td>
-<td>-1</td>
-<td>1</td>
-<td>1</td>
-</tr>
-</tbody></table>
-</li>
-</ul>
-</li>
-<li><p>补码非的位级表示</p>
-<ul>
-<li>对每一位求补在对结果加一（取反加一）<ul>
-<li><img src="/2023/09/19/CSAPP/image-20231013210716046.png" alt="取反+1"></li>
-</ul>
-</li>
-<li>找到最右边的k &#x3D; 1，然后对k的左边所有位取反<ul>
-<li><img src="/2023/09/19/CSAPP/image-20231013210745590.png" alt="k左边取反"></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="2-3-4无符号乘法"><a href="#2-3-4无符号乘法" class="headerlink" title="2.3.4无符号乘法"></a>2.3.4无符号乘法</h3><ul>
-<li>定义：<ul>
-<li><img src="/2023/09/19/CSAPP/image-20231013211043062.png" alt="无符号乘法"></li>
-</ul>
-</li>
-</ul>
-<h3 id="2-3-5补码乘法"><a href="#2-3-5补码乘法" class="headerlink" title="2.3.5补码乘法"></a>2.3.5补码乘法</h3><ul>
-<li><p>定义：</p>
-<ul>
-<li><img src="/2023/09/19/CSAPP/image-20231013211223094.png" alt="补码乘法"></li>
-</ul>
-</li>
-<li><p><img src="/2023/09/19/CSAPP/image-20231013211545984.png" alt="无符号和补码 位级相同"></p>
-</li>
-<li><p>习题2.34</p>
-<ul>
-<li><table>
-<thead>
-<tr>
-<th>模式</th>
-<th>x</th>
-<th>y</th>
-<th>x*y</th>
-<th>截断后x*y</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>无符号</td>
-<td>4[100]</td>
-<td>5[101]</td>
-<td>20[010100]</td>
-<td>4[100]</td>
-</tr>
-<tr>
-<td>补码</td>
-<td>-4[100]</td>
-<td>-3[101]</td>
-<td>12[001100]</td>
-<td>-4[100]</td>
-</tr>
-<tr>
-<td>无符号</td>
-<td>2[010]</td>
-<td>7[111]</td>
-<td>14[001110]</td>
-<td>6[110]</td>
-</tr>
-<tr>
-<td>补码</td>
-<td>2[010]</td>
-<td>-1[111]</td>
-<td>-2[111110]</td>
-<td>-2[110]</td>
-</tr>
-<tr>
-<td>无符号</td>
-<td>6[110]</td>
-<td>6[110]</td>
-<td>36[100100]</td>
-<td>4[100]</td>
-</tr>
-<tr>
-<td>补码</td>
-<td>-2[110]</td>
-<td>-2[110]</td>
-<td>4[000100]</td>
-<td>-4[100]</td>
-</tr>
-</tbody></table>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="2-3-6乘以常数"><a href="#2-3-6乘以常数" class="headerlink" title="2.3.6乘以常数"></a>2.3.6乘以常数</h3><ul>
-<li>通过移位运算的方式实现乘法，减少计算器运算周期<ul>
-<li><img src="/2023/09/19/CSAPP/image-20231013214235949.png" alt="乘法的移位运算"></li>
-<li><img src="/2023/09/19/CSAPP/image-20231013214440879.png" alt="乘法移位总结"></li>
-</ul>
-</li>
-</ul>
-<h3 id="2-3-7除以2的幂"><a href="#2-3-7除以2的幂" class="headerlink" title="2.3.7除以2的幂"></a>2.3.7除以2的幂</h3><ul>
-<li><p>整数除法要比整数乘法更慢 </p>
-</li>
-<li><p>除以2的幂也可以用移位运算来实现 只不过用右移</p>
-</li>
-<li><p>无符号右移</p>
-<ul>
-<li><img src="/2023/09/19/CSAPP/image-20231013215918001.png" alt="无符号右移"></li>
-<li><img src="/2023/09/19/CSAPP/image-20231013220427774.png" alt="无符号除法移位"></li>
-</ul>
-</li>
-<li><p>有符号 向下舍入</p>
-<ul>
-<li><img src="/2023/09/19/CSAPP/image-20231013220613662.png" alt="有符号移位"></li>
-<li><img src="/2023/09/19/CSAPP/image-20231013220652590.png" alt="负数移位"></li>
-<li>添加适当偏置量，结果向上舍入</li>
-<li><img src="/2023/09/19/CSAPP/image-20231013220949766.png" alt="偏置"></li>
-<li><img src="/2023/09/19/CSAPP/image-20231013221109889.png" alt="image-20231013221109889"></li>
-</ul>
-</li>
-</ul>
-<h3 id="2-3-8总结"><a href="#2-3-8总结" class="headerlink" title="2.3.8总结"></a>2.3.8总结</h3><ul>
-<li>习题2.44</li>
-<li><img src="/2023/09/19/CSAPP/image-20231013222149344.png" alt="习题2.44"></li>
-</ul>
-]]></content>
+<h3 id="2-5-2-tmin"><a href="#2-5-2-tmin" class="headerlink" title="2.5.2 tmin"></a>2.5.2 tmin</h3>]]></content>
       <categories>
         <category>CSAPP</category>
       </categories>
@@ -1750,6 +1633,66 @@ public:
 <ul>
 <li>时间复杂度：push 和empty 都为O(1)，pop 和peek为O(n) </li>
 <li>空间复杂度：O(n)</li>
+</ul>
+<h1 id="3-leetcode-225-用队列实现栈-M"><a href="#3-leetcode-225-用队列实现栈-M" class="headerlink" title="3.leetcode-225-用队列实现栈-M"></a>3.leetcode-225-用队列实现栈-M</h1><p><strong>题目：<a href="https://leetcode.cn/problems/implement-stack-using-queues/description/">225. 用队列实现栈 - 力扣（LeetCode）</a></strong></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>用队列来实现栈—用一个队列就可以模拟</li>
+<li>把前面元素取出 再加入队列中<ul>
+<li><img src="/2023/10/10/%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97/image-20231015154924625.png" alt="image-20231015154924625"></li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyStack</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    queue&lt;<span class="type">int</span>&gt; que;</span><br><span class="line">    <span class="built_in">MyStack</span>() &#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">push</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">        que.<span class="built_in">push</span>(x);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">pop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> size = que.<span class="built_in">size</span>();</span><br><span class="line">        size--;<span class="comment">//减一 留出要pop 的元素</span></span><br><span class="line">        <span class="keyword">while</span> (size--) &#123;</span><br><span class="line">            que.<span class="built_in">push</span>(que.<span class="built_in">front</span>());</span><br><span class="line">            que.<span class="built_in">pop</span>();<span class="comment">//不断将前面元素取出再push进去</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> res = que.<span class="built_in">front</span>();</span><br><span class="line">        que.<span class="built_in">pop</span>();</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">top</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> que.<span class="built_in">back</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">empty</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> que.<span class="built_in">empty</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Your MyStack object will be instantiated and called as such:</span></span><br><span class="line"><span class="comment"> * MyStack* obj = new MyStack();</span></span><br><span class="line"><span class="comment"> * obj-&gt;push(x);</span></span><br><span class="line"><span class="comment"> * int param_2 = obj-&gt;pop();</span></span><br><span class="line"><span class="comment"> * int param_3 = obj-&gt;top();</span></span><br><span class="line"><span class="comment"> * bool param_4 = obj-&gt;empty();</span></span><br><span class="line"><span class="comment"> */</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n) pop()</li>
+<li>空间复杂度：O(n) 队列</li>
+</ul>
+<h1 id="4-leetcode-20-有效括号-E"><a href="#4-leetcode-20-有效括号-E" class="headerlink" title="4.leetcode-20-有效括号-E"></a>4.leetcode-20-有效括号-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/valid-parentheses/description/">20. 有效的括号 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>三种情况：左边括号多了，两个括号不匹配，右边括号多了<ul>
+<li>第一种：<ul>
+<li>栈中push进与之匹配的括号 然后遇到相同则消除</li>
+<li>字符串遍历完 栈不为空 多了</li>
+</ul>
+</li>
+<li>第二种：<ul>
+<li>栈顶元素与遍历的不匹配</li>
+</ul>
+</li>
+<li>第三种：<ul>
+<li>字符串还没有遍历完 栈已经为空了 右边括号多了</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">isValid</span><span class="params">(string s)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//剪枝</span></span><br><span class="line">        <span class="keyword">if</span> (s.<span class="built_in">size</span>() % <span class="number">2</span> != <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        stack&lt;<span class="type">char</span>&gt; st;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">char</span> c: s) &#123;</span><br><span class="line">            <span class="keyword">if</span> (c == <span class="string">&#x27;(&#x27;</span>) st.<span class="built_in">push</span>(<span class="string">&#x27;)&#x27;</span>);</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (c == <span class="string">&#x27;&#123;&#x27;</span>) st.<span class="built_in">push</span>(<span class="string">&#x27;&#125;&#x27;</span>);</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (c == <span class="string">&#x27;[&#x27;</span>) st.<span class="built_in">push</span>(<span class="string">&#x27;]&#x27;</span>);</span><br><span class="line">            <span class="comment">//栈已经为空了</span></span><br><span class="line">            <span class="comment">//没有找到匹配的字符</span></span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (st.<span class="built_in">empty</span>() || st.<span class="built_in">top</span>() != c) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">            <span class="keyword">else</span> st.<span class="built_in">pop</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> st.<span class="built_in">empty</span>();<span class="comment">//第一种情况 遍历完数组 但栈还有括号则st.empty()为false 否则为true</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n)遍历字符串</li>
+<li>空间复杂度：O(n) 栈</li>
+</ul>
+<h1 id="5-leetcode-1047-删除字符串钟的所有相邻重复项"><a href="#5-leetcode-1047-删除字符串钟的所有相邻重复项" class="headerlink" title="5.leetcode-1047-删除字符串钟的所有相邻重复项"></a>5.leetcode-1047-删除字符串钟的所有相邻重复项</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/remove-all-adjacent-duplicates-in-string/description/">1047. 删除字符串中的所有相邻重复项 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>删除两个相邻且相同的字母，删除它们</li>
+<li>在字符串上反复执行删除操作</li>
+<li>同上一样 只是push进去的是元素</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">string <span class="title">removeDuplicates</span><span class="params">(string s)</span> </span>&#123;</span><br><span class="line">        stack&lt;<span class="type">char</span>&gt; st;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">char</span> c: s) &#123;</span><br><span class="line">            <span class="keyword">if</span> (st.<span class="built_in">empty</span>()) st.<span class="built_in">push</span>(c);</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (st.<span class="built_in">top</span>() != c) st.<span class="built_in">push</span>(c);</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (st.<span class="built_in">top</span>() == c) st.<span class="built_in">pop</span>();<span class="comment">//弹出元素</span></span><br><span class="line">        &#125;</span><br><span class="line">        string res = <span class="string">&quot;&quot;</span>;</span><br><span class="line">        <span class="keyword">while</span> (!st.<span class="built_in">empty</span>()) &#123;</span><br><span class="line">            res += st.<span class="built_in">top</span>();<span class="comment">//从栈中取出字符存入返回字符串</span></span><br><span class="line">            st.<span class="built_in">pop</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">reverse</span>(res.<span class="built_in">begin</span>(), res.<span class="built_in">end</span>());<span class="comment">//需要反转一下</span></span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n)遍历字符串</li>
+<li>空间复杂度：O(n)栈 和返回字符串</li>
 </ul>
 ]]></content>
       <categories>
