@@ -1459,224 +1459,355 @@ public:
 <li><p>补码取相反数的问题， 当一个数除了负数位之外的其他位全是0的时候变相反数时还会是原来的数了，如果为<code>y = INT_MIN</code>时会报错</p>
 </li>
 <li><p><code>-2^31[10000000,00000000,00000000,00000000] </code>取反后为<code>2^31[00000000,10000000,00000000,00000000,00000000]</code> 但二进制超出了4个字节限制 会发生截断，所以仍然是   <code>-2^31[10000000,00000000,00000000,00000000] </code></p>
-</li>
-<li><pre><code class="c">int tsub_ok(int x, int y)
-&#123;
-    if (y == INT_MIN) &#123;
-        if (x &gt;= 0) &#123;
-            return 0;
-        &#125; else &#123;
-            return 1;
-        &#125;
-    &#125; else &#123;
-        return tadd_ok(x, -y);
-    &#125;
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.3.3 补码的非</span><br><span class="line"></span><br><span class="line">- 定义</span><br><span class="line">  </span><br><span class="line">- ![补码的非](./CSAPP/image-20231013205818392.png)</span><br><span class="line">  </span><br><span class="line">- 习题2.33 **注意Tmin**</span><br><span class="line"></span><br><span class="line">  - | x        | x      | 取反   | 取反     |</span><br><span class="line">    | -------- | ------ | ------ | -------- |</span><br><span class="line">    | 十六进制 | 十进制 | 十进制 | 十六进制 |</span><br><span class="line">    | 0        | 0      | 0      | 0        |</span><br><span class="line">    | 5        | 5      | -5     | B        |</span><br><span class="line">    | 8        | -8     | -8     | 8        |</span><br><span class="line">    | D        | -3     | 3      | 3        |</span><br><span class="line">    | F        | -1     | 1      | 1        |</span><br><span class="line"></span><br><span class="line">- 补码非的位级表示</span><br><span class="line"></span><br><span class="line">  - 对每一位求补在对结果加一（取反加一）</span><br><span class="line">    - ![取反+1](./CSAPP/image-20231013210716046.png)</span><br><span class="line">  - 找到最右边的k = 1，然后对k的左边所有位取反</span><br><span class="line">    - ![k左边取反](./CSAPP/image-20231013210745590.png)</span><br><span class="line"></span><br><span class="line">### 2.3.4无符号乘法</span><br><span class="line"></span><br><span class="line">- 定义：</span><br><span class="line">  - ![无符号乘法](./CSAPP/image-20231013211043062.png)</span><br><span class="line"></span><br><span class="line">### 2.3.5补码乘法</span><br><span class="line"></span><br><span class="line">- 定义：</span><br><span class="line">  </span><br><span class="line">- ![补码乘法](./CSAPP/image-20231013211223094.png)</span><br><span class="line">  </span><br><span class="line">- ![无符号和补码 位级相同](./CSAPP/image-20231013211545984.png)</span><br><span class="line"></span><br><span class="line">- 习题2.34</span><br><span class="line"></span><br><span class="line">  - | 模式   | x       | y       | x*y        | 截断后x*y |</span><br><span class="line">    | ------ | ------- | ------- | ---------- | --------- |</span><br><span class="line">    | 无符号 | 4[100]  | 5[101]  | 20[010100] | 4[100]    |</span><br><span class="line">    | 补码   | -4[100] | -3[101] | 12[001100] | -4[100]   |</span><br><span class="line">    | 无符号 | 2[010]  | 7[111]  | 14[001110] | 6[110]    |</span><br><span class="line">    | 补码   | 2[010]  | -1[111] | -2[111110] | -2[110]   |</span><br><span class="line">    | 无符号 | 6[110]  | 6[110]  | 36[100100] | 4[100]    |</span><br><span class="line">    | 补码   | -2[110] | -2[110] | 4[000100]  | -4[100]   |</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.3.6乘以常数</span><br><span class="line"></span><br><span class="line">- 通过移位运算的方式实现乘法，减少计算器运算周期</span><br><span class="line">  - ![乘法的移位运算](./CSAPP/image-20231013214235949.png)</span><br><span class="line">  - ![乘法移位总结](./CSAPP/image-20231013214440879.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.3.7除以2的幂</span><br><span class="line"></span><br><span class="line">- 整数除法要比整数乘法更慢 </span><br><span class="line">- 除以2的幂也可以用移位运算来实现 只不过用右移</span><br><span class="line"></span><br><span class="line">- 无符号右移</span><br><span class="line">  - ![无符号右移](./CSAPP/image-20231013215918001.png)</span><br><span class="line">  - ![无符号除法移位](./CSAPP/image-20231013220427774.png)</span><br><span class="line">- 有符号 向下舍入</span><br><span class="line">  - ![有符号移位](./CSAPP/image-20231013220613662.png)</span><br><span class="line">  - ![负数移位](./CSAPP/image-20231013220652590.png)</span><br><span class="line">  - 添加适当偏置量，结果向上舍入</span><br><span class="line">  - ![偏置](./CSAPP/image-20231013220949766.png)</span><br><span class="line">  - ![image-20231013221109889](./CSAPP/image-20231013221109889.png)</span><br><span class="line"></span><br><span class="line">### 2.3.8总结</span><br><span class="line"></span><br><span class="line">- **习题2.44**</span><br><span class="line">- ![习题2.44](./CSAPP/image-20231013222149344.png)</span><br><span class="line"></span><br><span class="line">  - `||`要为假则两边都应该是假 </span><br><span class="line">- 补码正负数表示的范围是不对成的，正数`cast`到负数一般没有事，但是负数cast到正数需要考虑`Tmin`</span><br><span class="line">  - `A.`假。当x = -2147483648（Tmin32）。那么，有x-1等于2147483647（Tmax32）负溢出</span><br><span class="line"></span><br><span class="line">    - Tmin[10000000,00000000,00000000,00000000]，</span><br><span class="line">  - -1[111111111,11111111,11111111,11111111],</span><br><span class="line">    - TMIN+(-1) [1,01111111,11111111,11111111,11111111]。</span><br><span class="line">    - 负溢出---截断 [01111111,11111111,11111111,11111111]。</span><br><span class="line">  - `B.`真。如果`（x&amp;7）!= 7`这个表达式的值为0，那么必须有位x2 等于1.当左移29位时，这个位将变为符号位。</span><br><span class="line">    - `（x&amp;7）!= 7`这个表达式为0 那么左边表达式结果应该为7  所以必然有x2位 等于1，当他左移29 位会变成符号位成为负数 小于1</span><br><span class="line">  - `c.`假。正数溢出可能得到负值</span><br><span class="line">  - `d.`真。若想为假则需要两边都为假。那么如果x为非负数，则-x必然为非正，因为 取值返回不对成</span><br><span class="line">  - `e.`假。若x为负数Tmin，那么-x仍然为Tmin。</span><br><span class="line">  - `f.`真。位级运算层面比较 补码和无符号加法有相同的位级行为，所以从位级来看他们是相同的</span><br><span class="line">  - ·g·真 。~y等于 -y-1. ux*uy 等于x *y，因此等式左边等于 x\*-y -x +x \*y。 同样也是位级比较</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## 2.4浮点数</span><br><span class="line"></span><br><span class="line">### 2.4.1二进制小数</span><br><span class="line"></span><br><span class="line">- 十进制表示法：</span><br><span class="line"></span><br><span class="line">  - ![十进制的小数表示法](./CSAPP/image-20231014204221901.png)</span><br><span class="line"></span><br><span class="line">- 类似的有二进制表示</span><br><span class="line"></span><br><span class="line">  - ![二进制表示](./CSAPP/image-20231014204554054.png)</span><br><span class="line"></span><br><span class="line">- 局限性：移位长度有限编码，所以有些数只能近似表示 ，增加相应表示的长度也可以增加精度</span><br><span class="line"></span><br><span class="line">  - ![表示精度](./CSAPP/image-20231014204911872.png)</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line"></span><br><span class="line">- 习题2.45</span><br><span class="line"></span><br><span class="line">  - | 小数值 | 二进制表示 | 十进制表示 |</span><br><span class="line">    | :----: | :--------: | :--------: |</span><br><span class="line">    |  1/8   |   0.001    |   0.125    |</span><br><span class="line">    |  3/4   |    0.11    |    0.75    |</span><br><span class="line">    | 25/16  |   1.1001   |   1.5625   |</span><br><span class="line">    | 43/16  |  10.1011   |   2.6875   |</span><br><span class="line">    |  9/8   |   1.001    |   1.125    |</span><br><span class="line">    |  47/8  |  101.111   |   5.875    |</span><br><span class="line">    | 51/16  |  11.0011   |   3.1875   |</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.2IEEE浮点表示</span><br><span class="line"></span><br><span class="line">- 定义</span><br><span class="line">  - ![image-20231014210447098](./CSAPP/image-20231014210447098.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- 根据exp的值，被编码的值可以分为三种不同的情况</span><br><span class="line">  - ![image-20231014211753784](./CSAPP/image-20231014211753784.png)</span><br><span class="line">    - 非规格化的值偏置设置为1-bias 而不是简单的-bias，主要是为了从非规格化值平滑转换到规格化值的方法</span><br><span class="line">  - 非规格化的用途：</span><br><span class="line">    - 提供了一种数值零的表示方法 +0.0位模式表示为：符号位是0，阶码字段全是0，小数域也全为0。当符号位为1 其他域全为0，则得到了-0.0。</span><br><span class="line">    - 表示非常接近于0.0的数，则提供了一种属性，称为逐渐溢出，可能的数值分布均匀的接近于0.0</span><br><span class="line">  - 特殊值：</span><br><span class="line">    - 阶码全为1，小数域为0，得到的值表示无穷，符号位为0时，表示是正无穷，符号位为1时 表示负无穷</span><br><span class="line">    - 小数域为非0时，则表示NaN = not a number 不是一个数，可以用在数据初始化的时候。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.3 数字示例</span><br><span class="line"></span><br><span class="line">- ![image-20231014213709753](./CSAPP/image-20231014213709753.png)</span><br><span class="line">- 习题2.47</span><br><span class="line">  - ![image-20231014214123591](./CSAPP/image-20231014214123591.png)</span><br><span class="line">- 有k位阶码和n位小数的浮点表示一般属性：</span><br><span class="line">  - 值 +0.0总有一个全为0的位表示</span><br><span class="line">  - ![image-20231014214419895](./CSAPP/image-20231014214419895.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.4 舍入</span><br><span class="line"></span><br><span class="line">- 表示方法限制了浮点数的范围和精度，所以浮点数只能近似的表示实数运算</span><br><span class="line">- IEEE定义了四种舍入方式 </span><br><span class="line">  - ![四种舍入方法](./CSAPP/image-20231016193726141.png)</span><br><span class="line">  - ![image-20231016193835926](./CSAPP/image-20231016193835926.png)</span><br><span class="line">  - 偶数舍入：对于不在两个整数中间的浮点数，找离其最近的整数，**而在两个数字正中间的数。则按照让舍入位的最后一位为0来进行舍入（倾向于使最低有效位为0）。**</span><br><span class="line">- 习题2.50 偶数舍入规则 以下数为2进制 考虑舍入到二分之一 小数点右边一位</span><br><span class="line">  - 10.010------10.0  ---中间值</span><br><span class="line">  - 10.011------10.1 ----不是中间值</span><br><span class="line">  - 10.110------11.0  --中间值 ，倾向于最低有效位为0</span><br><span class="line">  - 11.001------11.0 ---不是中间值</span><br><span class="line"></span><br><span class="line">- 习题2.51 2.52 略</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.5浮点运算</span><br><span class="line"></span><br><span class="line">- 浮点加法不具有结合性</span><br><span class="line">  - ![浮点加法](./CSAPP/image-20231016200701932.png)</span><br><span class="line">- 浮点数乘法满足单调性</span><br><span class="line">  - ![浮点数乘法 ](./CSAPP/image-20231016201644438.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.4.5c语言中浮点数转换</span><br><span class="line"></span><br><span class="line">- ![类型转换](./CSAPP/image-20231016202115282.png)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## 2.5 data lab</span><br><span class="line"></span><br><span class="line">### 2.5.1 bitXor</span><br><span class="line"></span><br><span class="line">- x^y only use ~ and &amp;</span><br><span class="line"></span><br><span class="line">- 异或：不相同时为1，相同为0------- 计算不是**同时为0情况**和不是**同时为1的情况** 然后进行与</span><br><span class="line"></span><br><span class="line">  - 例如 x[0011]                        y[0101]</span><br><span class="line">  - **找出同时为1的情况 则 x&amp;y = [0001]**</span><br><span class="line">  - **找出同时为0的情况 则相反 ~x[1100] &amp; ~y[1010] = [1000]**</span><br><span class="line">  - 找出这两种单独情况然后再取非 按位与就是异或门实现</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    int bitXor(int x, int y) &#123;</span><br><span class="line">        return ~(~x&amp;~y)&amp;~(x&amp;y);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
-</li>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">tsub_ok</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (y == INT_MIN) &#123;</span><br><span class="line">        <span class="keyword">if</span> (x &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> tadd_ok(x, -y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
 </li>
 </ul>
-<h3 id="2-5-2-tmin"><a href="#2-5-2-tmin" class="headerlink" title="2.5.2 tmin"></a>2.5.2 tmin</h3><ul>
-<li><p>only use ！~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+<h3 id="2-3-3-补码的非"><a href="#2-3-3-补码的非" class="headerlink" title="2.3.3 补码的非"></a>2.3.3 补码的非</h3><ul>
+<li><p>定义</p>
 </li>
-<li><p>返回最小补码整数</p>
+<li><p><img src="/2023/09/19/CSAPP/image-20231013205818392.png" alt="补码的非"></p>
 </li>
-<li><p>题目要求机器在32位机器上运行  int的类型位32位</p>
-</li>
-<li><p>补码最小值为 符号位为1 其余为0 即为最小值，因此可以将0X1[00000000,00000000,00000000,00000001] 左移31位。</p>
-</li>
-<li><p>代码实现：</p>
+<li><p>习题2.33 <strong>注意Tmin</strong></p>
 <ul>
-<li><pre><code class="c">int tmin(void) &#123;
-    return 0x1&lt;&lt;31;
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.5.3 isTmax</span><br><span class="line"></span><br><span class="line">- 当输入的数是最大时返回1，其余返回0.</span><br><span class="line"></span><br><span class="line">- only use `!（非）  ~（按位取反） &amp; ^ | +`</span><br><span class="line"></span><br><span class="line">- int 32位最大值 符号位为0，其余为1 [01111111,11111111,11111111,11111111] 判断x是否和这个值相等</span><br><span class="line"></span><br><span class="line">- 当Tmax 再增加1时 会变成[1000.....] Tmin </span><br><span class="line"></span><br><span class="line">- Tmin[1000] 恰好是Tmax[0111] 的反   **除了x = -1[1111] 和y = 0[0000] 外 都不满足这个规则**，利用[0000] 和[1000]的不相同  让结果直接加上它 </span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    int isTmax(int x) &#123;</span><br><span class="line">        int y = x + 1;//如果x是Tmax[0111] 则 y = Tmin[1000] </span><br><span class="line">        x = x + y;//[1111]</span><br><span class="line">        x = ~x;//[0000]</span><br><span class="line">        return !（x + !y）; //如果y=[0000] -&gt;!y=[0001] x + !y = [0001] 最后在取反返回0</span><br><span class="line">        				   //如果y=[1000] -&gt;!y=[0000] x + !y = [0000] 返回1 对答案无影响</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
+<li><table>
+<thead>
+<tr>
+<th>x</th>
+<th>x</th>
+<th>取反</th>
+<th>取反</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>十六进制</td>
+<td>十进制</td>
+<td>十进制</td>
+<td>十六进制</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>5</td>
+<td>5</td>
+<td>-5</td>
+<td>B</td>
+</tr>
+<tr>
+<td>8</td>
+<td>-8</td>
+<td>-8</td>
+<td>8</td>
+</tr>
+<tr>
+<td>D</td>
+<td>-3</td>
+<td>3</td>
+<td>3</td>
+</tr>
+<tr>
+<td>F</td>
+<td>-1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody></table>
 </li>
 </ul>
 </li>
-</ul>
-<h3 id="2-5-4-allOddBits"><a href="#2-5-4-allOddBits" class="headerlink" title="2.5.4 allOddBits"></a>2.5.4 allOddBits</h3><ul>
-<li><p>如果所有的奇数位都位1 则返回1 [0-31]</p>
-</li>
-<li><p>only use ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
-</li>
-<li><p>利用 掩码  关键是 如何提取出x 的奇数位</p>
+<li><p>补码非的位级表示</p>
 <ul>
-<li>先构造一个 奇数位全为1 的数 即0xAAAAAAAA</li>
-<li>任何数与这个数 &amp;后，偶数位全0，奇数位 1的仍然是1， 原来是0的则为0.。</li>
-<li><strong>在与这个数[0xAAAAAAAA]进行异或，满足要求则数转换为0，不满足则非0。</strong></li>
+<li>对每一位求补在对结果加一（取反加一）<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013210716046.png" alt="取反+1"></li>
 </ul>
 </li>
-<li><p>代码实现：</p>
-</li>
-<li><pre><code class="c">int allOddBits(int x) &#123;
-      int a = 0xaa + (0xaa &lt;&lt; 8);
-      int b = a + (a &lt;&lt; 16);
-      return !((x &amp; b) ^ b);
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 2.5.5 negate</span><br><span class="line"></span><br><span class="line">- 求反</span><br><span class="line"></span><br><span class="line">- Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span><br><span class="line"></span><br><span class="line">- 1[0001]      -1[1111]  阿贝尔群 **取反+1**</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    /* </span><br><span class="line">     * negate - return -x </span><br><span class="line">     *   Example: negate(1) = -1.</span><br><span class="line">     *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span><br><span class="line">     *   Max ops: 5</span><br><span class="line">     *   Rating: 2</span><br><span class="line">     */</span><br><span class="line">    int negate(int x) &#123;</span><br><span class="line">      return (~x + 1);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
+<li>找到最右边的k &#x3D; 1，然后对k的左边所有位取反<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013210745590.png" alt="k左边取反"></li>
+</ul>
 </li>
 </ul>
-<h3 id="2-5-6-isAsciiDigit"><a href="#2-5-6-isAsciiDigit" class="headerlink" title="2.5.6 isAsciiDigit"></a>2.5.6 isAsciiDigit</h3><ul>
-<li><p>判断是否是ascii数字 0x30 &lt;&#x3D; x &lt;&#x3D;0x39</p>
 </li>
-<li><p><strong>又上题可得 ~x+1 &#x3D; - x</strong>，因此可以由这个实现减法运算  </p>
+</ul>
+<h3 id="2-3-4无符号乘法"><a href="#2-3-4无符号乘法" class="headerlink" title="2.3.4无符号乘法"></a>2.3.4无符号乘法</h3><ul>
+<li>定义：<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013211043062.png" alt="无符号乘法"></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-3-5补码乘法"><a href="#2-3-5补码乘法" class="headerlink" title="2.3.5补码乘法"></a>2.3.5补码乘法</h3><ul>
+<li><p>定义：</p>
+</li>
+<li><p><img src="/2023/09/19/CSAPP/image-20231013211223094.png" alt="补码乘法"></p>
+</li>
+<li><p><img src="/2023/09/19/CSAPP/image-20231013211545984.png" alt="无符号和补码 位级相同"></p>
+</li>
+<li><p>习题2.34</p>
 <ul>
-<li>减去上下界。 上界[0x39] 下界[0x30]    然后再右移31位 判断符号位</li>
+<li><table>
+<thead>
+<tr>
+<th>模式</th>
+<th>x</th>
+<th>y</th>
+<th>x*y</th>
+<th>截断后x*y</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无符号</td>
+<td>4[100]</td>
+<td>5[101]</td>
+<td>20[010100]</td>
+<td>4[100]</td>
+</tr>
+<tr>
+<td>补码</td>
+<td>-4[100]</td>
+<td>-3[101]</td>
+<td>12[001100]</td>
+<td>-4[100]</td>
+</tr>
+<tr>
+<td>无符号</td>
+<td>2[010]</td>
+<td>7[111]</td>
+<td>14[001110]</td>
+<td>6[110]</td>
+</tr>
+<tr>
+<td>补码</td>
+<td>2[010]</td>
+<td>-1[111]</td>
+<td>-2[111110]</td>
+<td>-2[110]</td>
+</tr>
+<tr>
+<td>无符号</td>
+<td>6[110]</td>
+<td>6[110]</td>
+<td>36[100100]</td>
+<td>4[100]</td>
+</tr>
+<tr>
+<td>补码</td>
+<td>-2[110]</td>
+<td>-2[110]</td>
+<td>4[000100]</td>
+<td>-4[100]</td>
+</tr>
+</tbody></table>
+</li>
 </ul>
 </li>
-<li><p>代码实现：</p>
+</ul>
+<h3 id="2-3-6乘以常数"><a href="#2-3-6乘以常数" class="headerlink" title="2.3.6乘以常数"></a>2.3.6乘以常数</h3><ul>
+<li>通过移位运算的方式实现乘法，减少计算器运算周期<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231013214235949.png" alt="乘法的移位运算"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231013214440879.png" alt="乘法移位总结"></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-3-7除以2的幂"><a href="#2-3-7除以2的幂" class="headerlink" title="2.3.7除以2的幂"></a>2.3.7除以2的幂</h3><ul>
+<li><p>整数除法要比整数乘法更慢 </p>
+</li>
+<li><p>除以2的幂也可以用移位运算来实现 只不过用右移</p>
+</li>
+<li><p>无符号右移</p>
 <ul>
-<li><pre><code class="c">/* 
- * isAsciiDigit - return 1 if 0x30 &lt;= x &lt;= 0x39 (ASCII codes for characters &#39;0&#39; to &#39;9&#39;)
- *   Example: isAsciiDigit(0x35) = 1.
- *            isAsciiDigit(0x3a) = 0.
- *            isAsciiDigit(0x05) = 0.
- *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;
- *   Max ops: 15
- *   Rating: 3
- */
-int isAsciiDigit(int x) &#123;
-  int upper = (0x39 + (~x + 1)) &gt;&gt; 31;//左移31
-  int down = (x + (~0x30 + 1)) &gt;&gt; 31;
-  return !upper &amp; !down;
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.5.7 conditional</span><br><span class="line"></span><br><span class="line">-  `x ? y : z` 当`x 非0`时 返回` y` ，当`x = 0`时返回 `z `</span><br><span class="line"></span><br><span class="line">  - 利用`x=[0000]`（表示0，返回z的情况）时 或x =[1111]（表示非0，返回y 的情况）</span><br><span class="line">  - `x =~x + 1`作用 设置为全0 或全1</span><br><span class="line">  - 例如 x一开始 [0000] 和 [0001]</span><br><span class="line">  - 经过~x 为 [1111] 和 [1110]</span><br><span class="line">  - +1 为 [0000] 和 [1111]</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    /* </span><br><span class="line">     * conditional - same as x ? y : z </span><br><span class="line">     *   Example: conditional(2,4,5) = 4</span><br><span class="line">     *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span><br><span class="line">     *   Max ops: 16</span><br><span class="line">     *   Rating: 3</span><br><span class="line">     */</span><br><span class="line">    int conditional(int x, int y, int z) &#123;</span><br><span class="line">      x = !!x;</span><br><span class="line">      x = ~x + 1;</span><br><span class="line">      return (x &amp; y) | (~x &amp; z);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
-</li>
+<li><img src="/2023/09/19/CSAPP/image-20231013215918001.png" alt="无符号右移"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231013220427774.png" alt="无符号除法移位"></li>
 </ul>
 </li>
-</ul>
-<h3 id="2-5-8-isLessOrEqual"><a href="#2-5-8-isLessOrEqual" class="headerlink" title="2.5.8 isLessOrEqual"></a>2.5.8 isLessOrEqual</h3><ul>
-<li><p>用位运算 实现 &lt;&#x3D;</p>
-</li>
-<li><p>比较两个数的大小  两种情况</p>
+<li><p>有符号 向下舍入</p>
 <ul>
-<li>符号不同 整数大</li>
-<li>符号相同 看差值符号</li>
+<li><img src="/2023/09/19/CSAPP/image-20231013220613662.png" alt="有符号移位"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231013220652590.png" alt="负数移位"></li>
+<li>添加适当偏置量，结果向上舍入</li>
+<li><img src="/2023/09/19/CSAPP/image-20231013220949766.png" alt="偏置"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231013221109889.png" alt="image-20231013221109889"></li>
 </ul>
 </li>
-<li><p>代码实现：</p>
+</ul>
+<h3 id="2-3-8总结"><a href="#2-3-8总结" class="headerlink" title="2.3.8总结"></a>2.3.8总结</h3><ul>
+<li><p><strong>习题2.44</strong></p>
+</li>
+<li><p><img src="/2023/09/19/CSAPP/image-20231013222149344.png" alt="习题2.44"></p>
 <ul>
-<li><pre><code class="c">/* 
- * isLessOrEqual - if x &lt;= y  then return 1, else return 0 
- *   Example: isLessOrEqual(4,5) = 1.
- *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;
- *   Max ops: 24
- *   Rating: 3
- */
-int isLessOrEqual(int x, int y) &#123;
-  int a = x &gt;&gt; 31;//取符号位
-  int b = y &gt;&gt; 31;
-  int c = !(a ^ b);//取非，保证相同为1，不同为0
-  int d = !((y + (~x + 1)) &gt;&gt; 31);//取非保证：y &gt;= x 为1 y&lt;x 为0
-  return (c&amp;d) | (!c&amp;a);//左边条件：符号相等 则返回相减的符号位，右边条件： 符号不相等 若a&lt;0 返回1 &gt;0返回0
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.5.9 logicalNeg</span><br><span class="line"></span><br><span class="line">- 用位运算 实现逻辑非 !</span><br><span class="line"></span><br><span class="line">- 0[0000]  和Tmin[1000] 两个补码特殊</span><br><span class="line"></span><br><span class="line">- 0 的符号位 与其补码符号位 **位或** 为0。 Tmin位或为1  [1000]  [1000]----利用这一点</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    /* </span><br><span class="line">     * logicalNeg - implement the ! operator, using all of </span><br><span class="line">     *              the legal operators except !</span><br><span class="line">     *   Examples: logicalNeg(3) = 0, logicalNeg(0) = 1</span><br><span class="line">     *   Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span><br><span class="line">     *   Max ops: 12</span><br><span class="line">     *   Rating: 4 </span><br><span class="line">     */</span><br><span class="line">    int logicalNeg(int x) &#123;</span><br><span class="line">      return ((x | (~x + 1)) &gt;&gt; 31) + 1;//左移31后  对于非0数 产生-1[1111] 0产生[0000] 所以+1</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
-</li>
+<li><code>||</code>要为假则两边都应该是假</li>
 </ul>
 </li>
-</ul>
-<h3 id="2-5-10-howManyBits"><a href="#2-5-10-howManyBits" class="headerlink" title="2.5.10 howManyBits"></a>2.5.10 howManyBits</h3><ul>
-<li><p>返回最小能表示数字X的补码位数</p>
-</li>
-<li><p>如果是一个正数，则需要找到它最高的一位（假设是n）是1 的 则在加上符号位， 结果为n+1</p>
-</li>
-<li><p>如果是负数，则需要知道其最高一位是0的 （例如 -3[1101] 和 -3[101] 表示的是一个值，所以最小需要三位来表示）</p>
-</li>
-<li><p>代码实现：</p>
+<li><p>补码正负数表示的范围是不对成的，正数<code>cast</code>到负数一般没有事，但是负数cast到正数需要考虑<code>Tmin</code></p>
 <ul>
-<li><pre><code class="c">/* howManyBits - return the minimum number of bits required to represent x in
- *             two&#39;s complement
- *  Examples: howManyBits(12) = 5
- *            howManyBits(298) = 10
- *            howManyBits(-5) = 4
- *            howManyBits(0)  = 1
- *            howManyBits(-1) = 1
- *            howManyBits(0x80000000) = 32
- *  Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;
- *  Max ops: 90
- *  Rating: 4
- */
-int howManyBits(int x) &#123;
-  int b16, b8, b4, b2, b1, b0;
-  int sign = x &gt;&gt; 31;// 取 符号位 如果是负数 则sign为0xFFFFFFFF，否则为0x00000000
-  //如果x为正则不变，为负数按位取反（这样好找最高位为1的，原来是最高位为0的，也将符号位去掉了）  
-  x = (sign &amp; ~x) | (~sign &amp; x);
-
-  // 二分法 不断缩小范围
-  b16 = !!(x &gt;&gt; 16) &lt;&lt; 4;//高16位是否存在1
-  x = x &gt;&gt; b16;
-  b8 = !!(x &gt;&gt; 8) &lt;&lt; 3;//剩余的高8位
-  x = x &gt;&gt; b8;
-  b4 = !!(x &gt;&gt; 4) &lt;&lt; 2;
-  x = x &gt;&gt; b4;
-  b2 = !!(x &gt;&gt; 2) &lt;&lt; 1;
-  x = x &gt;&gt; b2;
-  b1 = !!(x &gt;&gt; 1);
-  x = x &gt;&gt; b1;
-  b0 = x;
-  return b16 + b8 + b4 + b2 + b1 + b0 + 1; //+1 是符号位
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">  - `b16 = !!(x &gt;&gt; 16) &lt;&lt; 4;`x &gt;&gt; 16 将x 右移16位 丢掉低16位 保留高16位</span><br><span class="line"></span><br><span class="line">    - `！！` 常见的技巧，用于将一个数 转换为逻辑值  用来检查移动后的整数是否为0 ，即检查原来高165为是否存在1 。</span><br><span class="line">    - `&lt;&lt; 4 `如果移动后不为0 那么`！！的结果为1`，左移4位即 `1 &lt;&lt; 4` 将其转为相应计数为 `16 [1000]`</span><br><span class="line"></span><br><span class="line">  - 模拟一下12[00000000,00000000,00000000,00001100]</span><br><span class="line"></span><br><span class="line">    - sign = 0x00000000  然后x = 12[00000000,00000000,00000000,00001100]</span><br><span class="line">    - b16 = 0 ， x = [00000000,00000000,00000000,00001100]</span><br><span class="line">    - b8 = 0 ， x = [00000000,00000000,00000000,00001100]</span><br><span class="line">    - b4 = 0， x= [00000000,00000000,00000000,00001100]</span><br><span class="line">    - b2 =2[10]  , x =  [00000000,00000000,00000000,00000011]</span><br><span class="line">    - b1 = 1[1] , x =  [00000000,00000000,00000000,00000001]</span><br><span class="line">    - b0 = 1 ,</span><br><span class="line">    - return 2+1+1+1 = 5</span><br><span class="line"></span><br><span class="line">### 2.5.11 floatScale2</span><br><span class="line"></span><br><span class="line">- 求2乘以一个浮点数    若uf为NaN 或无穷大 则直接返回   否则计算uf * 2返回。</span><br><span class="line"></span><br><span class="line">- 特殊情况： 无穷小 、 0 、 无穷大和非数值NaN  此时这些浮点数的指数部分分别存储为 0、 0、 255 、255，因此无穷大和NaN则直接返回就行，无穷小和0只需要在原数乘二然后再加上符号位就可以（因为不会越界）</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    //float</span><br><span class="line">    /* </span><br><span class="line">     * floatScale2 - Return bit-level equivalent of expression 2*f for</span><br><span class="line">     *   floating point argument f.</span><br><span class="line">     *   Both the argument and result are passed as unsigned int&#x27;s, but</span><br><span class="line">     *   they are to be interpreted as the bit-level representation of</span><br><span class="line">     *   single-precision floating point values.</span><br><span class="line">     *   When argument is NaN, return argument</span><br><span class="line">     *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. also if, while</span><br><span class="line">     *   Max ops: 30</span><br><span class="line">     *   Rating: 4</span><br><span class="line">     */</span><br><span class="line">    unsigned floatScale2(unsigned uf) &#123;</span><br><span class="line">      int sign = uf &amp; (1 &lt;&lt; 31);//符号位</span><br><span class="line">      int exp = (uf &amp; 0x7f800000) &gt;&gt; 23; //0x7f800000 浮点数最大值  与uf做于 截取出 exp的数据</span><br><span class="line">      //特殊情况</span><br><span class="line">      if (exp == 0) return uf &lt;&lt; 1 | sign;//指数为0  直接返回乘以2 的值 左移一个即乘以2</span><br><span class="line">      if (exp == 255) return uf;//无穷大或NaN 直接返回</span><br><span class="line">      exp++;//指数加一，相当于乘二 相当于左移一位</span><br><span class="line">      if (exp == 255) return 0x7f800000 | sign; //指数加一后为255 </span><br><span class="line">      return (exp &lt;&lt; 23) | (uf &amp; 0x807fffff); //否则 返回指数+1后和 原来数其他位的结果 也就是乘以2的结果</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
-</li>
-</ul>
-</li>
-</ul>
-<h3 id="2-5-12-floatFloat2Int"><a href="#2-5-12-floatFloat2Int" class="headerlink" title="2.5.12 floatFloat2Int"></a>2.5.12 floatFloat2Int</h3><ul>
-<li><p>实现 (int)uf  将浮点数转为整数</p>
-</li>
-<li><p>溢出 返回0x80000000u   </p>
-</li>
-<li><p>偏置值127 在单精度浮点数中 偏置值为2^(k-1)-1，其中单精度指数部分占了 8为 所以 2^（8-1）-1&#x3D;127</p>
-</li>
-<li><p>在单精度浮点表示中，<strong>尾数（即有效数字）部分的位数是 23 位</strong>。当对浮点数进行整数转换时，需要考虑到指数部分的影响。如果指数部分大于 23，意味着尾数部分需要左移，以便将小数部分转换为整数。</p>
-<p>这是因为指数的值实际上代表了小数点向左或向右移动的位数。<strong>如果指数大于 23，表示小数点要向左移动超过尾数部分的位数，</strong>因此需要将尾数左移，以保留整数部分。左移的位数是指数值减去 23，因为每左移一位，相当于乘以 2 的一次方。</p>
-</li>
-<li><p>代码实现：</p>
+<li><p><code>A.</code>假。当x &#x3D; -2147483648（Tmin32）。那么，有x-1等于2147483647（Tmax32）负溢出</p>
 <ul>
-<li><pre><code class="c">/* 
- * floatFloat2Int - Return bit-level equivalent of expression (int) f
- *   for floating point argument f.
- *   Argument is passed as unsigned int, but
- *   it is to be interpreted as the bit-level representation of a
- *   single-precision floating point value.
- *   Anything out of range (including NaN and infinity) should return
- *   0x80000000u.
- *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. also if, while
- *   Max ops: 30
- *   Rating: 4
- */
-int floatFloat2Int(unsigned uf) &#123;
-  int sign = uf &gt;&gt; 31;//符号位
-  int exp = ((uf &amp; 0x7f800000) &gt;&gt; 23) -127;//-127 偏置值
-  int frac = (uf &amp; 0x007fffff) | 0x00800000; //尾数 并且补上隐藏的1 得到完整的整数
-  if (!(uf &amp; 0x7fffffff)) return 0;//如果uf=0 则return 0
-  if (exp &gt; 31) return 0x80000000; //如果指数大于31 则返回溢出值 因为整数int为32位
-  if (exp &lt; 0) return 0;//指数小于0 小数部分无法表示 返回0
-    
-  if (exp &gt; 23) frac &lt;&lt;= (exp - 23);//exp大于23   需要将小数位左移
-  else frac &gt;&gt;= (23 - exp);
-
-  if (!((frac &gt;&gt; 31) ^ sign)) return frac; //符号相同则返回原值
-  else if (frac &gt;&gt; 31) return 0x80000000;//如果为负（即原来为正），返回溢出值
-  else return ~frac + 1;//如果为正（原来为负），返回相反数
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.5.13 floatPower2</span><br><span class="line"></span><br><span class="line">- 求2.0^x</span><br><span class="line"></span><br><span class="line">- exp &lt;= 0 指数部分太小 而无法用单精度浮点数表示 </span><br><span class="line"></span><br><span class="line">- </span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c</span><br><span class="line">    /* </span><br><span class="line">     * floatPower2 - Return bit-level equivalent of the expression 2.0^x</span><br><span class="line">     *   (2.0 raised to the power x) for any 32-bit integer x.</span><br><span class="line">     *</span><br><span class="line">     *   The unsigned value that is returned should have the identical bit</span><br><span class="line">     *   representation as the single-precision floating-point number 2.0^x.</span><br><span class="line">     *   If the result is too small to be represented as a denorm, return</span><br><span class="line">     *   0. If too large, return +INF.</span><br><span class="line">     * </span><br><span class="line">     *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. Also if, while </span><br><span class="line">     *   Max ops: 30 </span><br><span class="line">     *   Rating: 4</span><br><span class="line">     */</span><br><span class="line">    unsigned floatPower2(int x) &#123;</span><br><span class="line">      int exp = x + 127; //把x当作真指数</span><br><span class="line">      if (exp &lt;= 0) return 0; // 0 &lt; 原数&lt;1 返回0</span><br><span class="line">      if (exp &gt;= 255) return 0x7f800000;//溢出</span><br><span class="line">      return exp &lt;&lt;23; //否则x作为正常的数 有效范围 则exp 左移23位  将指数部分放在合适的位数上</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br></pre></td></tr></table></figure>
-
-​
-</code></pre>
+<li>Tmin[10000000,00000000,00000000,00000000]，</li>
+</ul>
+</li>
+<li><p>-1[111111111,11111111,11111111,11111111],</p>
+<ul>
+<li>TMIN+(-1) [1,01111111,11111111,11111111,11111111]。</li>
+<li>负溢出—截断 [01111111,11111111,11111111,11111111]。</li>
+</ul>
+</li>
+<li><p><code>B.</code>真。如果<code>（x&amp;7）!= 7</code>这个表达式的值为0，那么必须有位x2 等于1.当左移29位时，这个位将变为符号位。</p>
+<ul>
+<li><code>（x&amp;7）!= 7</code>这个表达式为0 那么左边表达式结果应该为7  所以必然有x2位 等于1，当他左移29 位会变成符号位成为负数 小于1</li>
+</ul>
+</li>
+<li><p><code>c.</code>假。正数溢出可能得到负值</p>
+</li>
+<li><p><code>d.</code>真。若想为假则需要两边都为假。那么如果x为非负数，则-x必然为非正，因为 取值返回不对成</p>
+</li>
+<li><p><code>e.</code>假。若x为负数Tmin，那么-x仍然为Tmin。</p>
+</li>
+<li><p><code>f.</code>真。位级运算层面比较 补码和无符号加法有相同的位级行为，所以从位级来看他们是相同的</p>
+</li>
+<li><p>·g·真 。~y等于 -y-1. ux*uy 等于x *y，因此等式左边等于 x*-y -x +x *y。 同样也是位级比较</p>
 </li>
 </ul>
 </li>
 </ul>
-<p>	</p>
+<h2 id="2-4浮点数"><a href="#2-4浮点数" class="headerlink" title="2.4浮点数"></a>2.4浮点数</h2><h3 id="2-4-1二进制小数"><a href="#2-4-1二进制小数" class="headerlink" title="2.4.1二进制小数"></a>2.4.1二进制小数</h3><ul>
+<li><p>十进制表示法：</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231014204221901.png" alt="十进制的小数表示法"></li>
+</ul>
+</li>
+<li><p>类似的有二进制表示</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231014204554054.png" alt="二进制表示"></li>
+</ul>
+</li>
+<li><p>局限性：移位长度有限编码，所以有些数只能近似表示 ，增加相应表示的长度也可以增加精度</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231014204911872.png" alt="表示精度"></li>
+</ul>
+</li>
+<li><p>习题2.45</p>
+<ul>
+<li><table>
+<thead>
+<tr>
+<th align="center">小数值</th>
+<th align="center">二进制表示</th>
+<th align="center">十进制表示</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1&#x2F;8</td>
+<td align="center">0.001</td>
+<td align="center">0.125</td>
+</tr>
+<tr>
+<td align="center">3&#x2F;4</td>
+<td align="center">0.11</td>
+<td align="center">0.75</td>
+</tr>
+<tr>
+<td align="center">25&#x2F;16</td>
+<td align="center">1.1001</td>
+<td align="center">1.5625</td>
+</tr>
+<tr>
+<td align="center">43&#x2F;16</td>
+<td align="center">10.1011</td>
+<td align="center">2.6875</td>
+</tr>
+<tr>
+<td align="center">9&#x2F;8</td>
+<td align="center">1.001</td>
+<td align="center">1.125</td>
+</tr>
+<tr>
+<td align="center">47&#x2F;8</td>
+<td align="center">101.111</td>
+<td align="center">5.875</td>
+</tr>
+<tr>
+<td align="center">51&#x2F;16</td>
+<td align="center">11.0011</td>
+<td align="center">3.1875</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-4-2IEEE浮点表示"><a href="#2-4-2IEEE浮点表示" class="headerlink" title="2.4.2IEEE浮点表示"></a>2.4.2IEEE浮点表示</h3><ul>
+<li><p>定义</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231014210447098.png" alt="image-20231014210447098"></li>
+</ul>
+</li>
+<li><p>根据exp的值，被编码的值可以分为三种不同的情况</p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231014211753784.png" alt="image-20231014211753784"><ul>
+<li>非规格化的值偏置设置为1-bias 而不是简单的-bias，主要是为了从非规格化值平滑转换到规格化值的方法</li>
+</ul>
+</li>
+<li>非规格化的用途：<ul>
+<li>提供了一种数值零的表示方法 +0.0位模式表示为：符号位是0，阶码字段全是0，小数域也全为0。当符号位为1 其他域全为0，则得到了-0.0。</li>
+<li>表示非常接近于0.0的数，则提供了一种属性，称为逐渐溢出，可能的数值分布均匀的接近于0.0</li>
+</ul>
+</li>
+<li>特殊值：<ul>
+<li>阶码全为1，小数域为0，得到的值表示无穷，符号位为0时，表示是正无穷，符号位为1时 表示负无穷</li>
+<li>小数域为非0时，则表示NaN &#x3D; not a number 不是一个数，可以用在数据初始化的时候。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-4-3-数字示例"><a href="#2-4-3-数字示例" class="headerlink" title="2.4.3 数字示例"></a>2.4.3 数字示例</h3><ul>
+<li><img src="/2023/09/19/CSAPP/image-20231014213709753.png" alt="image-20231014213709753"></li>
+<li>习题2.47<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231014214123591.png" alt="image-20231014214123591"></li>
+</ul>
+</li>
+<li>有k位阶码和n位小数的浮点表示一般属性：<ul>
+<li>值 +0.0总有一个全为0的位表示</li>
+<li><img src="/2023/09/19/CSAPP/image-20231014214419895.png" alt="image-20231014214419895"></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-4-4-舍入"><a href="#2-4-4-舍入" class="headerlink" title="2.4.4 舍入"></a>2.4.4 舍入</h3><ul>
+<li><p>表示方法限制了浮点数的范围和精度，所以浮点数只能近似的表示实数运算</p>
+</li>
+<li><p>IEEE定义了四种舍入方式 </p>
+<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231016193726141.png" alt="四种舍入方法"></li>
+<li><img src="/2023/09/19/CSAPP/image-20231016193835926.png" alt="image-20231016193835926"></li>
+<li>偶数舍入：对于不在两个整数中间的浮点数，找离其最近的整数，<strong>而在两个数字正中间的数。则按照让舍入位的最后一位为0来进行舍入（倾向于使最低有效位为0）。</strong></li>
+</ul>
+</li>
+<li><p>习题2.50 偶数舍入规则 以下数为2进制 考虑舍入到二分之一 小数点右边一位</p>
+<ul>
+<li>10.010——10.0  —中间值</li>
+<li>10.011——10.1 —-不是中间值</li>
+<li>10.110——11.0  –中间值 ，倾向于最低有效位为0</li>
+<li>11.001——11.0 —不是中间值</li>
+</ul>
+</li>
+<li><p>习题2.51 2.52 略</p>
+</li>
+</ul>
+<h3 id="2-4-5浮点运算"><a href="#2-4-5浮点运算" class="headerlink" title="2.4.5浮点运算"></a>2.4.5浮点运算</h3><ul>
+<li>浮点加法不具有结合性<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231016200701932.png" alt="浮点加法"></li>
+</ul>
+</li>
+<li>浮点数乘法满足单调性<ul>
+<li><img src="/2023/09/19/CSAPP/image-20231016201644438.png" alt="浮点数乘法 "></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-4-5c语言中浮点数转换"><a href="#2-4-5c语言中浮点数转换" class="headerlink" title="2.4.5c语言中浮点数转换"></a>2.4.5c语言中浮点数转换</h3><ul>
+<li><img src="/2023/09/19/CSAPP/image-20231016202115282.png" alt="类型转换"></li>
+</ul>
 ]]></content>
       <categories>
         <category>CSAPP</category>
@@ -1990,15 +2121,19 @@ public:
 </ul>
 </li>
 <li><p>代码实现：</p>
-<ul>
-<li><pre><code class="c++">int bitXor(int x, int y) &#123;
-    return ~(~x&amp;~y)&amp;~(x&amp;y);
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.2 tmin</span><br><span class="line"></span><br><span class="line">- only use ！~ &amp; ^ | + &lt;&lt; &gt;&gt;</span><br><span class="line"></span><br><span class="line">- 返回最小补码整数</span><br><span class="line"></span><br><span class="line">- 题目要求机器在32位机器上运行  int的类型位32位</span><br><span class="line"></span><br><span class="line">- 补码最小值为 符号位为1 其余为0 即为最小值，因此可以将0X1[00000000,00000000,00000000,00000001] 左移31位。</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c++</span><br><span class="line">    int tmin(void) &#123;</span><br><span class="line">        return 0x1&lt;&lt;31;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
-</li>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">bitXor</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> ~(~x&amp;~y)&amp;~(x&amp;y);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
+<h3 id="2-2-tmin"><a href="#2-2-tmin" class="headerlink" title="2.2 tmin"></a>2.2 tmin</h3><ul>
+<li><p>only use ！~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
 </li>
+<li><p>返回最小补码整数</p>
+</li>
+<li><p>题目要求机器在32位机器上运行  int的类型位32位</p>
+</li>
+<li><p>补码最小值为 符号位为1 其余为0 即为最小值，因此可以将0X1[00000000,00000000,00000000,00000001] 左移31位。</p>
+</li>
+<li><p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">tmin</span><span class="params">(<span class="type">void</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0x1</span>&lt;&lt;<span class="number">31</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
 <h3 id="2-3-isTmax"><a href="#2-3-isTmax" class="headerlink" title="2.3 isTmax"></a>2.3 isTmax</h3><ul>
 <li><p>当输入的数是最大时返回1，其余返回0.</p>
@@ -2012,19 +2147,22 @@ public:
 <li><p>Tmin[1000] 恰好是Tmax[0111] 的反   <strong>除了x &#x3D; -1[1111] 和y &#x3D; 0[0000] 外 都不满足这个规则</strong>，利用[0000] 和[1000]的不相同  让结果直接加上它 </p>
 </li>
 <li><p>代码实现：</p>
-<ul>
-<li><pre><code class="c++">int isTmax(int x) &#123;
-    int y = x + 1;//如果x是Tmax[0111] 则 y = Tmin[1000] 
-    x = x + y;//[1111]
-    x = ~x;//[0000]
-    return !（x + !y）; //如果y=[0000] -&gt;!y=[0001] x + !y = [0001] 最后在取反返回0
-                       //如果y=[1000] -&gt;!y=[0000] x + !y = [0000] 返回1 对答案无影响
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.4 allOddBits</span><br><span class="line"></span><br><span class="line">- 如果所有的奇数位都位1 则返回1 [0-31]</span><br><span class="line"></span><br><span class="line">- only use ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span><br><span class="line"></span><br><span class="line">- 利用 掩码  关键是 如何提取出x 的奇数位</span><br><span class="line"></span><br><span class="line">  - 先构造一个 奇数位全为1 的数 即0xAAAAAAAA</span><br><span class="line">  - 任何数与这个数 &amp;后，偶数位全0，奇数位 1的仍然是1， 原来是0的则为0.。</span><br><span class="line">  - **在与这个数[0xAAAAAAAA]进行异或，满足要求则数转换为0，不满足则非0。**</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">- ```c++</span><br><span class="line">  int allOddBits(int x) &#123;</span><br><span class="line">    	int a = 0xaa + (0xaa &lt;&lt; 8);</span><br><span class="line">    	int b = a + (a &lt;&lt; 16);</span><br><span class="line">    	return !((x &amp; b) ^ b);</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">isTmax</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> y = x + <span class="number">1</span>;<span class="comment">//如果x是Tmax[0111] 则 y = Tmin[1000] </span></span><br><span class="line">    x = x + y;<span class="comment">//[1111]</span></span><br><span class="line">    x = ~x;<span class="comment">//[0000]</span></span><br><span class="line">    <span class="keyword">return</span> !（x + !y）; <span class="comment">//如果y=[0000] -&gt;!y=[0001] x + !y = [0001] 最后在取反返回0</span></span><br><span class="line">    				   <span class="comment">//如果y=[1000] -&gt;!y=[0000] x + !y = [0000] 返回1 对答案无影响</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="2-4-allOddBits"><a href="#2-4-allOddBits" class="headerlink" title="2.4 allOddBits"></a>2.4 allOddBits</h3><ul>
+<li><p>如果所有的奇数位都位1 则返回1 [0-31]</p>
 </li>
+<li><p>only use ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</p>
+</li>
+<li><p>利用 掩码  关键是 如何提取出x 的奇数位</p>
+<ul>
+<li>先构造一个 奇数位全为1 的数 即0xAAAAAAAA</li>
+<li>任何数与这个数 &amp;后，偶数位全0，奇数位 1的仍然是1， 原来是0的则为0.。</li>
+<li><strong>在与这个数[0xAAAAAAAA]进行异或，满足要求则数转换为0，不满足则非0。</strong></li>
 </ul>
 </li>
+<li><p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">allOddBits</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">  	<span class="type">int</span> a = <span class="number">0xaa</span> + (<span class="number">0xaa</span> &lt;&lt; <span class="number">8</span>);</span><br><span class="line">  	<span class="type">int</span> b = a + (a &lt;&lt; <span class="number">16</span>);</span><br><span class="line">  	<span class="keyword">return</span> !((x &amp; b) ^ b);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
 <h3 id="2-5-negate"><a href="#2-5-negate" class="headerlink" title="2.5 negate"></a>2.5 negate</h3><ul>
 <li><p>求反</p>
@@ -2034,22 +2172,18 @@ public:
 <li><p>1[0001]      -1[1111]  阿贝尔群 <strong>取反+1</strong></p>
 </li>
 <li><p>代码实现：</p>
-<ul>
-<li><pre><code class="c++">/* 
- * negate - return -x 
- *   Example: negate(1) = -1.
- *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;
- *   Max ops: 5
- *   Rating: 2
- */
-int negate(int x) &#123;
-  return (~x + 1);
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.6 isAsciiDigit</span><br><span class="line"></span><br><span class="line">- 判断是否是ascii数字 0x30 &lt;= x &lt;=0x39</span><br><span class="line"></span><br><span class="line">- **又上题可得 ~x+1 = - x**，因此可以由这个实现减法运算  </span><br><span class="line"></span><br><span class="line">  - 减去上下界。 上界[0x39] 下界[0x30]    然后再右移31位 判断符号位</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c++</span><br><span class="line">    /* </span><br><span class="line">     * isAsciiDigit - return 1 if 0x30 &lt;= x &lt;= 0x39 (ASCII codes for characters &#x27;0&#x27; to &#x27;9&#x27;)</span><br><span class="line">     *   Example: isAsciiDigit(0x35) = 1.</span><br><span class="line">     *            isAsciiDigit(0x3a) = 0.</span><br><span class="line">     *            isAsciiDigit(0x05) = 0.</span><br><span class="line">     *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span><br><span class="line">     *   Max ops: 15</span><br><span class="line">     *   Rating: 3</span><br><span class="line">     */</span><br><span class="line">    int isAsciiDigit(int x) &#123;</span><br><span class="line">      int upper = (0x39 + (~x + 1)) &gt;&gt; 31;//左移31</span><br><span class="line">      int down = (x + (~0x30 + 1)) &gt;&gt; 31;</span><br><span class="line">      return !upper &amp; !down;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * negate - return -x </span></span><br><span class="line"><span class="comment"> *   Example: negate(1) = -1.</span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 5</span></span><br><span class="line"><span class="comment"> *   Rating: 2</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">negate</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> (~x + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="2-6-isAsciiDigit"><a href="#2-6-isAsciiDigit" class="headerlink" title="2.6 isAsciiDigit"></a>2.6 isAsciiDigit</h3><ul>
+<li><p>判断是否是ascii数字 0x30 &lt;&#x3D; x &lt;&#x3D;0x39</p>
 </li>
+<li><p><strong>又上题可得 ~x+1 &#x3D; - x</strong>，因此可以由这个实现减法运算  </p>
+<ul>
+<li>减去上下界。 上界[0x39] 下界[0x30]    然后再右移31位 判断符号位</li>
 </ul>
 </li>
+<li><p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * isAsciiDigit - return 1 if 0x30 &lt;= x &lt;= 0x39 (ASCII codes for characters &#x27;0&#x27; to &#x27;9&#x27;)</span></span><br><span class="line"><span class="comment"> *   Example: isAsciiDigit(0x35) = 1.</span></span><br><span class="line"><span class="comment"> *            isAsciiDigit(0x3a) = 0.</span></span><br><span class="line"><span class="comment"> *            isAsciiDigit(0x05) = 0.</span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 15</span></span><br><span class="line"><span class="comment"> *   Rating: 3</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">isAsciiDigit</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> upper = (<span class="number">0x39</span> + (~x + <span class="number">1</span>)) &gt;&gt; <span class="number">31</span>;<span class="comment">//左移31</span></span><br><span class="line">  <span class="type">int</span> down = (x + (~<span class="number">0x30</span> + <span class="number">1</span>)) &gt;&gt; <span class="number">31</span>;</span><br><span class="line">  <span class="keyword">return</span> !upper &amp; !down;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
 <h3 id="2-7-conditional"><a href="#2-7-conditional" class="headerlink" title="2.7 conditional"></a>2.7 conditional</h3><ul>
 <li><p><code>x ? y : z</code> 当<code>x 非0</code>时 返回<code> y</code> ，当<code>x = 0</code>时返回 <code>z </code></p>
@@ -2062,24 +2196,19 @@ int negate(int x) &#123;
 </ul>
 </li>
 <li><p>代码实现：</p>
-<ul>
-<li><pre><code class="c++">/* 
- * conditional - same as x ? y : z 
- *   Example: conditional(2,4,5) = 4
- *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;
- *   Max ops: 16
- *   Rating: 3
- */
-int conditional(int x, int y, int z) &#123;
-  x = !!x;
-  x = ~x + 1;
-  return (x &amp; y) | (~x &amp; z);
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.8 isLessOrEqual</span><br><span class="line"></span><br><span class="line">- 用位运算 实现 &lt;=</span><br><span class="line"></span><br><span class="line">- 比较两个数的大小  两种情况</span><br><span class="line"></span><br><span class="line">  - 符号不同 整数大</span><br><span class="line">  - 符号相同 看差值符号</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c++</span><br><span class="line">    /* </span><br><span class="line">     * isLessOrEqual - if x &lt;= y  then return 1, else return 0 </span><br><span class="line">     *   Example: isLessOrEqual(4,5) = 1.</span><br><span class="line">     *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span><br><span class="line">     *   Max ops: 24</span><br><span class="line">     *   Rating: 3</span><br><span class="line">     */</span><br><span class="line">    int isLessOrEqual(int x, int y) &#123;</span><br><span class="line">      int a = x &gt;&gt; 31;//取符号位</span><br><span class="line">      int b = y &gt;&gt; 31;</span><br><span class="line">      int c = !(a ^ b);//取非，保证相同为1，不同为0</span><br><span class="line">      int d = !((y + (~x + 1)) &gt;&gt; 31);//取非保证：y &gt;= x 为1 y&lt;x 为0</span><br><span class="line">      return (c&amp;d) | (!c&amp;a);//左边条件：符号相等 则返回相减的符号位，右边条件： 符号不相等 若a&lt;0 返回1 &gt;0返回0</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * conditional - same as x ? y : z </span></span><br><span class="line"><span class="comment"> *   Example: conditional(2,4,5) = 4</span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 16</span></span><br><span class="line"><span class="comment"> *   Rating: 3</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">conditional</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y, <span class="type">int</span> z)</span> </span>&#123;</span><br><span class="line">  x = !!x;</span><br><span class="line">  x = ~x + <span class="number">1</span>;</span><br><span class="line">  <span class="keyword">return</span> (x &amp; y) | (~x &amp; z);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="2-8-isLessOrEqual"><a href="#2-8-isLessOrEqual" class="headerlink" title="2.8 isLessOrEqual"></a>2.8 isLessOrEqual</h3><ul>
+<li><p>用位运算 实现 &lt;&#x3D;</p>
 </li>
+<li><p>比较两个数的大小  两种情况</p>
+<ul>
+<li>符号不同 整数大</li>
+<li>符号相同 看差值符号</li>
 </ul>
 </li>
+<li><p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * isLessOrEqual - if x &lt;= y  then return 1, else return 0 </span></span><br><span class="line"><span class="comment"> *   Example: isLessOrEqual(4,5) = 1.</span></span><br><span class="line"><span class="comment"> *   Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 24</span></span><br><span class="line"><span class="comment"> *   Rating: 3</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">isLessOrEqual</span><span class="params">(<span class="type">int</span> x, <span class="type">int</span> y)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> a = x &gt;&gt; <span class="number">31</span>;<span class="comment">//取符号位</span></span><br><span class="line">  <span class="type">int</span> b = y &gt;&gt; <span class="number">31</span>;</span><br><span class="line">  <span class="type">int</span> c = !(a ^ b);<span class="comment">//取非，保证相同为1，不同为0</span></span><br><span class="line">  <span class="type">int</span> d = !((y + (~x + <span class="number">1</span>)) &gt;&gt; <span class="number">31</span>);<span class="comment">//取非保证：y &gt;= x 为1 y&lt;x 为0</span></span><br><span class="line">  <span class="keyword">return</span> (c&amp;d) | (!c&amp;a);<span class="comment">//左边条件：符号相等 则返回相减的符号位，右边条件： 符号不相等 若a&lt;0 返回1 &gt;0返回0</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
 <h3 id="2-9-logicalNeg"><a href="#2-9-logicalNeg" class="headerlink" title="2.9 logicalNeg"></a>2.9 logicalNeg</h3><ul>
 <li><p>用位运算 实现逻辑非 !</p>
@@ -2089,21 +2218,19 @@ int conditional(int x, int y, int z) &#123;
 <li><p>0 的符号位 与其补码符号位 <strong>位或</strong> 为0。 Tmin位或为1  [1000]  [1000]—-利用这一点</p>
 </li>
 <li><p>代码实现：</p>
-<ul>
-<li><pre><code class="c++">/* 
- * logicalNeg - implement the ! operator, using all of 
- *              the legal operators except !
- *   Examples: logicalNeg(3) = 0, logicalNeg(0) = 1
- *   Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;
- *   Max ops: 12
- *   Rating: 4 
- */
-int logicalNeg(int x) &#123;
-  return ((x | (~x + 1)) &gt;&gt; 31) + 1;//左移31后  对于非0数 产生-1[1111] 0产生[0000] 所以+1
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.10 howManyBits</span><br><span class="line"></span><br><span class="line">- 返回最小能表示数字X的补码位数</span><br><span class="line"></span><br><span class="line">- 如果是一个正数，则需要找到它最高的一位（假设是n）是1 的 则在加上符号位， 结果为n+1</span><br><span class="line"></span><br><span class="line">- 如果是负数，则需要知道其最高一位是0的 （例如 -3[1101] 和 -3[101] 表示的是一个值，所以最小需要三位来表示）</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c++</span><br><span class="line">    /* howManyBits - return the minimum number of bits required to represent x in</span><br><span class="line">     *             two&#x27;s complement</span><br><span class="line">     *  Examples: howManyBits(12) = 5</span><br><span class="line">     *            howManyBits(298) = 10</span><br><span class="line">     *            howManyBits(-5) = 4</span><br><span class="line">     *            howManyBits(0)  = 1</span><br><span class="line">     *            howManyBits(-1) = 1</span><br><span class="line">     *            howManyBits(0x80000000) = 32</span><br><span class="line">     *  Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span><br><span class="line">     *  Max ops: 90</span><br><span class="line">     *  Rating: 4</span><br><span class="line">     */</span><br><span class="line">    int howManyBits(int x) &#123;</span><br><span class="line">      int b16, b8, b4, b2, b1, b0;</span><br><span class="line">      int sign = x &gt;&gt; 31;// 取 符号位 如果是负数 则sign为0xFFFFFFFF，否则为0x00000000</span><br><span class="line">      //如果x为正则不变，为负数按位取反（这样好找最高位为1的，原来是最高位为0的，也将符号位去掉了）  </span><br><span class="line">      x = (sign &amp; ~x) | (~sign &amp; x);</span><br><span class="line">    </span><br><span class="line">      // 二分法 不断缩小范围</span><br><span class="line">      b16 = !!(x &gt;&gt; 16) &lt;&lt; 4;//高16位是否存在1</span><br><span class="line">      x = x &gt;&gt; b16;</span><br><span class="line">      b8 = !!(x &gt;&gt; 8) &lt;&lt; 3;//剩余的高8位</span><br><span class="line">      x = x &gt;&gt; b8;</span><br><span class="line">      b4 = !!(x &gt;&gt; 4) &lt;&lt; 2;</span><br><span class="line">      x = x &gt;&gt; b4;</span><br><span class="line">      b2 = !!(x &gt;&gt; 2) &lt;&lt; 1;</span><br><span class="line">      x = x &gt;&gt; b2;</span><br><span class="line">      b1 = !!(x &gt;&gt; 1);</span><br><span class="line">      x = x &gt;&gt; b1;</span><br><span class="line">      b0 = x;</span><br><span class="line">      return b16 + b8 + b4 + b2 + b1 + b0 + 1; //+1 是符号位</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * logicalNeg - implement the ! operator, using all of </span></span><br><span class="line"><span class="comment"> *              the legal operators except !</span></span><br><span class="line"><span class="comment"> *   Examples: logicalNeg(3) = 0, logicalNeg(0) = 1</span></span><br><span class="line"><span class="comment"> *   Legal ops: ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *   Max ops: 12</span></span><br><span class="line"><span class="comment"> *   Rating: 4 </span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">logicalNeg</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> ((x | (~x + <span class="number">1</span>)) &gt;&gt; <span class="number">31</span>) + <span class="number">1</span>;<span class="comment">//左移31后  对于非0数 产生-1[1111] 0产生[0000] 所以+1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="2-10-howManyBits"><a href="#2-10-howManyBits" class="headerlink" title="2.10 howManyBits"></a>2.10 howManyBits</h3><ul>
+<li><p>返回最小能表示数字X的补码位数</p>
 </li>
+<li><p>如果是一个正数，则需要找到它最高的一位（假设是n）是1 的 则在加上符号位， 结果为n+1</p>
+</li>
+<li><p>如果是负数，则需要知道其最高一位是0的 （例如 -3[1101] 和 -3[101] 表示的是一个值，所以最小需要三位来表示）</p>
+</li>
+<li><p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* howManyBits - return the minimum number of bits required to represent x in</span></span><br><span class="line"><span class="comment"> *             two&#x27;s complement</span></span><br><span class="line"><span class="comment"> *  Examples: howManyBits(12) = 5</span></span><br><span class="line"><span class="comment"> *            howManyBits(298) = 10</span></span><br><span class="line"><span class="comment"> *            howManyBits(-5) = 4</span></span><br><span class="line"><span class="comment"> *            howManyBits(0)  = 1</span></span><br><span class="line"><span class="comment"> *            howManyBits(-1) = 1</span></span><br><span class="line"><span class="comment"> *            howManyBits(0x80000000) = 32</span></span><br><span class="line"><span class="comment"> *  Legal ops: ! ~ &amp; ^ | + &lt;&lt; &gt;&gt;</span></span><br><span class="line"><span class="comment"> *  Max ops: 90</span></span><br><span class="line"><span class="comment"> *  Rating: 4</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">howManyBits</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> b16, b8, b4, b2, b1, b0;</span><br><span class="line">  <span class="type">int</span> sign = x &gt;&gt; <span class="number">31</span>;<span class="comment">// 取 符号位 如果是负数 则sign为0xFFFFFFFF，否则为0x00000000</span></span><br><span class="line">  <span class="comment">//如果x为正则不变，为负数按位取反（这样好找最高位为1的，原来是最高位为0的，也将符号位去掉了）  </span></span><br><span class="line">  x = (sign &amp; ~x) | (~sign &amp; x);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// 二分法 不断缩小范围</span></span><br><span class="line">  b16 = !!(x &gt;&gt; <span class="number">16</span>) &lt;&lt; <span class="number">4</span>;<span class="comment">//高16位是否存在1</span></span><br><span class="line">  x = x &gt;&gt; b16;</span><br><span class="line">  b8 = !!(x &gt;&gt; <span class="number">8</span>) &lt;&lt; <span class="number">3</span>;<span class="comment">//剩余的高8位</span></span><br><span class="line">  x = x &gt;&gt; b8;</span><br><span class="line">  b4 = !!(x &gt;&gt; <span class="number">4</span>) &lt;&lt; <span class="number">2</span>;</span><br><span class="line">  x = x &gt;&gt; b4;</span><br><span class="line">  b2 = !!(x &gt;&gt; <span class="number">2</span>) &lt;&lt; <span class="number">1</span>;</span><br><span class="line">  x = x &gt;&gt; b2;</span><br><span class="line">  b1 = !!(x &gt;&gt; <span class="number">1</span>);</span><br><span class="line">  x = x &gt;&gt; b1;</span><br><span class="line">  b0 = x;</span><br><span class="line">  <span class="keyword">return</span> b16 + b8 + b4 + b2 + b1 + b0 + <span class="number">1</span>; <span class="comment">//+1 是符号位</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
 <li><p><code>b16 = !!(x &gt;&gt; 16) &lt;&lt; 4;</code>x &gt;&gt; 16 将x 右移16位 丢掉低16位 保留高16位</p>
 <ul>
 <li><code>！！</code> 常见的技巧，用于将一个数 转换为逻辑值  用来检查移动后的整数是否为0 ，即检查原来高165为是否存在1 。</li>
@@ -2131,34 +2258,20 @@ int logicalNeg(int x) &#123;
 <li><p>特殊情况： 无穷小 、 0 、 无穷大和非数值NaN  此时这些浮点数的指数部分分别存储为 0、 0、 255 、255，因此无穷大和NaN则直接返回就行，无穷小和0只需要在原数乘二然后再加上符号位就可以（因为不会越界）</p>
 </li>
 <li><p>代码实现：</p>
-<ul>
-<li><pre><code class="c++">//float
-/* 
- * floatScale2 - Return bit-level equivalent of expression 2*f for
- *   floating point argument f.
- *   Both the argument and result are passed as unsigned int&#39;s, but
- *   they are to be interpreted as the bit-level representation of
- *   single-precision floating point values.
- *   When argument is NaN, return argument
- *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. also if, while
- *   Max ops: 30
- *   Rating: 4
- */
-unsigned floatScale2(unsigned uf) &#123;
-  int sign = uf &amp; (1 &lt;&lt; 31);//符号位
-  int exp = (uf &amp; 0x7f800000) &gt;&gt; 23; //0x7f800000 浮点数最大值  与uf做于 截取出 exp的数据
-  //特殊情况
-  if (exp == 0) return uf &lt;&lt; 1 | sign;//指数为0  直接返回乘以2 的值 左移一个即乘以2
-  if (exp == 255) return uf;//无穷大或NaN 直接返回
-  exp++;//指数加一，相当于乘二 相当于左移一位
-  if (exp == 255) return 0x7f800000 | sign; //指数加一后为255 
-  return (exp &lt;&lt; 23) | (uf &amp; 0x807fffff); //否则 返回指数+1后和 原来数其他位的结果 也就是乘以2的结果
-&#125;
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.12 floatFloat2Int</span><br><span class="line"></span><br><span class="line">- 实现 (int)uf  将浮点数转为整数</span><br><span class="line"></span><br><span class="line">- 溢出 返回0x80000000u   </span><br><span class="line"></span><br><span class="line">- 偏置值127 在单精度浮点数中 偏置值为2^(k-1)-1，其中单精度指数部分占了 8为 所以 2^（8-1）-1=127</span><br><span class="line"></span><br><span class="line">- 在单精度浮点表示中，**尾数（即有效数字）部分的位数是 23 位**。当对浮点数进行整数转换时，需要考虑到指数部分的影响。如果指数部分大于 23，意味着尾数部分需要左移，以便将小数部分转换为整数。</span><br><span class="line"></span><br><span class="line">  这是因为指数的值实际上代表了小数点向左或向右移动的位数。**如果指数大于 23，表示小数点要向左移动超过尾数部分的位数，**因此需要将尾数左移，以保留整数部分。左移的位数是指数值减去 23，因为每左移一位，相当于乘以 2 的一次方。</span><br><span class="line"></span><br><span class="line">- 代码实现：</span><br><span class="line"></span><br><span class="line">  - ```c++</span><br><span class="line">    /* </span><br><span class="line">     * floatFloat2Int - Return bit-level equivalent of expression (int) f</span><br><span class="line">     *   for floating point argument f.</span><br><span class="line">     *   Argument is passed as unsigned int, but</span><br><span class="line">     *   it is to be interpreted as the bit-level representation of a</span><br><span class="line">     *   single-precision floating point value.</span><br><span class="line">     *   Anything out of range (including NaN and infinity) should return</span><br><span class="line">     *   0x80000000u.</span><br><span class="line">     *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. also if, while</span><br><span class="line">     *   Max ops: 30</span><br><span class="line">     *   Rating: 4</span><br><span class="line">     */</span><br><span class="line">    int floatFloat2Int(unsigned uf) &#123;</span><br><span class="line">      int sign = uf &gt;&gt; 31;//符号位</span><br><span class="line">      int exp = ((uf &amp; 0x7f800000) &gt;&gt; 23) -127;//-127 偏置值</span><br><span class="line">      int frac = (uf &amp; 0x007fffff) | 0x00800000; //尾数 并且补上隐藏的1 得到完整的整数</span><br><span class="line">      if (!(uf &amp; 0x7fffffff)) return 0;//如果uf=0 则return 0</span><br><span class="line">      if (exp &gt; 31) return 0x80000000; //如果指数大于31 则返回溢出值 因为整数int为32位</span><br><span class="line">      if (exp &lt; 0) return 0;//指数小于0 小数部分无法表示 返回0</span><br><span class="line">        </span><br><span class="line">      if (exp &gt; 23) frac &lt;&lt;= (exp - 23);//exp大于23   需要将小数位左移</span><br><span class="line">      else frac &gt;&gt;= (23 - exp);</span><br><span class="line">    </span><br><span class="line">      if (!((frac &gt;&gt; 31) ^ sign)) return frac; //符号相同则返回原值</span><br><span class="line">      else if (frac &gt;&gt; 31) return 0x80000000;//如果为负（即原来为正），返回溢出值</span><br><span class="line">      else return ~frac + 1;//如果为正（原来为负），返回相反数</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-</code></pre>
-</li>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//float</span></span><br><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * floatScale2 - Return bit-level equivalent of expression 2*f for</span></span><br><span class="line"><span class="comment"> *   floating point argument f.</span></span><br><span class="line"><span class="comment"> *   Both the argument and result are passed as unsigned int&#x27;s, but</span></span><br><span class="line"><span class="comment"> *   they are to be interpreted as the bit-level representation of</span></span><br><span class="line"><span class="comment"> *   single-precision floating point values.</span></span><br><span class="line"><span class="comment"> *   When argument is NaN, return argument</span></span><br><span class="line"><span class="comment"> *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. also if, while</span></span><br><span class="line"><span class="comment"> *   Max ops: 30</span></span><br><span class="line"><span class="comment"> *   Rating: 4</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">unsigned</span> <span class="title">floatScale2</span><span class="params">(<span class="type">unsigned</span> uf)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> sign = uf &amp; (<span class="number">1</span> &lt;&lt; <span class="number">31</span>);<span class="comment">//符号位</span></span><br><span class="line">  <span class="type">int</span> exp = (uf &amp; <span class="number">0x7f800000</span>) &gt;&gt; <span class="number">23</span>; <span class="comment">//0x7f800000 浮点数最大值  与uf做于 截取出 exp的数据</span></span><br><span class="line">  <span class="comment">//特殊情况</span></span><br><span class="line">  <span class="keyword">if</span> (exp == <span class="number">0</span>) <span class="keyword">return</span> uf &lt;&lt; <span class="number">1</span> | sign;<span class="comment">//指数为0  直接返回乘以2 的值 左移一个即乘以2</span></span><br><span class="line">  <span class="keyword">if</span> (exp == <span class="number">255</span>) <span class="keyword">return</span> uf;<span class="comment">//无穷大或NaN 直接返回</span></span><br><span class="line">  exp++;<span class="comment">//指数加一，相当于乘二 相当于左移一位</span></span><br><span class="line">  <span class="keyword">if</span> (exp == <span class="number">255</span>) <span class="keyword">return</span> <span class="number">0x7f800000</span> | sign; <span class="comment">//指数加一后为255 </span></span><br><span class="line">  <span class="keyword">return</span> (exp &lt;&lt; <span class="number">23</span>) | (uf &amp; <span class="number">0x807fffff</span>); <span class="comment">//否则 返回指数+1后和 原来数其他位的结果 也就是乘以2的结果</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
+<h3 id="2-12-floatFloat2Int"><a href="#2-12-floatFloat2Int" class="headerlink" title="2.12 floatFloat2Int"></a>2.12 floatFloat2Int</h3><ul>
+<li><p>实现 (int)uf  将浮点数转为整数</p>
 </li>
+<li><p>溢出 返回0x80000000u   </p>
+</li>
+<li><p>偏置值127 在单精度浮点数中 偏置值为2^(k-1)-1，其中单精度指数部分占了 8为 所以 2^（8-1）-1&#x3D;127</p>
+</li>
+<li><p>在单精度浮点表示中，<strong>尾数（即有效数字）部分的位数是 23 位</strong>。当对浮点数进行整数转换时，需要考虑到指数部分的影响。如果指数部分大于 23，意味着尾数部分需要左移，以便将小数部分转换为整数。</p>
+<p>这是因为指数的值实际上代表了小数点向左或向右移动的位数。<strong>如果指数大于 23，表示小数点要向左移动超过尾数部分的位数，</strong>因此需要将尾数左移，以保留整数部分。左移的位数是指数值减去 23，因为每左移一位，相当于乘以 2 的一次方。</p>
+</li>
+<li><p>代码实现：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * floatFloat2Int - Return bit-level equivalent of expression (int) f</span></span><br><span class="line"><span class="comment"> *   for floating point argument f.</span></span><br><span class="line"><span class="comment"> *   Argument is passed as unsigned int, but</span></span><br><span class="line"><span class="comment"> *   it is to be interpreted as the bit-level representation of a</span></span><br><span class="line"><span class="comment"> *   single-precision floating point value.</span></span><br><span class="line"><span class="comment"> *   Anything out of range (including NaN and infinity) should return</span></span><br><span class="line"><span class="comment"> *   0x80000000u.</span></span><br><span class="line"><span class="comment"> *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. also if, while</span></span><br><span class="line"><span class="comment"> *   Max ops: 30</span></span><br><span class="line"><span class="comment"> *   Rating: 4</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">floatFloat2Int</span><span class="params">(<span class="type">unsigned</span> uf)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> sign = uf &gt;&gt; <span class="number">31</span>;<span class="comment">//符号位</span></span><br><span class="line">  <span class="type">int</span> exp = ((uf &amp; <span class="number">0x7f800000</span>) &gt;&gt; <span class="number">23</span>) <span class="number">-127</span>;<span class="comment">//-127 偏置值</span></span><br><span class="line">  <span class="type">int</span> frac = (uf &amp; <span class="number">0x007fffff</span>) | <span class="number">0x00800000</span>; <span class="comment">//尾数 并且补上隐藏的1 得到完整的整数</span></span><br><span class="line">  <span class="keyword">if</span> (!(uf &amp; <span class="number">0x7fffffff</span>)) <span class="keyword">return</span> <span class="number">0</span>;<span class="comment">//如果uf=0 则return 0</span></span><br><span class="line">  <span class="keyword">if</span> (exp &gt; <span class="number">31</span>) <span class="keyword">return</span> <span class="number">0x80000000</span>; <span class="comment">//如果指数大于31 则返回溢出值 因为整数int为32位</span></span><br><span class="line">  <span class="keyword">if</span> (exp &lt; <span class="number">0</span>) <span class="keyword">return</span> <span class="number">0</span>;<span class="comment">//指数小于0 小数部分无法表示 返回0</span></span><br><span class="line">    </span><br><span class="line">  <span class="keyword">if</span> (exp &gt; <span class="number">23</span>) frac &lt;&lt;= (exp - <span class="number">23</span>);<span class="comment">//exp大于23   需要将小数位左移</span></span><br><span class="line">  <span class="keyword">else</span> frac &gt;&gt;= (<span class="number">23</span> - exp);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!((frac &gt;&gt; <span class="number">31</span>) ^ sign)) <span class="keyword">return</span> frac; <span class="comment">//符号相同则返回原值</span></span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">if</span> (frac &gt;&gt; <span class="number">31</span>) <span class="keyword">return</span> <span class="number">0x80000000</span>;<span class="comment">//如果为负（即原来为正），返回溢出值</span></span><br><span class="line">  <span class="keyword">else</span> <span class="keyword">return</span> ~frac + <span class="number">1</span>;<span class="comment">//如果为正（原来为负），返回相反数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 </ul>
 <h3 id="2-13-floatPower2"><a href="#2-13-floatPower2" class="headerlink" title="2.13 floatPower2"></a>2.13 floatPower2</h3><ul>
 <li><p>求2.0^x</p>
@@ -2167,30 +2280,9 @@ unsigned floatScale2(unsigned uf) &#123;
 </li>
 <li></li>
 <li><p>代码实现：</p>
-<ul>
-<li><pre><code class="c++">/* 
- * floatPower2 - Return bit-level equivalent of the expression 2.0^x
- *   (2.0 raised to the power x) for any 32-bit integer x.
- *
- *   The unsigned value that is returned should have the identical bit
- *   representation as the single-precision floating-point number 2.0^x.
- *   If the result is too small to be represented as a denorm, return
- *   0. If too large, return +INF.
- * 
- *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. Also if, while 
- *   Max ops: 30 
- *   Rating: 4
- */
-unsigned floatPower2(int x) &#123;
-  int exp = x + 127; //把x当作真指数
-  if (exp &lt;= 0) return 0; // 0 &lt; 原数&lt;1 返回0
-  if (exp &gt;= 255) return 0x7f800000;//溢出
-  return exp &lt;&lt;23; //否则x作为正常的数 有效范围 则exp 左移23位  将指数部分放在合适的位数上
-&#125;
-</code></pre>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* </span></span><br><span class="line"><span class="comment"> * floatPower2 - Return bit-level equivalent of the expression 2.0^x</span></span><br><span class="line"><span class="comment"> *   (2.0 raised to the power x) for any 32-bit integer x.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *   The unsigned value that is returned should have the identical bit</span></span><br><span class="line"><span class="comment"> *   representation as the single-precision floating-point number 2.0^x.</span></span><br><span class="line"><span class="comment"> *   If the result is too small to be represented as a denorm, return</span></span><br><span class="line"><span class="comment"> *   0. If too large, return +INF.</span></span><br><span class="line"><span class="comment"> * </span></span><br><span class="line"><span class="comment"> *   Legal ops: Any integer/unsigned operations incl. ||, &amp;&amp;. Also if, while </span></span><br><span class="line"><span class="comment"> *   Max ops: 30 </span></span><br><span class="line"><span class="comment"> *   Rating: 4</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="type">unsigned</span> <span class="title">floatPower2</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">  <span class="type">int</span> exp = x + <span class="number">127</span>; <span class="comment">//把x当作真指数</span></span><br><span class="line">  <span class="keyword">if</span> (exp &lt;= <span class="number">0</span>) <span class="keyword">return</span> <span class="number">0</span>; <span class="comment">// 0 &lt; 原数&lt;1 返回0</span></span><br><span class="line">  <span class="keyword">if</span> (exp &gt;= <span class="number">255</span>) <span class="keyword">return</span> <span class="number">0x7f800000</span>;<span class="comment">//溢出</span></span><br><span class="line">  <span class="keyword">return</span> exp &lt;&lt;<span class="number">23</span>; <span class="comment">//否则x作为正常的数 有效范围 则exp 左移23位  将指数部分放在合适的位数上</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
 <p>​</p>
-</li>
-</ul>
 </li>
 </ul>
 <p>	</p>
