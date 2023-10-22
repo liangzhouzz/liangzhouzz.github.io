@@ -1010,6 +1010,43 @@ public:
 <li>时间复杂度：O(n^2)嵌套for循环</li>
 <li>空间复杂度：O(n^2) 哈希表 最多n*n个 不同的计算结果</li>
 </ul>
+<h1 id="27-leetcode-2525-根据规则将箱子分类-20231020-E"><a href="#27-leetcode-2525-根据规则将箱子分类-20231020-E" class="headerlink" title="27.leetcode-2525-根据规则将箱子分类-20231020-E"></a>27.leetcode-2525-根据规则将箱子分类-20231020-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/categorize-box-according-to-criteria/description/?envType=daily-question&envId=2023-10-20">2525. 根据规则将箱子分类 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>直接模拟 注意体积整型溢出 需转换长整型即可</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">string <span class="title">categorizeBox</span><span class="params">(<span class="type">int</span> length, <span class="type">int</span> width, <span class="type">int</span> height, <span class="type">int</span> mass)</span> </span>&#123;</span><br><span class="line">        string res;</span><br><span class="line">        <span class="type">long</span> <span class="type">long</span> v = (<span class="type">long</span> <span class="type">long</span>)length * width * height;<span class="comment">//转换长整型</span></span><br><span class="line">        <span class="keyword">if</span> (length &gt;= <span class="number">1e4</span> || width &gt;= <span class="number">1e4</span> || height &gt;= <span class="number">1e4</span> || mass &gt;= <span class="number">1e4</span> || v &gt;= <span class="number">1e9</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (mass &gt;= <span class="number">100</span>) <span class="keyword">return</span> res = <span class="string">&quot;Both&quot;</span>;</span><br><span class="line">            <span class="keyword">return</span> res = <span class="string">&quot;Bulky&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (mass &gt;= <span class="number">100</span>)&#123;</span><br><span class="line">            <span class="keyword">return</span> res = <span class="string">&quot;Heavy&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res = <span class="string">&quot;Neither&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(1)</li>
+<li>空间复杂度：O(1)</li>
+</ul>
+<h1 id="28-leetcode-2316-统计无向图中无法互相到达点对数-20231021-M"><a href="#28-leetcode-2316-统计无向图中无法互相到达点对数-20231021-M" class="headerlink" title="28.leetcode-2316-统计无向图中无法互相到达点对数-20231021-M"></a>28.leetcode-2316-统计无向图中无法互相到达点对数-20231021-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/count-unreachable-pairs-of-nodes-in-an-undirected-graph/description/?envType=daily-question&envId=2023-10-21">2316. 统计无向图中无法互相到达点对数 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>见题解<a href="https://leetcode.cn/problems/count-unreachable-pairs-of-nodes-in-an-undirected-graph/submissions/476019838/?envType=daily-question&envId=2023-10-21">2316. 统计无向图中无法互相到达点对数 - 力扣（LeetCode）</a></li>
+</ul>
+<h1 id="29-leetcode-1402-做菜顺序-20231022-H"><a href="#29-leetcode-1402-做菜顺序-20231022-H" class="headerlink" title="29.leetcode-1402-做菜顺序-20231022-H"></a>29.leetcode-1402-做菜顺序-20231022-H</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/reducing-dishes/description/?envType=daily-question&envId=2023-10-22">1402. 做菜顺序 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong><a href="https://leetcode.cn/problems/reducing-dishes/solutions/198214/zuo-cai-shun-xu-by-leetcode-solution/?envType=daily-question&envId=2023-10-22">1402. 做菜顺序 - 力扣（LeetCode）</a></p>
+<ul>
+<li>贪心或DP都可以</li>
+<li><img src="/2023/09/13/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98/image-20231022143534475.png" alt="image-20231022143534475"></li>
+<li>贪心思路：<ul>
+<li>将所有菜从大到小排序</li>
+<li>依次遍历这些菜，对于当前菜si如果他与之前选择的所有菜的满意程度之和大于0，就选择这道菜，否则就可以退出循环。</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">maxSatisfaction</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; satisfaction)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> res = <span class="number">0</span>, presum = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">sort</span>(satisfaction.<span class="built_in">begin</span>(), satisfaction.<span class="built_in">end</span>(), <span class="built_in">greater</span>&lt;<span class="type">int</span>&gt;());<span class="comment">//降序排列</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> si : satisfaction) &#123;</span><br><span class="line">            <span class="keyword">if</span> (presum + si &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                presum += si;</span><br><span class="line">                res += presum;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n logn) 排序</li>
+<li>空间复杂度：O(log n) 排序需要使用的空间。</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -2314,7 +2351,464 @@ public:
   <entry>
     <title>CSAPP-3-textbook</title>
     <url>/2023/10/18/CSAPP-3-textbook/</url>
-    <content><![CDATA[<h1 id="第三章：程序的机器级表示"><a href="#第三章：程序的机器级表示" class="headerlink" title="第三章：程序的机器级表示"></a>第三章：程序的机器级表示</h1>]]></content>
+    <content><![CDATA[<h1 id="第三章：程序的机器级表示"><a href="#第三章：程序的机器级表示" class="headerlink" title="第三章：程序的机器级表示"></a>第三章：程序的机器级表示</h1><h2 id="3-2程序编码"><a href="#3-2程序编码" class="headerlink" title="3.2程序编码"></a>3.2程序编码</h2><ol>
+<li><code>gcc -og -o p p1.c p2.c</code>用gcc编译p1和p2两个c文件</li>
+<li>首先<em>c预处理器</em>扩展源代码，插入所有用#include 命令的指定文件 ，并且扩展所有用#define 声明指定的宏。</li>
+<li>其次，<em>编译器</em>产生两个源文件的汇编代码，分别命名为p1.s和p2.s.</li>
+<li>再然后，<em>汇编器</em>会将汇编代码转换为二进制目标代码文件p1.o和p2.o。目标代码是机器代码的一种形式，包含所有指令的二进制表示，但是还没有填入全局值的地址。</li>
+<li>最后，<em>链接器</em>将两个目标代码文件与库函数的代码（例如printf）合并，并最终产生可执行代码文件p。</li>
+</ol>
+<h3 id="3-2-1-机器级代码"><a href="#3-2-1-机器级代码" class="headerlink" title="3.2.1 机器级代码"></a>3.2.1 机器级代码</h3><ul>
+<li>一般来说对于机器级编程，两种抽象尤为重要：<ul>
+<li>指令集架构<code>ISA</code> 定义了处理器的状态，指令的格式。。。</li>
+<li>机器级程序使用的内存地址是虚拟地址。</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-2-2-代码示例"><a href="#3-2-2-代码示例" class="headerlink" title="3.2.2 代码示例"></a>3.2.2 代码示例</h3><ul>
+<li><code>objdump -d 文件名</code>反汇编器，用于查看汇编代码</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231019154138226.png" alt="objdump"></li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231019154338326.png" alt="image-20231019154338326"></li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231019160312889.png" alt="image-20231019160312889"></li>
+</ul>
+<h3 id="3-2-3-关于格式的注解"><a href="#3-2-3-关于格式的注解" class="headerlink" title="3.2.3 关于格式的注解"></a>3.2.3 关于格式的注解</h3><ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231019160653506.png" alt="image-20231019160653506"></li>
+</ul>
+<h2 id="3-3-数据格式"><a href="#3-3-数据格式" class="headerlink" title="3.3 数据格式"></a>3.3 数据格式</h2><ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231019161223328.png" alt="x86-64中c语言数据类型占字节大小"></li>
+<li>汇编指令中用后缀表示操作数的大小：例如movb（传送字节）、movw（传送字）、movl（传送双字）、movq（传送四字）。</li>
+</ul>
+<h2 id="3-4-访问信息"><a href="#3-4-访问信息" class="headerlink" title="3.4 访问信息"></a>3.4 访问信息</h2><ul>
+<li>一个x86-64的cpu 包含一组16 个存储64位值的<em>通用目的存储器</em>，用来存储整数数据和指针。它们的名字都以%r开头。</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231019162125984.png" alt="x86-64-通用寄存器"></li>
+</ul>
+<h3 id="3-4-1操作数指示符"><a href="#3-4-1操作数指示符" class="headerlink" title="3.4.1操作数指示符"></a>3.4.1操作数指示符</h3><ul>
+<li><p><code>Imm(rb, ri, s)</code>：一个立即数偏移，一个基址寄存器rb，一个变址寄存器ri，和一个比例因子s，这里s必须是1，2，4或者8。<strong>有效地址被计算为Imm + R[rb] + R[ri] * s</strong>。</p>
+</li>
+<li><p><img src="/2023/10/18/CSAPP-3-textbook/image-20231019163106993.png" alt="操作数格式"></p>
+</li>
+<li><p>习题3.1 假设下面的值存放在指明的内存地址和寄存器中：</p>
+<ul>
+<li><p><img src="/2023/10/18/CSAPP-3-textbook/image-20231019163420728.png" alt="习题3.1"></p>
+</li>
+<li><table>
+<thead>
+<tr>
+<th align="center">操作数</th>
+<th align="center">值</th>
+<th align="center">注释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">%rax</td>
+<td align="center">0x100</td>
+<td align="center">寄存器</td>
+</tr>
+<tr>
+<td align="center">0x104</td>
+<td align="center">0xAB</td>
+<td align="center">绝对地址</td>
+</tr>
+<tr>
+<td align="center">$0x108</td>
+<td align="center">0x108</td>
+<td align="center">立即数</td>
+</tr>
+<tr>
+<td align="center">(%rax)</td>
+<td align="center">0xFF</td>
+<td align="center">地址0x100</td>
+</tr>
+<tr>
+<td align="center">4(%rax)</td>
+<td align="center">0xAB</td>
+<td align="center">地址（4+0x100）</td>
+</tr>
+<tr>
+<td align="center">9(%rax, %rdx)</td>
+<td align="center">0x11</td>
+<td align="center">地址（9+0x100+0x3）&#x3D;0x10c</td>
+</tr>
+<tr>
+<td align="center">260(%rcx, %rdx)</td>
+<td align="center">0x13</td>
+<td align="center">地址（260+0x1+0x3）&#x3D;0x108</td>
+</tr>
+<tr>
+<td align="center">0xFC(, %rcx, 4)</td>
+<td align="center">0xFF</td>
+<td align="center">地址（0xFC+0x1*4）&#x3D;0x100</td>
+</tr>
+<tr>
+<td align="center">(%rax, %rdx,4)</td>
+<td align="center">0x11</td>
+<td align="center">地址（0x100+0x3*4）&#x3D;0x10c</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-4-2-数据传送指令"><a href="#3-4-2-数据传送指令" class="headerlink" title="3.4.2 数据传送指令"></a>3.4.2 数据传送指令</h3><p>MOV指令：</p>
+<ul>
+<li><p><img src="/2023/10/18/CSAPP-3-textbook/image-20231020145113889.png" alt="mov"></p>
+</li>
+<li><p>X86-64 增加了一条限制，即传送指令的两个操作数不能都指向内存位置。即需要两条指令先加载到寄存器中才能完成。</p>
+</li>
+<li><p><img src="/2023/10/18/CSAPP-3-textbook/image-20231020145957104.png" alt="image-20231020145957104"></p>
+</li>
+</ul>
+<p>习题3.2：补充指令后缀</p>
+<ul>
+<li><table>
+<thead>
+<tr>
+<th align="center">movl（%eax—32位 双字）</th>
+<th align="center">%eax，(%rsp)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">movw（%dx—16位 字）</td>
+<td align="center">(%rax)，%dx</td>
+</tr>
+<tr>
+<td align="center">movb（%bl—8位 字节）</td>
+<td align="center">$0xFF，%bl</td>
+</tr>
+<tr>
+<td align="center">movb（%dl—8位 字节）</td>
+<td align="center">(%rsp,%rdx,4)，%dl</td>
+</tr>
+<tr>
+<td align="center">movq（%rax–64位 四字）</td>
+<td align="center">(%rdx)，%rax</td>
+</tr>
+<tr>
+<td align="center">movw（%dx–16位 字）</td>
+<td align="center">%dx，(%rax)</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>x86-64的内存引用总是用4个字的寄存器表示（%rax） 无论操作多长都是四个字</p>
+</li>
+</ul>
+<p>习题3.3：解释每一行哪里出错</p>
+<ul>
+<li><table>
+<thead>
+<tr>
+<th align="center">movb $0xF，(%ebx)</th>
+<th align="center">修改为%ebx—不能用括号取寄存器中的值，只有存储器中的才能</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">movl %rax，(%rsp）</td>
+<td align="center">修改为movl—%rax 是四字 前缀和寄存器大小不匹配</td>
+</tr>
+<tr>
+<td align="center">movw(%rax),4(%rsp)</td>
+<td align="center">修改为&amp;rax—不能将内存中的值移动到内存中</td>
+</tr>
+<tr>
+<td align="center">movb %al,%sl</td>
+<td align="center">没有%sl</td>
+</tr>
+<tr>
+<td align="center">movq %rax,$0x123</td>
+<td align="center">destination不能是立即数</td>
+</tr>
+<tr>
+<td align="center">movl %eax,%rdx</td>
+<td align="center">%rdx为8字节，%eax为4字节 不能移动不相等长度的数据</td>
+</tr>
+<tr>
+<td align="center">movb %si，8(%rbp)</td>
+<td align="center">&amp;si 是字—两个字节</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+<h3 id="3-4-3-数据传送示例"><a href="#3-4-3-数据传送示例" class="headerlink" title="3.4.3 数据传送示例"></a>3.4.3 数据传送示例</h3><ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231020160448602.png" alt="exchange函数c代码与汇编代码"></li>
+</ul>
+<h3 id="3-4-4-压入和弹出栈数据"><a href="#3-4-4-压入和弹出栈数据" class="headerlink" title="3.4.4 压入和弹出栈数据"></a>3.4.4 压入和弹出栈数据</h3><ul>
+<li>栈：先进后出  弹出和压入的一端叫做栈顶<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231020161208555.png" alt="出栈和入栈指令"></li>
+</ul>
+</li>
+<li>栈顶元素的地址是所有栈中元素地址最低的 （一般来说 栈是倒过来画的，栈顶在图的底部）<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231020161429179.png" alt="image-20231020161429179"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-5-算术和逻辑操作"><a href="#3-5-算术和逻辑操作" class="headerlink" title="3.5 算术和逻辑操作"></a>3.5 算术和逻辑操作</h2><ul>
+<li>整数算数操作<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231020161908320.png" alt="整数算数操作"></li>
+</ul>
+</li>
+</ul>
+<h3 id="3-5-1-加载有效地址"><a href="#3-5-1-加载有效地址" class="headerlink" title="3.5.1 加载有效地址"></a>3.5.1 加载有效地址</h3><ul>
+<li>leaq（load effective address） 实际上上movq指令的变形，他的指令形式是从内存读数据到寄存器</li>
+<li>其目的操作数必须是一个寄存器</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231020162517186.png" alt="image-20231020162517186"></li>
+<li>leaq 指令能够执行加法和有限形式的乘法<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231020162817959.png" alt="image-20231020162817959"></li>
+</ul>
+</li>
+</ul>
+<h4 id="习题3-6"><a href="#习题3-6" class="headerlink" title="习题3.6"></a>习题3.6</h4><p>假设寄存器&amp;rax的值为x，%rcx的值为y，填写下表指明下面每一条汇编代码指令存储在寄存器%rdx的值</p>
+<table>
+<thead>
+<tr>
+<th align="center">表达式</th>
+<th align="center">结果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">leaq 6(%rax),%rdx</td>
+<td align="center">6+x</td>
+</tr>
+<tr>
+<td align="center">leaq (%rax,%rcx),%rdx</td>
+<td align="center">x+y</td>
+</tr>
+<tr>
+<td align="center">leaq(%rax,%rcx，4),%rdx</td>
+<td align="center">x+4y</td>
+</tr>
+<tr>
+<td align="center">leaq 7(%rax,%rax,8),%rdx</td>
+<td align="center">7+x+8x</td>
+</tr>
+<tr>
+<td align="center">leaq0xA(,%rcx，4),%rdx</td>
+<td align="center">10+4y</td>
+</tr>
+<tr>
+<td align="center">leaq 9(%rax,%rcx,2),%rdx</td>
+<td align="center">9+x+2y</td>
+</tr>
+</tbody></table>
+<h4 id="习题3-7"><a href="#习题3-7" class="headerlink" title="习题3.7"></a>习题3.7</h4><p>补充省略的表达式</p>
+<p><img src="/2023/10/18/CSAPP-3-textbook/image-20231020164353256.png" alt="3.7"></p>
+<ul>
+<li>第一条指令 ：x+4x&#x3D;5x—&gt;放入%rax</li>
+<li>第二条： 5x+2y —&amp;rax</li>
+<li>第三条： <code>5x+2y+8z</code></li>
+</ul>
+<h3 id="3-5-2-一元操作和二元操作"><a href="#3-5-2-一元操作和二元操作" class="headerlink" title="3.5.2 一元操作和二元操作"></a>3.5.2 一元操作和二元操作</h3><ul>
+<li>一元操作：只有一个操作数 既是源又是目的 这个操作数可以是一个寄存器也可以是一个内存位置</li>
+</ul>
+<p><img src="/2023/10/18/CSAPP-3-textbook/image-20231020165128980.png" alt="一元"></p>
+<ul>
+<li>二元操作：第二个操作数是源又是目的。 源操作数是第一个，目的操作数是第二个。第一个操作数可以是立即数、寄存器和内存地址，第二个操作数可以说寄存器和内存地址</li>
+</ul>
+<p><img src="/2023/10/18/CSAPP-3-textbook/image-20231020165228900.png" alt="二元"></p>
+<h4 id="习题3-8"><a href="#习题3-8" class="headerlink" title="习题3.8"></a>习题3.8</h4><ul>
+<li>参考：<a href="https://blog.csdn.net/ciqingloveless/article/details/84338834">深入理解计算机系统 练习题3.8 理解计算机二元操作-CSDN博客</a></li>
+</ul>
+<p><strong><img src="/2023/10/18/CSAPP-3-textbook/image-20231020165447772.png" alt="image-20231020165447772"></strong></p>
+<p>填写下表：</p>
+<table>
+<thead>
+<tr>
+<th align="center">指令</th>
+<th align="center">目的</th>
+<th align="center">值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">addq %rcx，(%rax)</td>
+<td align="center">0x100（%rcx+0x100&#x3D;0x100）</td>
+<td align="center">0x100</td>
+</tr>
+<tr>
+<td align="center">subq %rdx,8(%rax)</td>
+<td align="center">0x108(0x100+8-%rdx&#x3D;0x108)</td>
+<td align="center">0xA8</td>
+</tr>
+<tr>
+<td align="center">imulq $16,(%rax,%rdx,8)</td>
+<td align="center">0x118</td>
+<td align="center">0x110</td>
+</tr>
+<tr>
+<td align="center">incq 16(%rax)</td>
+<td align="center">0x110（有括号 ）</td>
+<td align="center">0x14(0x13+1)</td>
+</tr>
+<tr>
+<td align="center">decq %rcx</td>
+<td align="center">%rcx</td>
+<td align="center">0x1-1&#x3D;0x0</td>
+</tr>
+<tr>
+<td align="center">subq %rdx,%rax</td>
+<td align="center">%rax(无括号)</td>
+<td align="center">0x100-0x3&#x3D;0xFD</td>
+</tr>
+</tbody></table>
+<ul>
+<li>加括号时取值 不加括号就表示寄存器</li>
+<li><code>imulq $16, (%rax, %rdx, 8)</code><ul>
+<li>s-&gt;$16-&gt;16</li>
+<li>d-&gt;(%rax,%rdx,8) -&gt; (%rax+8*%rdx )-&gt; 0x100+0x18（十进制24） -&gt; 0x118 —–&gt; 0x11</li>
+<li>0x11*16(十进制)&#x3D;0x11 * 0x10&#x3D;0x110</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-5-3-移位操作"><a href="#3-5-3-移位操作" class="headerlink" title="3.5.3 移位操作"></a>3.5.3 移位操作</h3><ul>
+<li>移位量可以是一个立即数，或者放在单字节寄存器&amp;cl中。（只允许以这个特定的寄存器作为操作数）</li>
+<li>左移指令：SAL和SHL两者效果是一样的</li>
+<li>但是右移指令：SAR执行算数移位（填上符号位），SHR执行逻辑移位（填上0）。</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231021193219883.png" alt="image-20231021193219883"></li>
+</ul>
+<h2 id="3-6-控制"><a href="#3-6-控制" class="headerlink" title="3.6 控制"></a>3.6 控制</h2><ul>
+<li>机器代码提供两种基本的低级机制来实现有条件的行为：测试数据值，然后根据测试的结果来改变控制流或者数据流。</li>
+</ul>
+<h3 id="3-6-1-条件码"><a href="#3-6-1-条件码" class="headerlink" title="3.6.1 条件码"></a>3.6.1 条件码</h3><ul>
+<li>常用的条件码：<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022151140133.png" alt="条件码"></li>
+</ul>
+</li>
+<li>leaq指令不改变任何条件码，因为它是用来进行地址计算的</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022151549298.png" alt="只设置条件码，不改变任何寄存器的值"></li>
+</ul>
+<h3 id="3-6-2-访问条件码"><a href="#3-6-2-访问条件码" class="headerlink" title="3.6.2 访问条件码"></a>3.6.2 访问条件码</h3><ul>
+<li><p>set 指令</p>
+<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022152041921.png" alt="set"></li>
+</ul>
+</li>
+<li><p><img src="/2023/10/18/CSAPP-3-textbook/image-20231022152329363.png" alt="set 例子"></p>
+</li>
+</ul>
+<h3 id="3-6-3-跳转指令"><a href="#3-6-3-跳转指令" class="headerlink" title="3.6.3 跳转指令"></a>3.6.3 跳转指令</h3><ul>
+<li>跳转jump指令会导致执行切换到程序中一个全新的位置，跳转的目的通常用一个标号 label 指明<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022153207723.png" alt="jump示例"></li>
+</ul>
+</li>
+<li>jmp指令是无条件跳转<ul>
+<li>它可以直接跳转，即跳转的目标是作为指令的一部分编码的 即 jpm .L1</li>
+<li>也可以是间接跳转，即跳转的目标是从寄存器或内存位置中读出的。 <ul>
+<li>寄存器：jmp *(&amp;rax)</li>
+<li>内存操作数：jmp *%rax</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>当执行PC相对寻址时，程序计数器的值是跳转指令<strong>后面</strong>那条指令的地址</li>
+</ul>
+<h3 id="3-6-5-用条件控制来实现条件分支"><a href="#3-6-5-用条件控制来实现条件分支" class="headerlink" title="3.6.5 用条件控制来实现条件分支"></a>3.6.5 用条件控制来实现条件分支</h3><ul>
+<li>if - else  汇编实现方式：<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022161116115.png" alt="image-20231022161116115"></li>
+</ul>
+</li>
+</ul>
+<h3 id="3-6-6-用条件传送来实现条件分支"><a href="#3-6-6-用条件传送来实现条件分支" class="headerlink" title="3.6.6 用条件传送来实现条件分支"></a>3.6.6 用条件传送来实现条件分支</h3><ul>
+<li>实现条件操作的传统方法 是通过使用<strong>控制</strong>的条件转移， 即当条件满足时，程序沿着一条路执行路径，不满足时沿着另一条</li>
+<li>一种替代方式是使用数据的条件转移，这种方式是计算一个条件操作的两种结果，然后再根据条件是否满足选取一个</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022162040679.png" alt="用数值转移例子"></li>
+<li>因为CPU会预测哪个程序应该接下来执行，哪个不会，会预先加载 或预测错误会浪费大量的时钟周期。</li>
+<li>条件传送指令<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022162927260.png" alt="条件传送指令"></li>
+</ul>
+</li>
+</ul>
+<h3 id="3-6-7-循环"><a href="#3-6-7-循环" class="headerlink" title="3.6.7 循环"></a>3.6.7 循环</h3><ul>
+<li>汇编中没有相应的指令存在，但可以用<strong>条件测试</strong>和<strong>跳转组合</strong>起来实现循环效果<ul>
+<li><strong><img src="/2023/10/18/CSAPP-3-textbook/image-20231022163203798.png" alt="do while"></strong></li>
+</ul>
+</li>
+<li>while <ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022163414647.png" alt="while "></li>
+</ul>
+</li>
+</ul>
+<h3 id="3-6-8-switch语句"><a href="#3-6-8-switch语句" class="headerlink" title="3.6.8 switch语句"></a>3.6.8 switch语句</h3><ul>
+<li>执行switch语句的关键步骤是通过<strong>跳转表</strong>来访问代码位置。</li>
+</ul>
+<h2 id="3-7-过程"><a href="#3-7-过程" class="headerlink" title="3.7 过程"></a>3.7 过程</h2><h3 id="3-7-1-运行时栈"><a href="#3-7-1-运行时栈" class="headerlink" title="3.7.1 运行时栈"></a>3.7.1 运行时栈</h3><ul>
+<li>C语言过程调用机制的一个关键特性在于使用了<strong>栈数据结构提供的后入先出的内存管理</strong>原则</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022164455873.png" alt="栈结构"></li>
+<li>当前正在执行的过程的帧总是在栈顶</li>
+</ul>
+<h3 id="3-7-2-转移控制"><a href="#3-7-2-转移控制" class="headerlink" title="3.7.2 转移控制"></a>3.7.2 转移控制</h3><ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022164803893.png" alt="image-20231022164803893"></li>
+<li>call函数调用可以是直接的也可以是间接的<ul>
+<li>直接调用的目标时一个标号</li>
+<li>间接调用的目标是 *后面跟一个操作数指示符</li>
+</ul>
+</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022165857340.png" alt="例子"></li>
+</ul>
+<h3 id="3-7-3-数据传送"><a href="#3-7-3-数据传送" class="headerlink" title="3.7.3 数据传送"></a>3.7.3 数据传送</h3><ul>
+<li>大部分过程间的数据传送是通过寄存器实现的</li>
+<li>x86-64 中通过寄存器最多可以传递6个整型参数<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022170439146.png" alt="寄存器"></li>
+</ul>
+</li>
+<li>如果一个函数有大于6个整型参数，超出6个的部分就要通过栈来传递，把7~n个参数放到栈上<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022170715796.png" alt="image-20231022170715796"></li>
+</ul>
+</li>
+</ul>
+<h3 id="3-7-4-栈上的局部存储"><a href="#3-7-4-栈上的局部存储" class="headerlink" title="3.7.4 栈上的局部存储"></a>3.7.4 栈上的局部存储</h3><ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022170839706.png" alt="image-20231022170839706"></li>
+<li>数据必须保存在栈中的情况如上</li>
+</ul>
+<h3 id="3-7-5-寄存器中的局部存储空间"><a href="#3-7-5-寄存器中的局部存储空间" class="headerlink" title="3.7.5 寄存器中的局部存储空间"></a>3.7.5 寄存器中的局部存储空间</h3><ul>
+<li>%rbx、%rbp和%12~%r15 被划分为<strong>被调用者</strong>保存寄存器：当过程P调用过程Q时，Q必须保存这些寄存器的值，保证它们的值在q返回时与q被调用时是一样的</li>
+<li>其他所有寄存器 除了栈指针%rsp，都分类为<strong>调用者保存寄存器</strong>，意味着任何函数都可以修改它们</li>
+</ul>
+<h3 id="3-7-6-递归过程"><a href="#3-7-6-递归过程" class="headerlink" title="3.7.6 递归过程"></a>3.7.6 递归过程</h3><ul>
+<li>递归调用一个函数本事与调用其他函数是一样的，栈规则提供了一种机制，每次函数调用都有它自己私有的状态信息（保存的返回值位置和被调用者保存寄存器的值）存储空间。</li>
+</ul>
+<h2 id="3-8-数组分配和访问"><a href="#3-8-数组分配和访问" class="headerlink" title="3.8 数组分配和访问"></a>3.8 数组分配和访问</h2><h3 id="3-8-1-基本原则"><a href="#3-8-1-基本原则" class="headerlink" title="3.8.1 基本原则"></a>3.8.1 基本原则</h3><ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022201058357.png" alt="数组元素定义"></li>
+</ul>
+<h3 id="3-8-2-指针运算"><a href="#3-8-2-指针运算" class="headerlink" title="3.8.2 指针运算"></a>3.8.2 指针运算</h3><ul>
+<li>表达式Exper 与 *&amp;Exper是等价的</li>
+<li>数组引用A[I] 等同于表达式*(A+i)</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022202227982.png" alt="image-20231022202227982"></li>
+</ul>
+<h3 id="3-8-3-嵌套数组"><a href="#3-8-3-嵌套数组" class="headerlink" title="3.8.3 嵌套数组"></a>3.8.3 嵌套数组</h3><ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022202429802.png" alt="image-20231022202429802"></li>
+<li>也可以看成5行3列的二维数组，在内存中按照行优先的原则排雷<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022202608940.png" alt="image-20231022202608940"></li>
+</ul>
+</li>
+</ul>
+<h3 id="3-8-4-定长数组"><a href="#3-8-4-定长数组" class="headerlink" title="3.8.4 定长数组"></a>3.8.4 定长数组</h3><ul>
+<li>当程序要用一个常数作为数组的维度或者缓冲区的大小时，最好通过<code>#define</code>声明将这个常数与一个名字联系起来。</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022203231362.png" alt="image-20231022203231362"></li>
+</ul>
+<h2 id="3-9-异质的数据结构"><a href="#3-9-异质的数据结构" class="headerlink" title="3.9 异质的数据结构"></a>3.9 异质的数据结构</h2><ul>
+<li>c语言提供了两种将不同类型对象组合到一起创建数据类型的机制：<ul>
+<li>结构（structure），用关键字struct来声明，将多个对象集合到一个单位中</li>
+<li>联合（union），关键字union，允许用几种不同的类型来引用一个对象</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-9-1-结构"><a href="#3-9-1-结构" class="headerlink" title="3.9.1 结构"></a>3.9.1 结构</h3><ul>
+<li>结构的所有组成部分都存放在内存中一段连续的区域内，而<strong>指向结构的指针就是结构第一个字节的地址</strong></li>
+<li>rp代表一个指针 那么（*rp）.width 等价于rp-&gt;width</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022204517874.png" alt="结构体的声明"></li>
+</ul>
+<h3 id="3-9-2-联合"><a href="#3-9-2-联合" class="headerlink" title="3.9.2 联合"></a>3.9.2 联合</h3><ul>
+<li>允许多种类型来引用一个对象</li>
+<li>一个联合的总的大小等于它最大字段的大小<ul>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022204908132.png" alt="image-20231022204908132"></li>
+<li>若事先知道一个数据结构中两个不同字段的使用时互斥的，那么将这个两个字段声明为联合的一部分，而不是结构的一部分，会减小分配空间的总量。</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-9-3-数据对齐"><a href="#3-9-3-数据对齐" class="headerlink" title="3.9.3 数据对齐"></a>3.9.3 数据对齐</h3><ul>
+<li>对齐数据可以提高内存系统的性能。</li>
+<li>对齐原则是任何k字节的基本对象的地址必须是k的倍数</li>
+<li><img src="/2023/10/18/CSAPP-3-textbook/image-20231022205926244.png" alt="image-20231022205926244"></li>
+</ul>
+<h2 id="3-10-在机器级程序中将控制与数据结合起来"><a href="#3-10-在机器级程序中将控制与数据结合起来" class="headerlink" title="3.10 在机器级程序中将控制与数据结合起来"></a>3.10 在机器级程序中将控制与数据结合起来</h2><h3 id="3-10-1理解指针"><a href="#3-10-1理解指针" class="headerlink" title="3.10.1理解指针"></a>3.10.1理解指针</h3>]]></content>
       <categories>
         <category>CSAPP</category>
       </categories>
@@ -2325,7 +2819,102 @@ public:
   <entry>
     <title>二叉树</title>
     <url>/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<h1 id="1-引言"><a href="#1-引言" class="headerlink" title="1.引言"></a>1.引言</h1><ul>
+<li>参考：<a href="https://programmercarl.com/%E4%BA%8C%E5%8F%89%E6%A0%91%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80.html#%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E7%A7%8D%E7%B1%BB">代码随想录 (programmercarl.com)</a></li>
+</ul>
+<h2 id="1-1二叉树的种类"><a href="#1-1二叉树的种类" class="headerlink" title="1.1二叉树的种类"></a>1.1二叉树的种类</h2><ul>
+<li>满二叉树<ul>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231020100934713.png" alt="满二叉树"></li>
+</ul>
+</li>
+<li>完全二叉树<ul>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231020101141309.png" alt="完全二叉树"></li>
+</ul>
+</li>
+<li>二叉搜索树：有数值、有序树<ul>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231020101641589.png" alt="二叉搜索树"></li>
+</ul>
+</li>
+<li>平衡二叉树<ul>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231020101817920.png" alt="平衡二叉树"></li>
+</ul>
+</li>
+<li>c++中 map、set、multimap、和multiset的底层实现都是<strong>平衡二叉搜索树</strong>——-&gt;所有其增删操作的时间复杂度是O(log n)。</li>
+<li>但是<strong>unordered map 和unordered set 底层实现是哈希表</strong>。</li>
+</ul>
+<h2 id="1-2-存储方式"><a href="#1-2-存储方式" class="headerlink" title="1.2 存储方式"></a>1.2 存储方式</h2><ul>
+<li>可以<strong>链式存储（用指针，在内存中分布在各个地方）</strong>，也可以<strong>顺序存储（用数组，在内存中是连续分布的）</strong><ul>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231020102824147.png" alt="链式存储"></li>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231020102937349.png" alt="顺序存储"></li>
+</ul>
+</li>
+</ul>
+<h2 id="1-3-遍历方式"><a href="#1-3-遍历方式" class="headerlink" title="1.3 遍历方式"></a>1.3 遍历方式</h2><p>两种遍历方式：</p>
+<ul>
+<li>深度优先遍历：先往深处走，遇到叶子节点在回走<ul>
+<li>前序遍历：递归、迭代 ——中间节点顺序中左右</li>
+<li>中序遍历：递归、迭代 ——左中右</li>
+<li>后续遍历：递归、迭代 ——左右中</li>
+<li>可以借助栈使用递归的方式来实现</li>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231020104308149.png" alt="深度优先遍历"></li>
+</ul>
+</li>
+<li>广度优先遍历：每一层去遍历<ul>
+<li>层次遍历：迭代</li>
+<li>使用队列来实现</li>
+</ul>
+</li>
+</ul>
+<h2 id="1-4-二叉树的定义"><a href="#1-4-二叉树的定义" class="headerlink" title="1.4 二叉树的定义"></a>1.4 二叉树的定义</h2><p>链式存储的结构跟链表差不多</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">TreeNode</span> &#123;</span><br><span class="line">    <span class="type">int</span> val;</span><br><span class="line">    TreeNode *left;</span><br><span class="line">    TreeNode *right;</span><br><span class="line">    <span class="built_in">TreeNode</span> (<span class="type">int</span> x) : <span class="built_in">val</span>(x), <span class="built_in">left</span>(<span class="literal">NULL</span>),<span class="built_in">right</span>(<span class="literal">NULL</span>) &#123;&#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="2-二叉树的递归遍历"><a href="#2-二叉树的递归遍历" class="headerlink" title="2.二叉树的递归遍历"></a>2.二叉树的递归遍历</h1><p><strong>题目：</strong></p>
+<ul>
+<li><a href="https://leetcode.cn/problems/binary-tree-preorder-traversal/description/">144. 二叉树的前序遍历 - 力扣（LeetCode）</a></li>
+<li><a href="https://leetcode.cn/problems/binary-tree-postorder-traversal/description/">145. 二叉树的后序遍历 - 力扣（LeetCode）</a></li>
+<li><a href="https://leetcode.cn/problems/binary-tree-inorder-traversal/description/">94. 二叉树的中序遍历 - 力扣（LeetCode）</a></li>
+</ul>
+<p><strong>思路：</strong></p>
+<p>前序：中左右</p>
+<ol>
+<li>确定递归函数的参数和返回值<ol>
+<li>一般来说返回值都是void</li>
+</ol>
+</li>
+<li>确定终止条件<ol>
+<li>cur&#x3D;&#x3D;NULL 遇到空节点</li>
+</ol>
+</li>
+<li>确定单层递归的逻辑<ol>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231020113545945.png" alt="image-20231020113545945"></li>
+</ol>
+</li>
+</ol>
+<h2 id="2-1-leetcode-144-前序遍历-E"><a href="#2-1-leetcode-144-前序遍历-E" class="headerlink" title="2.1 leetcode -144-前序遍历-E"></a>2.1 leetcode -144-前序遍历-E</h2><p><strong>代码实现</strong>：递归的方法</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode() : val(0), left(nullptr), right(nullptr) &#123;&#125;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) &#123;&#125;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">traversal</span> <span class="params">(TreeNode* cur, vector&lt;<span class="type">int</span>&gt;&amp; vec)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//终止条件</span></span><br><span class="line">        <span class="keyword">if</span> (cur == <span class="literal">NULL</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//前序遍历：中左右</span></span><br><span class="line">        vec.<span class="built_in">push_back</span>(cur-&gt;val);<span class="comment">//中</span></span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;left, vec);<span class="comment">//左节点传入</span></span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;right, vec);<span class="comment">//右节点传入</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">preorderTraversal</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        vector&lt;<span class="type">int</span>&gt; res;</span><br><span class="line">        <span class="built_in">traversal</span>(root, res);</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n) n为节点个数 吗，递归中每个节点恰好被遍历一次</li>
+<li>空间复杂度：O(n) 返回数组</li>
+</ul>
+<h2 id="2-2-leetcode-145-后序遍历-E"><a href="#2-2-leetcode-145-后序遍历-E" class="headerlink" title="2.2 leetcode-145-后序遍历-E"></a>2.2 leetcode-145-后序遍历-E</h2><p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode() : val(0), left(nullptr), right(nullptr) &#123;&#125;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) &#123;&#125;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">traversal</span><span class="params">(TreeNode* cur, vector&lt;<span class="type">int</span>&gt;&amp; res)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (cur == <span class="literal">NULL</span>) <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">//后序遍历:左右中</span></span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;left, res);</span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;right, res);</span><br><span class="line">        res.<span class="built_in">push_back</span>(cur-&gt;val);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">postorderTraversal</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        vector&lt;<span class="type">int</span>&gt; res;</span><br><span class="line">        <span class="built_in">traversal</span>(root,res);</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>同上</li>
+</ul>
+<h2 id="2-3-leetcode-94-二叉树中序遍历-E"><a href="#2-3-leetcode-94-二叉树中序遍历-E" class="headerlink" title="2.3 leetcode-94-二叉树中序遍历-E"></a>2.3 leetcode-94-二叉树中序遍历-E</h2><p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Definition for a binary tree node.</span></span><br><span class="line"><span class="comment"> * struct TreeNode &#123;</span></span><br><span class="line"><span class="comment"> *     int val;</span></span><br><span class="line"><span class="comment"> *     TreeNode *left;</span></span><br><span class="line"><span class="comment"> *     TreeNode *right;</span></span><br><span class="line"><span class="comment"> *     TreeNode() : val(0), left(nullptr), right(nullptr) &#123;&#125;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) &#123;&#125;</span></span><br><span class="line"><span class="comment"> *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) &#123;&#125;</span></span><br><span class="line"><span class="comment"> * &#125;;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">traversal</span><span class="params">(TreeNode* cur, vector&lt;<span class="type">int</span>&gt;&amp; res)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (cur == <span class="literal">NULL</span>) <span class="keyword">return</span>;</span><br><span class="line">        <span class="comment">//中序 左中右</span></span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;left, res);</span><br><span class="line">        res.<span class="built_in">push_back</span>(cur-&gt;val);</span><br><span class="line">        <span class="built_in">traversal</span>(cur-&gt;right, res);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">inorderTraversal</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        vector&lt;<span class="type">int</span>&gt; res;</span><br><span class="line">        <span class="built_in">traversal</span>(root, res);</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>同上</li>
+</ul>
+]]></content>
       <categories>
         <category>基础算法</category>
       </categories>
