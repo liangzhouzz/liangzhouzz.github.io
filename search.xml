@@ -1085,6 +1085,47 @@ public:
 <li>时间复杂度：O(n k target) DP</li>
 <li>空间复杂度：O(target)</li>
 </ul>
+<h1 id="32-leetcode-2698-求一个整数的惩罚数-20231025-M"><a href="#32-leetcode-2698-求一个整数的惩罚数-20231025-M" class="headerlink" title="32.leetcode-2698-求一个整数的惩罚数-20231025-M"></a>32.leetcode-2698-求一个整数的惩罚数-20231025-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/find-the-punishment-number-of-an-integer/description/?envType=daily-question&envId=2023-10-25">2698. 求一个整数的惩罚数 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>回溯法</li>
+<li>先将i^2转换为字符串，然后进行枚举分割字符串 满足方案则符合要求</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">dfs</span><span class="params">(string &amp;s, <span class="type">int</span> pos, <span class="type">int</span> tot, <span class="type">int</span> target)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (pos == s.<span class="built_in">size</span>())&#123;</span><br><span class="line">            <span class="keyword">return</span> tot == target;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = pos; i &lt; s.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">            sum = sum * <span class="number">10</span> + s[i] - <span class="string">&#x27;0&#x27;</span>;</span><br><span class="line">            <span class="keyword">if</span> (sum + tot &gt; target) &#123;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">dfs</span>(s, i + <span class="number">1</span>, sum + tot, target)) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">punishmentNumber</span><span class="params">(<span class="type">int</span> n)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> res = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt;= n; i++) &#123;</span><br><span class="line">            string s = <span class="built_in">to_string</span>(i * i);</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">dfs</span>(s, <span class="number">0</span>, <span class="number">0</span>, i)) &#123;</span><br><span class="line">                res += i * i;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：<em>O</em>(<em>n</em>^(1+2log102))</li>
+<li>空间复杂度：<em>O</em>(log<em>n</em>)</li>
+</ul>
+<h1 id="33-leetcode-2520-统计能整除数字的位数-20231026-E"><a href="#33-leetcode-2520-统计能整除数字的位数-20231026-E" class="headerlink" title="33.leetcode-2520-统计能整除数字的位数-20231026-E"></a>33.leetcode-2520-统计能整除数字的位数-20231026-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/count-the-digits-that-divide-a-number/description/?envType=daily-question&envId=2023-10-26">2520. 统计能整除数字的位数 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>直接模拟即可 </li>
+<li>转成string分离出每个char  也可以直接提取位数出来</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">countDigits</span><span class="params">(<span class="type">int</span> num)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> res = <span class="number">0</span>;</span><br><span class="line">        string s = <span class="built_in">to_string</span>(num);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">char</span> c: s) &#123;</span><br><span class="line">            <span class="type">int</span> temp = c - <span class="string">&#x27;0&#x27;</span>;</span><br><span class="line">            <span class="keyword">if</span> (num % temp == <span class="number">0</span>) &#123;</span><br><span class="line">                res++;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(log num) num的位数</li>
+<li>空间复杂度：O(log num) 字符串</li>
+</ul>
+<h1 id="34-leetcode-2558-从数量最多的堆取走礼物-20231028-E"><a href="#34-leetcode-2558-从数量最多的堆取走礼物-20231028-E" class="headerlink" title="34-leetcode-2558-从数量最多的堆取走礼物-20231028-E"></a>34-leetcode-2558-从数量最多的堆取走礼物-20231028-E</h1><p><strong>题目：<a href="https://leetcode.cn/problems/take-gifts-from-the-richest-pile/description/?envType=daily-question&envId=2023-10-28">2558. 从数量最多的堆取走礼物 - 力扣（LeetCode）</a></strong></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>优先队列，最大堆</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">long</span> <span class="type">long</span> <span class="title">pickGifts</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; gifts, <span class="type">int</span> k)</span> </span>&#123;</span><br><span class="line">        <span class="function">priority_queue&lt;<span class="type">int</span>&gt; <span class="title">q</span><span class="params">(gifts.begin(), gifts.end())</span></span>;</span><br><span class="line">        <span class="type">long</span> <span class="type">long</span> res = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; k; i++) &#123;</span><br><span class="line">            <span class="type">int</span> x = q.<span class="built_in">top</span>();</span><br><span class="line">            q.<span class="built_in">pop</span>();</span><br><span class="line">            x = <span class="built_in">sqrt</span>(x);</span><br><span class="line">            q.<span class="built_in">push</span>(x);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; gifts.<span class="built_in">size</span>(); i++) &#123;</span><br><span class="line">            res += q.<span class="built_in">top</span>();</span><br><span class="line">            q.<span class="built_in">pop</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res; </span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(k log n) 出堆和入堆复杂度为O(log n) 取 k个元素所以为k logn</li>
+<li>空间复杂度：O(n) 堆的大小</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -3208,6 +3249,87 @@ public:
 <li>时间复杂度：O(n) 遍历每一个节点</li>
 <li>空间复杂度：O(n) 递归开辟栈</li>
 </ul>
+<h1 id="6-leetcode-101-对称二叉树-E"><a href="#6-leetcode-101-对称二叉树-E" class="headerlink" title="6.leetcode-101-对称二叉树-E"></a>6.leetcode-101-对称二叉树-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/symmetric-tree/description/">101. 对称二叉树 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>检查二叉树是否轴对称</li>
+<li>二叉树类的题目关键是<strong>确定遍历顺序</strong>———本体只能使用后续：左右中</li>
+<li>后序遍历： 需要收集孩子的信息向上级反馈</li>
+<li>递归三部曲：函数返回值，参数、截止条件、递归遍历顺序</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">lass Solution &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">cmp</span> <span class="params">(TreeNode* left, TreeNode* right)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (left == <span class="literal">NULL</span> &amp;&amp; right != <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">false</span>;<span class="comment">//左空、右不空</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (left != <span class="literal">NULL</span> &amp;&amp; right == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">false</span>;<span class="comment">//左不空，右空</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (left == <span class="literal">NULL</span> &amp;&amp; right == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">true</span>;<span class="comment">//左右都空</span></span><br><span class="line">        <span class="comment">// 排除了空节点，再排除数值不相同的情况</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (left-&gt;val != right-&gt;val) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">        <span class="type">bool</span> outside = <span class="built_in">cmp</span>(left-&gt;left, right-&gt;right);<span class="comment">//外侧</span></span><br><span class="line">        <span class="type">bool</span> inside = <span class="built_in">cmp</span>(left-&gt;right, right-&gt;left);<span class="comment">//内测</span></span><br><span class="line">        <span class="keyword">return</span> outside &amp;&amp; inside;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">isSymmetric</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">cmp</span>(root-&gt;left, root-&gt;right);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li><p>时间复杂度：O(n) 后序遍历全部元素</p>
+</li>
+<li><p>空间复杂度：O(n) 递归开辟栈、</p>
+</li>
+</ul>
+<h1 id="7-leetcode-222-完全二叉树的节点个数-E"><a href="#7-leetcode-222-完全二叉树的节点个数-E" class="headerlink" title="7.leetcode-222-完全二叉树的节点个数-E"></a>7.leetcode-222-完全二叉树的节点个数-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/count-complete-tree-nodes/description/">222. 完全二叉树的节点个数 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>如果是普通二叉树，前中后序都可以，层序也可以</li>
+<li>完全二叉树特性：除了底层节点上面节点都是满的 </li>
+<li>满二叉树节点数：（2^n） - 1</li>
+<li>判断子树是否是满二叉树</li>
+</ul>
+<p><strong>代码实现—普通二叉树</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">getNodesNum</span><span class="params">(TreeNode* cur)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (cur == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> leftNum = <span class="built_in">getNodesNum</span>(cur-&gt;left);      <span class="comment">// 左</span></span><br><span class="line">        <span class="type">int</span> rightNum = <span class="built_in">getNodesNum</span>(cur-&gt;right);    <span class="comment">// 右</span></span><br><span class="line">        <span class="type">int</span> treeNum = leftNum + rightNum + <span class="number">1</span>;      <span class="comment">// 中</span></span><br><span class="line">        <span class="keyword">return</span> treeNum;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">countNodes</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">getNodesNum</span>(root);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n)</li>
+<li>空间复杂度：O(log n)</li>
+</ul>
+<p><strong>代码实现—完全二叉树</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">countNodes</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == <span class="literal">nullptr</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        TreeNode* left = root-&gt;left;</span><br><span class="line">        TreeNode* right = root-&gt;right;</span><br><span class="line">        <span class="type">int</span> leftDepth = <span class="number">0</span>, rightDepth = <span class="number">0</span>; <span class="comment">// 这里初始为0是有目的的，为了下面求指数方便</span></span><br><span class="line">        <span class="keyword">while</span> (left) &#123;  <span class="comment">// 求左子树深度</span></span><br><span class="line">            left = left-&gt;left;</span><br><span class="line">            leftDepth++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">while</span> (right) &#123; <span class="comment">// 求右子树深度</span></span><br><span class="line">            right = right-&gt;right;</span><br><span class="line">            rightDepth++;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (leftDepth == rightDepth) &#123;</span><br><span class="line">            <span class="keyword">return</span> (<span class="number">2</span> &lt;&lt; leftDepth) - <span class="number">1</span>; <span class="comment">// 注意(2&lt;&lt;1) 相当于2^2，所以leftDepth初始为0</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">countNodes</span>(root-&gt;left) + <span class="built_in">countNodes</span>(root-&gt;right) + <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(log n x log n)</li>
+<li>空间复杂度：O(log n)</li>
+</ul>
+<h1 id="8-leetcode-110-平衡二叉树-E"><a href="#8-leetcode-110-平衡二叉树-E" class="headerlink" title="8.leetcode-110-平衡二叉树-E"></a>8.leetcode-110-平衡二叉树-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/balanced-binary-tree/description/">110. 平衡二叉树 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>高度平衡二叉树：一个二叉树每个节点的左右两个子树的高度差绝对值不超过1</li>
+<li>高度：距离叶子节点的距离 —–后序遍历（左右中） 向上遍历不断返回       空节点的高度为0</li>
+<li>深度：距离根节点的距离 ——前序遍历（中左右）一直向下遍历</li>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231026102400142.png" alt="平衡二叉树"></li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">getHeigth</span><span class="params">(TreeNode* node)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (node == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        <span class="type">int</span> leftheight = <span class="built_in">getHeigth</span>(node-&gt;left);</span><br><span class="line">        <span class="comment">//左</span></span><br><span class="line">        <span class="keyword">if</span> (leftheight == <span class="number">-1</span>) <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        <span class="type">int</span> rightheight = <span class="built_in">getHeigth</span>(node-&gt;right);</span><br><span class="line">        <span class="comment">//right</span></span><br><span class="line">        <span class="keyword">if</span> (rightheight == <span class="number">-1</span>) <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        <span class="type">int</span> res;</span><br><span class="line">        <span class="comment">//中</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">abs</span>(leftheight - rightheight) &gt; <span class="number">1</span>) &#123;</span><br><span class="line">            res = <span class="number">-1</span>;</span><br><span class="line">        &#125;<span class="keyword">else</span> &#123;</span><br><span class="line">            res = <span class="built_in">max</span>(leftheight, rightheight) + <span class="number">1</span>;<span class="comment">//相差小于1 则中间取最大值+1</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">isBalanced</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">getHeigth</span>(root) == <span class="number">-1</span> ? <span class="literal">false</span> : <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n) 每个节点都遍历一次</li>
+<li>空间复杂度：O(n)递归</li>
+</ul>
+<h1 id="9-leetcode-257-二叉树的所有路径-E"><a href="#9-leetcode-257-二叉树的所有路径-E" class="headerlink" title="9.leetcode-257-二叉树的所有路径-E"></a>9.leetcode-257-二叉树的所有路径-E</h1><p><strong>题目：<a href="https://leetcode.cn/problems/binary-tree-paths/">257. 二叉树的所有路径 - 力扣（LeetCode）</a></strong></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>前序遍历（中左右）这样遍历才会让父节点指向子节点</li>
+<li>回溯<ul>
+<li><img src="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/image-20231026111608437.png" alt="image-20231026111608437"></li>
+</ul>
+</li>
+<li>递归三部曲 <ul>
+<li>返回值void 参数 node，path</li>
+<li>终止条件：左右孩子都为空 -&gt;放入path路径</li>
+<li>前序遍历：中左右</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">lass Solution &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">traversal</span><span class="params">(TreeNode* node, vector&lt;<span class="type">int</span>&gt; &amp;path, vector&lt;string&gt; &amp;res)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//zhong,因为最后一个节点也要加入到path中</span></span><br><span class="line">        path.<span class="built_in">push_back</span>(node-&gt;val);</span><br><span class="line">        <span class="comment">//叶子节点</span></span><br><span class="line">        <span class="keyword">if</span> (node-&gt;left == <span class="literal">NULL</span> &amp;&amp; node-&gt;right == <span class="literal">NULL</span>) &#123;</span><br><span class="line">            string sPath;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; path.<span class="built_in">size</span>() - <span class="number">1</span>; i++) &#123;</span><br><span class="line">                sPath += <span class="built_in">to_string</span>(path[i]);</span><br><span class="line">                sPath += <span class="string">&quot;-&gt;&quot;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            sPath += <span class="built_in">to_string</span>(path[path.<span class="built_in">size</span>() - <span class="number">1</span>]);<span class="comment">//末尾的字符</span></span><br><span class="line">            res.<span class="built_in">push_back</span>(sPath);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (node-&gt;left) &#123;</span><br><span class="line">            <span class="built_in">traversal</span>(node-&gt;left, path, res);</span><br><span class="line">            path.<span class="built_in">pop_back</span>();<span class="comment">//回溯</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (node-&gt;right) &#123;</span><br><span class="line">            <span class="built_in">traversal</span>(node-&gt;right, path,res);</span><br><span class="line">            path.<span class="built_in">pop_back</span>();</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">    <span class="function">vector&lt;string&gt; <span class="title">binaryTreePaths</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        vector&lt;string&gt; res;</span><br><span class="line">        vector&lt;<span class="type">int</span>&gt; path;</span><br><span class="line">        <span class="keyword">if</span> (root == <span class="literal">nullptr</span>) <span class="keyword">return</span> res;</span><br><span class="line">        <span class="built_in">traversal</span>(root, path, res);</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n^2) 回溯</li>
+<li>空间复杂度：O(n^2)</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -3215,6 +3337,262 @@ public:
       <tags>
         <tag>二叉树</tag>
         <tag>数据结构</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CSAPP-3-bomblab</title>
+    <url>/2023/10/25/CSAPP-3-bomblab/</url>
+    <content><![CDATA[<h1 id="3-bomb-lab"><a href="#3-bomb-lab" class="headerlink" title="3.bomb lab"></a>3.bomb lab</h1><p><strong>参考：</strong></p>
+<ol>
+<li><a href="https://blog.csdn.net/aufefgavo/article/details/119697258">深入理解计算机系统-bomblab详解_独小雪的博客-CSDN博客</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/449879729">Lab2 CSAPP: BombLab环境+思路+全注释 - 知乎 (zhihu.com)</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/451623574">手把手教你拆解 CSAPP 的 炸弹实验室 BombLab - 知乎 (zhihu.com)</a></li>
+</ol>
+<h2 id="3-1基本指令"><a href="#3-1基本指令" class="headerlink" title="3.1基本指令"></a>3.1基本指令</h2><ul>
+<li>必须反汇编对炸弹进行拆除</li>
+<li><code>objdump -d bomb &gt; bomb.s</code>生成bomb的汇编文件</li>
+<li><code>objdump -d bomb &gt; bomb.t</code>生成bomb的符号表</li>
+<li><strong>所有的字符串都是通过%rdi寄存器传入的</strong>，在 bomb.s中搜索 phase_1，可以得到如下的代码：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">400e32:	e8 67 06 00 00       	callq  40149e &lt;read_line&gt; # 读取命令行的字符串，%rax是 readline 的返回值也就是输入的string</span><br><span class="line">400e37:	48 89 c7             	mov    %rax,%rdi #将输入的string存入 %rdi 寄存器，传入phase函数</span><br><span class="line">400e3a:	e8 a1 00 00 00       	callq  400ee0 &lt;phase_1&gt;</span><br><span class="line">400e3f:	e8 80 07 00 00       	callq  4015c4 &lt;phase_defused&gt;</span><br><span class="line">400e44:	bf a8 23 40 00       	mov    $0x4023a8,%edi</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+<h2 id="3-2-phase1"><a href="#3-2-phase1" class="headerlink" title="3.2 phase1"></a>3.2 phase1</h2><p>在<strong>bomb.s</strong>搜素 phase_1 ，可以得到如下的反汇编代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400ee0 &lt;phase_1&gt;:</span><br><span class="line">  400ee0:	48 83 ec 08          	sub    $0x8,%rsp </span><br><span class="line">  400ee4:	be 00 24 40 00       	mov    $0x402400,%esi</span><br><span class="line">  400ee9:	e8 4a 04 00 00       	callq  401338 &lt;strings_not_equal&gt;</span><br><span class="line">  400eee:	85 c0                	test   %eax,%eax</span><br><span class="line">  400ef0:	74 05                	je     400ef7 &lt;phase_1+0x17&gt;</span><br><span class="line">  400ef2:	e8 43 05 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  400ef7:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  400efb:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+<p><strong>题目分析：</strong></p>
+<ul>
+<li>函数调用了<code>strings_not_equal</code>这个函数，主要是判断输入的字符串与对比的字符串是否不相等：相等返回0，不相等则会返回非0。<strong>即 如果%rdi 与 地址（0x402400）存的字符串相等就不会bomb</strong></li>
+</ul>
+<p><strong>汇编代码分析：</strong></p>
+<ul>
+<li><code>sub    $0x8,%rsp </code>  %rsp是栈指针寄存器，存储栈的顶部位置， 这一行将栈顶减去8位，为函数的局部变量分配空间。</li>
+<li><code>mov    $0x402400,%esi</code>将 地址（0x402400）的字符串，放入到 %esi 中。</li>
+<li><code>callq  401338 &lt;strings_not_equal&gt;</code>  调用地址（401338）的函数 用于判断两个字符串是否不相等</li>
+<li><code>test   %eax,%eax</code>  对%eax寄存器中的内容 进行与运算。<strong>test</strong>指令执行按位与的操作，类似于<strong>and</strong>指令，但是<strong>test 不会保存结果，只会更新标志寄存器的值</strong>。<ul>
+<li>因此test指令通常用作检查某个寄存器或者内存位置的位模式，而不需要保存结果。</li>
+<li>test操作，如果结果为0，则将零标志位（ZF），设置为1 通常与（je、jne、j1、jg）配合使用</li>
+</ul>
+</li>
+<li><code>je     400ef7 &lt;phase_1+0x17&gt;</code> 与运算设置了0 标志位 ，那么就跳转400ef7 <code>add    $0x8,%rsp</code> 释放之前的空间。<ul>
+<li>je指令 对应于标志寄存器中的零标志（ZF），如果上一条指令产生了零标志，那么程序会跳转到指定地址。</li>
+</ul>
+</li>
+<li><code>callq  40143a &lt;explode_bomb&gt;</code> 否则执行地址（40143a）的函数 爆炸</li>
+</ul>
+<p><strong>题解：</strong></p>
+<ul>
+<li><code>gdb bomb</code></li>
+<li><code>x/s 0x402400</code><ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231025214536447.png" alt="image-20231025214536447"></li>
+</ul>
+</li>
+<li>在中断中输入：Border relations with Canada have never been better.<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231025214702401.png" alt="image-20231025214702401"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-2-phase-2"><a href="#3-2-phase-2" class="headerlink" title="3.2 phase_2"></a>3.2 phase_2</h2><p><strong>phase_2汇编代码：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400efc &lt;phase_2&gt;:</span><br><span class="line">  400efc:	55                   	push   %rbp</span><br><span class="line">  400efd:	53                   	push   %rbx</span><br><span class="line">  400efe:	48 83 ec 28          	sub    $0x28,%rsp #开了10个4字节的空间，多开了4个？？？</span><br><span class="line">  400f02:	48 89 e6             	mov    %rsp,%rsi#将开辟的地址传入%rsp存放的就是数组第一个元素</span><br><span class="line">  400f05:	e8 52 05 00 00       	callq  40145c &lt;read_six_numbers&gt; #读取六个数字</span><br><span class="line">  400f0a:	83 3c 24 01          	cmpl   $0x1,(%rsp) #第一个参数是否是1</span><br><span class="line">  400f0e:	74 20                	je     400f30 &lt;phase_2+0x34&gt; #是1则跳转0x400f30</span><br><span class="line">  400f10:	e8 25 05 00 00       	callq  40143a &lt;explode_bomb&gt; #否则就bomb</span><br><span class="line">  400f15:	eb 19                	jmp    400f30 &lt;phase_2+0x34&gt;</span><br><span class="line">  400f17:	8b 43 fc             	mov    -0x4(%rbx),%eax #取得上一个输入的数，放入%eax</span><br><span class="line">  400f1a:	01 c0                	add    %eax,%eax #%加倍</span><br><span class="line">  400f1c:	39 03                	cmp    %eax,(%rbx) #与当前的数比较</span><br><span class="line">  400f1e:	74 05                	je     400f25 &lt;phase_2+0x29&gt; #相等则跳过下一行到0x400f25</span><br><span class="line">  400f20:	e8 15 05 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  400f25:	48 83 c3 04          	add    $0x4,%rbx #指向下一个参数的位置 %rbx加上立即数</span><br><span class="line">  400f29:	48 39 eb             	cmp    %rbp,%rbx #判断是否是第六个参数 0x18 == 24 == 4*6</span><br><span class="line">  400f2c:	75 e9                	jne    400f17 &lt;phase_2+0x1b&gt; #不是则继续进行循环</span><br><span class="line">  400f2e:	eb 0c                	jmp    400f3c &lt;phase_2+0x40&gt; # 是则跳转0x400f3c</span><br><span class="line">  400f30:	48 8d 5c 24 04       	lea    0x4(%rsp),%rbx #第二个数</span><br><span class="line">  400f35:	48 8d 6c 24 18       	lea    0x18(%rsp),%rbp</span><br><span class="line">  400f3a:	eb db                	jmp    400f17 &lt;phase_2+0x1b&gt;#跳转0x400f17继续循环</span><br><span class="line">  400f3c:	48 83 c4 28          	add    $0x28,%rsp</span><br><span class="line">  400f40:	5b                   	pop    %rbx</span><br><span class="line">  400f41:	5d                   	pop    %rbp</span><br><span class="line">  400f42:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+<p><strong>read_six_numbers汇编代码：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">000000000040145c &lt;read_six_numbers&gt;:#从我们输入的字符串中读取6个数字   第一个参数是%rdi</span><br><span class="line">  40145c:	48 83 ec 18          	sub    $0x18,%rsp #0x18 = 4 * 6 6个4字节的地址</span><br><span class="line">  401460:	48 89 f2             	mov    %rsi,%rdx #%rdx第三个参数寄存器</span><br><span class="line">  401463:	48 8d 4e 04          	lea    0x4(%rsi),%rcx #%rcx第四个</span><br><span class="line">  401467:	48 8d 46 14          	lea    0x14(%rsi),%rax </span><br><span class="line">  40146b:	48 89 44 24 08       	mov    %rax,0x8(%rsp) #第八个</span><br><span class="line">  401470:	48 8d 46 10          	lea    0x10(%rsi),%rax</span><br><span class="line">  401474:	48 89 04 24          	mov    %rax,(%rsp)</span><br><span class="line">  401478:	4c 8d 4e 0c          	lea    0xc(%rsi),%r9# 第六个</span><br><span class="line">  40147c:	4c 8d 46 08          	lea    0x8(%rsi),%r8 #第五个</span><br><span class="line">  401480:	be c3 25 40 00       	mov    $0x4025c3,%esi</span><br><span class="line">  401485:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  40148a:	e8 61 f7 ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt; #sscanf</span><br><span class="line">  40148f:	83 f8 05             	cmp    $0x5,%eax</span><br><span class="line">  401492:	7f 05                	jg     401499 &lt;read_six_numbers+0x3d&gt;</span><br><span class="line">  401494:	e8 a1 ff ff ff       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  401499:	48 83 c4 18          	add    $0x18,%rsp</span><br><span class="line">  40149d:	c3                   	retq</span><br></pre></td></tr></table></figure>
+
+<p><strong>思路：</strong></p>
+<ul>
+<li><code>callq  40145c &lt;read_six_numbers&gt;</code>调用函数“先读入六个数”，同 phase1一样，%rdi原封不动的传入了这个函数，那么%rsi存入的是什么呢？</li>
+<li><code>sub    $0x28,%rsp</code>和<code>mov    %rsp,%rsi</code> 这两行代码可以看出，先将%rsp中的栈指针栈顶 减去 0x28，然后存入%rsi中，<strong>所以%rsi中存入的是地址</strong>。结合函数<read_six_numbers> 可以得%rsi 在源码是一个指针，指向一个数组的开头</read_six_numbers></li>
+<li>在read six numbers中 0x4（%rsi） 。。有几个地址还因为寄存器放不下 放入到了栈中，sscanf的第一个参数是read six numbers的第一个参数，输入的字符串 第二个参数是存储在0x4025c3中的字符串格式<ul>
+<li><code>x/s 0x4025c3</code>查看 字符串存储的格式</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026153037844.png" alt="image-20231026153037844"></li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026151232389.png" alt="image-20231026151232389"></li>
+</ul>
+</li>
+<li>回到phase_2函数<ul>
+<li>判断第一个元素是否是1，是则跳转0x400f30</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026151727168.png" alt="image-20231026151727168"></li>
+<li>0x400f30 是%rsp增加四字节（数组的第二个元素），放入%rbx中，然后把最后一个数字的下一个字节放入到%rbp——–0x18 &#x3D; 24 &#x3D; 4 * 6  用于判断循环终止，然后回到0x400f17</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026151852711.png" alt="image-20231026151852711"></li>
+<li>0x400f17  <code>mov    -0x4(%rbx),%eax</code> <strong>取得%rbx上一个数 放入%eax ，然后相加使其翻倍</strong>，最后将翻倍的数与当前的数进行比较 ，循环比较剩下五个数。</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026152238146.png" alt="image-20231026152238146"></li>
+<li>其实是以1为首项，2为公比的等比数列。</li>
+</ul>
+</li>
+<li>所以答案输入1 2 4 8 16 32就好</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026153417850.png" alt="phrase_2"></li>
+</ul>
+<h2 id="3-3-phase-3"><a href="#3-3-phase-3" class="headerlink" title="3.3 phase_3"></a>3.3 phase_3</h2><p><strong>phase_3 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400f43 &lt;phase_3&gt;:</span><br><span class="line">  400f43:	48 83 ec 18          	sub    $0x18,%rsp</span><br><span class="line">  400f47:	48 8d 4c 24 0c       	lea    0xc(%rsp),%rcx</span><br><span class="line">  400f4c:	48 8d 54 24 08       	lea    0x8(%rsp),%rdx</span><br><span class="line">  400f51:	be cf 25 40 00       	mov    $0x4025cf,%esi #“%d %d”</span><br><span class="line">  400f56:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  400f5b:	e8 90 fc ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt;</span><br><span class="line">  400f60:	83 f8 01             	cmp    $0x1,%eax #和1比较</span><br><span class="line">  400f63:	7f 05                	jg     400f6a &lt;phase_3+0x27&gt; #greater大于则跳转 0x400f6a</span><br><span class="line">  400f65:	e8 d0 04 00 00       	callq  40143a &lt;explode_bomb&gt; #否则bomb</span><br><span class="line">  400f6a:	83 7c 24 08 07       	cmpl   $0x7,0x8(%rsp) #比较第一个数是否小于7 </span><br><span class="line">  400f6f:	77 3c                	ja     400fad &lt;phase_3+0x6a&gt; #above无符号大于则跳转 bomb不满足 case</span><br><span class="line">  400f71:	8b 44 24 08          	mov    0x8(%rsp),%eax </span><br><span class="line">  400f75:	ff 24 c5 70 24 40 00 	jmpq   *0x402470(,%rax,8) #无条件跳转 0x400f7c case0</span><br><span class="line">  400f7c:	b8 cf 00 00 00       	mov    $0xcf,%eax #case 0  0xcf = 207</span><br><span class="line">  400f81:	eb 3b                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f83:	b8 c3 02 00 00       	mov    $0x2c3,%eax #case 1 0x2c3 = 707</span><br><span class="line">  400f88:	eb 34                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f8a:	b8 00 01 00 00       	mov    $0x100,%eax #case 2 0x100 = 256</span><br><span class="line">  400f8f:	eb 2d                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f91:	b8 85 01 00 00       	mov    $0x185,%eax #case 3 0x185 = 389</span><br><span class="line">  400f96:	eb 26                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f98:	b8 ce 00 00 00       	mov    $0xce,%eax #case 4 0xce = 206</span><br><span class="line">  400f9d:	eb 1f                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f9f:	b8 aa 02 00 00       	mov    $0x2aa,%eax #case 5 0x2aa = 682</span><br><span class="line">  400fa4:	eb 18                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400fa6:	b8 47 01 00 00       	mov    $0x147,%eax #case 6 0x147 = 327</span><br><span class="line">  400fab:	eb 11                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fad:	e8 88 04 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  400fb2:	b8 00 00 00 00       	mov    $0x0,%eax #else case</span><br><span class="line">  400fb7:	eb 05                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fb9:	b8 37 01 00 00       	mov    $0x137,%eax</span><br><span class="line">  400fbe:	3b 44 24 0c          	cmp    0xc(%rsp),%eax #处理第二个数 与case中存放的数进行比较</span><br><span class="line">  400fc2:	74 05                	je     400fc9 &lt;phase_3+0x86&gt; #equal相等则跳转</span><br><span class="line">  400fc4:	e8 71 04 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  400fc9:	48 83 c4 18          	add    $0x18,%rsp</span><br><span class="line">  400fcd:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>思路：</strong></p>
+<ul>
+<li>考察的是switch语句的汇编表示，也调用了sscanf<ul>
+<li><code>x/s 0x4025cf</code>结果是两个数，第一个放在0xc（%rsp）存入rcx 和 第二个数放在0x8（rsp）存入 rdx</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026161957698.png" alt="0x4025cf"></li>
+</ul>
+</li>
+<li>对于0x8（rsp）只在下面出现过<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026162400954.png" alt="image-20231026162400954"></li>
+<li>*解引用 也就是0x402470这个地址在存储的 值与8乘rax的值加在一起组成的地址 rax既是前一个输入的参数 </li>
+<li><code>x/wx 0x402470</code>得到  指令x：查看内存指令、w：四字节 x：16进制显示，<strong>跳转到0x400f7c，也就是下一行，对应switch的第一个case</strong><ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026162723425.png" alt="image-20231026162723425"></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>对于0xc：<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026163415020.png" alt="image-20231026163415020"></li>
+</ul>
+</li>
+<li>这七个case 处理不同的逻辑，即我们传入两个数，第一个数用来判断要去哪个case， 第二个数用来和这个case存放的书进行比较，如果相等则通过，不相等则bomb </li>
+<li>答案不唯一 对应的case 输入对应的值就好 0 207<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026164924005.png" alt="phase_3"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-4-phase-4"><a href="#3-4-phase-4" class="headerlink" title="3.4 phase_4"></a>3.4 phase_4</h2><p><strong>phase_4 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">000000000040100c &lt;phase_4&gt;:</span><br><span class="line">  40100c:	48 83 ec 18          	sub    $0x18,%rsp</span><br><span class="line">  401010:	48 8d 4c 24 0c       	lea    0xc(%rsp),%rcx #第二个数</span><br><span class="line">  401015:	48 8d 54 24 08       	lea    0x8(%rsp),%rdx #第一个数</span><br><span class="line">  40101a:	be cf 25 40 00       	mov    $0x4025cf,%esi # %d %d </span><br><span class="line">  40101f:	b8 00 00 00 00       	mov    $0x0,%eax #eax存入0</span><br><span class="line">  401024:	e8 c7 fb ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt; #sscanf</span><br><span class="line">  401029:	83 f8 02             	cmp    $0x2,%eax #</span><br><span class="line">  40102c:	75 07                	jne    401035 &lt;phase_4+0x29&gt;  #jump not equal 不相等则跳转 bomb</span><br><span class="line">  40102e:	83 7c 24 08 0e       	cmpl   $0xe,0x8(%rsp) #32位比较0xe = 14</span><br><span class="line">  401033:	76 05                	jbe    40103a &lt;phase_4+0x2e&gt; #jbe小于等于则跳转 0x40103a </span><br><span class="line">  401035:	e8 00 04 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  40103a:	ba 0e 00 00 00       	mov    $0xe,%edx # 14</span><br><span class="line">  40103f:	be 00 00 00 00       	mov    $0x0,%esi # 0 传入func函数</span><br><span class="line">  401044:	8b 7c 24 08          	mov    0x8(%rsp),%edi #第一个参数传入 edi</span><br><span class="line">  401048:	e8 81 ff ff ff       	callq  400fce &lt;func4&gt; # func 调用</span><br><span class="line">  40104d:	85 c0                	test   %eax,%eax #test 与运算</span><br><span class="line">  40104f:	75 07                	jne    401058 &lt;phase_4+0x4c&gt; #不相等 不等于0则bomb</span><br><span class="line">  401051:	83 7c 24 0c 00       	cmpl   $0x0,0xc(%rsp) #0 比较 </span><br><span class="line">  401056:	74 05                	je     40105d &lt;phase_4+0x51&gt;</span><br><span class="line">  401058:	e8 dd 03 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  40105d:	48 83 c4 18          	add    $0x18,%rsp</span><br><span class="line">  401061:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+<p><strong>func4 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000400fce &lt;func4&gt;:</span><br><span class="line">  400fce:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  400fd2:	89 d0                	mov    %edx,%eax #edx = 14  eax = 0xe</span><br><span class="line">  400fd4:	29 f0                	sub    %esi,%eax #esi = 0   eax = 0xe - 0x0</span><br><span class="line">  400fd6:	89 c1                	mov    %eax,%ecx # ecx = 0xe</span><br><span class="line">  400fd8:	c1 e9 1f             	shr    $0x1f,%ecx #逻辑右移 0x1f = 31位 ecx = 0</span><br><span class="line">  400fdb:	01 c8                	add    %ecx,%eax # eax = 0xe</span><br><span class="line">  400fdd:	d1 f8                	sar    %eax  #算数右移1位 符号位不变 1110(14)  -&gt;0111(7)</span><br><span class="line">  400fdf:	8d 0c 30             	lea    (%rax,%rsi,1),%ecx #rsi(0) + rax(7) = 0x7 </span><br><span class="line">  400fe2:	39 f9                	cmp    %edi,%ecx #与传入的参数比较</span><br><span class="line">  400fe4:	7e 0c                	jle    400ff2 &lt;func4+0x24&gt; #小于或等于跳0x400ff2 </span><br><span class="line">  400fe6:	8d 51 ff             	lea    -0x1(%rcx),%edx #大于的情况 则减一</span><br><span class="line">  400fe9:	e8 e0 ff ff ff       	callq  400fce &lt;func4&gt;</span><br><span class="line">  400fee:	01 c0                	add    %eax,%eax</span><br><span class="line">  400ff0:	eb 15                	jmp    401007 &lt;func4+0x39&gt;</span><br><span class="line">  400ff2:	b8 00 00 00 00       	mov    $0x0,%eax #eax = 0</span><br><span class="line">  400ff7:	39 f9                	cmp    %edi,%ecx # 比较ecx = 7 edi 传入的参数</span><br><span class="line">  400ff9:	7d 0c                	jge    401007 &lt;func4+0x39&gt; #&gt;= 跳401007</span><br><span class="line">  400ffb:	8d 71 01             	lea    0x1(%rcx),%esi #否则（小于的情况） esi + 1</span><br><span class="line">  400ffe:	e8 cb ff ff ff       	callq  400fce &lt;func4&gt; #递归</span><br><span class="line">  401003:	8d 44 00 01          	lea    0x1(%rax,%rax,1),%eax</span><br><span class="line">  401007:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  40100b:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+<p><strong>思路</strong></p>
+<ul>
+<li>同上sscanf 输入标准化是“%d %d” 第一个数放在0x8(%rsp)，第二个数放在0xc(%rsp)</li>
+<li>要求第一个数不大于14<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026194939554.png" alt="image-20231026194939554"></li>
+</ul>
+</li>
+<li>要求第二个数等于0<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026195056021.png" alt="image-20231026195056021"></li>
+</ul>
+</li>
+<li>使用 0x8，调用了func4 函数,func函数的第一个参数是我们输入的第一个数 0x8(%rsp)，第二个 第三个参数是常数，然后判断func的返回值 是否等于0，不能等0则bomb<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026171015752.png" alt="image-20231026171015752"></li>
+</ul>
+</li>
+<li>然后就分析 func函数传入0和 14实现了什么 那么 ecx &#x3D; 7 只需要让rdi也等于7 即第一参数等于7即可<ul>
+<li><code>sar    %eax</code> 等价于<code>SAR EAX 1</code></li>
+</ul>
+</li>
+<li>输入 7 0<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026202629160.png" alt="phase_4"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-5-phase-5"><a href="#3-5-phase-5" class="headerlink" title="3.5 phase_5"></a>3.5 phase_5</h2><p><strong>phase_5 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">0000000000401062 &lt;phase_5&gt;:</span><br><span class="line">  401062:	53                   	push   %rbx</span><br><span class="line">  401063:	48 83 ec 20          	sub    $0x20,%rsp #开辟空间 32字节</span><br><span class="line">  401067:	48 89 fb             	mov    %rdi,%rbx #rdi = rbx</span><br><span class="line">  40106a:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax #fs偏移0x28(40)存入%rax中 保护堆栈</span><br><span class="line">  401071:	00 00 </span><br><span class="line">  401073:	48 89 44 24 18       	mov    %rax,0x18(%rsp)</span><br><span class="line">  401078:	31 c0                	xor    %eax,%eax #异或</span><br><span class="line">  40107a:	e8 9c 02 00 00       	callq  40131b &lt;string_length&gt; #调用函数</span><br><span class="line">  40107f:	83 f8 06             	cmp    $0x6,%eax #6 和eax比较 传入6个字符</span><br><span class="line">  401082:	74 4e                	je     4010d2 &lt;phase_5+0x70&gt; #相等则跳转4010d2</span><br><span class="line">  401084:	e8 b1 03 00 00       	callq  40143a &lt;explode_bomb&gt; #否则bomb</span><br><span class="line">  401089:	eb 47                	jmp    4010d2 &lt;phase_5+0x70&gt; </span><br><span class="line">  40108b:	0f b6 0c 03          	movzbl (%rbx,%rax,1),%ecx # 0扩展 ecx = *rax + *rbx = *rdi + *rax 第rax个字符</span><br><span class="line">  40108f:	88 0c 24             	mov    %cl,(%rsp) #栈顶rsp = cl（rax的低4位） </span><br><span class="line">  401092:	48 8b 14 24          	mov    (%rsp),%rdx  #rdx = rsp = cl （rax的低4位）</span><br><span class="line">  401096:	83 e2 0f             	and    $0xf,%edx #edx与运算 1111 即取cl的低四位 存入edx</span><br><span class="line">  401099:	0f b6 92 b0 24 40 00 	movzbl 0x4024b0(%rdx),%edx #第一条字符串 0x4024b0[rdx]处的字符加载到edx上</span><br><span class="line">  4010a0:	88 54 04 10          	mov    %dl,0x10(%rsp,%rax,1) #dl-&gt;rax + rsp + 0x10处</span><br><span class="line">  4010a4:	48 83 c0 01          	add    $0x1,%rax #rax++</span><br><span class="line">  4010a8:	48 83 f8 06          	cmp    $0x6,%rax #循环6次</span><br><span class="line">  4010ac:	75 dd                	jne    40108b &lt;phase_5+0x29&gt; #不相等最跳转0x40108b循环</span><br><span class="line">  4010ae:	c6 44 24 16 00       	movb   $0x0,0x16(%rsp)</span><br><span class="line">  4010b3:	be 5e 24 40 00       	mov    $0x40245e,%esi #第二条字符串 “flyers”</span><br><span class="line">  4010b8:	48 8d 7c 24 10       	lea    0x10(%rsp),%rdi #0x10~0x15（rsp） 和flyers是否相等</span><br><span class="line">  4010bd:	e8 76 02 00 00       	callq  401338 &lt;strings_not_equal&gt; #看字符串是否不相等 不相等则爆炸</span><br><span class="line">  4010c2:	85 c0                	test   %eax,%eax #与运算</span><br><span class="line">  4010c4:	74 13                	je     4010d9 &lt;phase_5+0x77&gt; #相等跳d9</span><br><span class="line">  4010c6:	e8 6f 03 00 00       	callq  40143a &lt;explode_bomb&gt; #否则报错</span><br><span class="line">  4010cb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)</span><br><span class="line">  4010d0:	eb 07                	jmp    4010d9 &lt;phase_5+0x77&gt;</span><br><span class="line">  4010d2:	b8 00 00 00 00       	mov    $0x0,%eax # 最初 eax = 0</span><br><span class="line">  4010d7:	eb b2                	jmp    40108b &lt;phase_5+0x29&gt; #跳转40108b</span><br><span class="line">  4010d9:	48 8b 44 24 18       	mov    0x18(%rsp),%rax</span><br><span class="line">  4010de:	64 48 33 04 25 28 00 	xor    %fs:0x28,%rax</span><br><span class="line">  4010e5:	00 00 </span><br><span class="line">  4010e7:	74 05                	je     4010ee &lt;phase_5+0x8c&gt;</span><br><span class="line">  4010e9:	e8 42 fa ff ff       	callq  400b30 &lt;__stack_chk_fail@plt&gt;</span><br><span class="line">  4010ee:	48 83 c4 20          	add    $0x20,%rsp</span><br><span class="line">  4010f2:	5b                   	pop    %rbx</span><br><span class="line">  4010f3:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>思路：</strong></p>
+<ul>
+<li><code>gdb x/s 0x4024b0</code>得到如下字符串<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026204707552.png" alt="image-20231026204707552"></li>
+</ul>
+</li>
+<li><code>gdb x/s 0x40245e</code> 得到如下字符串：<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026205058798.png" alt="image-20231026205058798"></li>
+</ul>
+</li>
+<li><code>cmp    $0x6,%eax</code> 和 <code>je     4010d2 &lt;phase_5+0x70&gt;</code> 规定了要传入6个字符 否则会爆炸</li>
+<li>即我们<strong>输入的6个字符 低四位rdx 在0x4024b0[rdx]</strong> 得到一个字符串<strong>要与 flyers相等</strong>就行</li>
+<li>所以在字符串1中找出rdx即可 分别是9（1001）、15（1111）、14（1110）、5（0101）、6（0110）、7（0111）</li>
+<li>查找ascii码数的低四位即可是上述即可 9?NUVW<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026214015659.png" alt="image-20231026214015659"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-6-phase-6"><a href="#3-6-phase-6" class="headerlink" title="3.6 phase_6"></a>3.6 phase_6</h2><p><strong>phase_6 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">00000000004010f4 &lt;phase_6&gt;:</span><br><span class="line">  4010f4:	41 56                	push   %r14</span><br><span class="line">  4010f6:	41 55                	push   %r13</span><br><span class="line">  4010f8:	41 54                	push   %r12</span><br><span class="line">  4010fa:	55                   	push   %rbp</span><br><span class="line">  4010fb:	53                   	push   %rbx</span><br><span class="line">  4010fc:	48 83 ec 50          	sub    $0x50,%rsp #开辟0x50 空间</span><br><span class="line">  401100:	49 89 e5             	mov    %rsp,%r13 # r13 = rsp </span><br><span class="line">  401103:	48 89 e6             	mov    %rsp,%rsi #rsi = rsp  </span><br><span class="line">  401106:	e8 51 03 00 00       	callq  40145c &lt;read_six_numbers&gt; #调用函数</span><br><span class="line">  40110b:	49 89 e6             	mov    %rsp,%r14 #r14 = rsp</span><br><span class="line">  40110e:	41 bc 00 00 00 00    	mov    $0x0,%r12d #r12d = 0x0</span><br><span class="line">  --------------------------------------------------------------------#大循环1 r12d是下标</span><br><span class="line">  401114:	4c 89 ed             	mov    %r13,%rbp #rbp = r13 =rsp</span><br><span class="line">  401117:	41 8b 45 00          	mov    0x0(%r13),%eax #</span><br><span class="line">  40111b:	83 e8 01             	sub    $0x1,%eax #eax--</span><br><span class="line">  40111e:	83 f8 05             	cmp    $0x5,%eax </span><br><span class="line">  401121:	76 05                	jbe    401128 &lt;phase_6+0x34&gt; #&lt;=5 则跳401128说明输入在[1,6]之间 !!!!--------判断这个数是否处于[1,6]之间</span><br><span class="line">  401123:	e8 12 03 00 00       	callq  40143a &lt;explode_bomb&gt; #&gt;5 bomb</span><br><span class="line">  401128:	41 83 c4 01          	add    $0x1,%r12d # r12d++ r12d = 1 当前值的索引值加1</span><br><span class="line">  40112c:	41 83 fc 06          	cmp    $0x6,%r12d # #循环6次</span><br><span class="line">  401130:	74 21                	je     401153 &lt;phase_6+0x5f&gt; #相等则跳转401153</span><br><span class="line">  401132:	44 89 e3             	mov    %r12d,%ebx #ebx = r12d 索引下一个数</span><br><span class="line">  ------------------------#嵌套循环 ！！！判断这个数是否与数组中其余数相等</span><br><span class="line">  401135:	48 63 c3             	movslq %ebx,%rax #sign 符号拓展 索引放入rax </span><br><span class="line">  401138:	8b 04 84             	mov    (%rsp,%rax,4),%eax #eax = 4*rax + rsp 算出上面查过数的地址，通过地址找到这个数，放入eax rsp[4*ebx]</span><br><span class="line">  40113b:	39 45 00             	cmp    %eax,0x0(%rbp) #把eax找的数与rbp的比较 即六个数字不能相等</span><br><span class="line">  40113e:	75 05                	jne    401145 &lt;phase_6+0x51&gt; #不相等则跳转401145</span><br><span class="line">  401140:	e8 f5 02 00 00       	callq  40143a &lt;explode_bomb&gt; #相等则bomb</span><br><span class="line">  401145:	83 c3 01             	add    $0x1,%ebx #ebx++</span><br><span class="line">  401148:	83 fb 05             	cmp    $0x5,%ebx #</span><br><span class="line">  40114b:	7e e8                	jle    401135 &lt;phase_6+0x41&gt; #小于跳401135 循环</span><br><span class="line">  ---------------------- #嵌套循环结束</span><br><span class="line">  40114d:	49 83 c5 04          	add    $0x4,%r13 #r13继续指向下一个数</span><br><span class="line">  401151:	eb c1                	jmp    401114 &lt;phase_6+0x20&gt;</span><br><span class="line">  -------------------------------------------------------------#大循环结束</span><br><span class="line">  401153:	48 8d 74 24 18       	lea    0x18(%rsp),%rsi</span><br><span class="line">  401158:	4c 89 f0             	mov    %r14,%rax #r14 = rsp = 输入的6个数</span><br><span class="line">  40115b:	b9 07 00 00 00       	mov    $0x7,%ecx #exc = 7</span><br><span class="line">  401160:	89 ca                	mov    %ecx,%edx #edx=ecx = 7</span><br><span class="line">  401162:	2b 10                	sub    (%rax),%edx #rax 指向输入的数然后用7减 edx -= rax</span><br><span class="line">  401164:	89 10                	mov    %edx,(%rax) #将结果放入rax</span><br><span class="line">  401166:	48 83 c0 04          	add    $0x4,%rax #下一个数</span><br><span class="line">  40116a:	48 39 f0             	cmp    %rsi,%rax #比较rsi与rax</span><br><span class="line">  40116d:	75 f1                	jne    401160 &lt;phase_6+0x6c&gt; #不相等则跳转 441160循环直到把所有参数都改变了 </span><br><span class="line">  40116f:	be 00 00 00 00       	mov    $0x0,%esi</span><br><span class="line">  401174:	eb 21                	jmp    401197 &lt;phase_6+0xa3&gt; #全都不相等跳401197</span><br><span class="line">  --------------------------# edx中的7-int的元素放入 链表中</span><br><span class="line">  401176:	48 8b 52 08          	mov    0x8(%rdx),%rdx #rdx = *rdx + 8 字节对齐 p = p-&gt;next</span><br><span class="line">  40117a:	83 c0 01             	add    $0x1,%eax #eax++</span><br><span class="line">  40117d:	39 c8                	cmp    %ecx,%eax #</span><br><span class="line">  40117f:	75 f5                	jne    401176 &lt;phase_6+0x82&gt; #不等跳401176</span><br><span class="line">  401181:	eb 05                	jmp    401188 &lt;phase_6+0x94&gt; #否则跳401188</span><br><span class="line">  401183:	ba d0 32 60 00       	mov    $0x6032d0,%edx #链表头指针</span><br><span class="line">  401188:	48 89 54 74 20       	mov    %rdx,0x20(%rsp,%rsi,2) #rdx -》 rsp[2*rsi+0x20]</span><br><span class="line">  40118d:	48 83 c6 04          	add    $0x4,%rsi #指向下一个</span><br><span class="line">  401191:	48 83 fe 18          	cmp    $0x18,%rsi</span><br><span class="line">  401195:	74 14                	je     4011ab &lt;phase_6+0xb7&gt; #相等跳4011ab</span><br><span class="line">  ----------------------------------------------------------------</span><br><span class="line">  401197:	8b 0c 34             	mov    (%rsp,%rsi,1),%ecx #ecx = rsp[rsi]</span><br><span class="line">  40119a:	83 f9 01             	cmp    $0x1,%ecx #和1 比较</span><br><span class="line">  40119d:	7e e4                	jle    401183 &lt;phase_6+0x8f&gt; #&lt;=1 跳转401183</span><br><span class="line">  40119f:	b8 01 00 00 00       	mov    $0x1,%eax # eax = 1</span><br><span class="line">  4011a4:	ba d0 32 60 00       	mov    $0x6032d0,%edx #edx = 0x6032d0 gdb一下 node变量</span><br><span class="line">  4011a9:	eb cb                	jmp    401176 &lt;phase_6+0x82&gt; #然会跳转401176 上面那段</span><br><span class="line">  -------------------------------------------------------------------------</span><br><span class="line">  4011ab:	48 8b 5c 24 20       	mov    0x20(%rsp),%rbx #rbx最初节点</span><br><span class="line">  4011b0:	48 8d 44 24 28       	lea    0x28(%rsp),%rax # 下一个节点</span><br><span class="line">  4011b5:	48 8d 74 24 50       	lea    0x50(%rsp),%rsi</span><br><span class="line">  4011ba:	48 89 d9             	mov    %rbx,%rcx</span><br><span class="line">  -------------------------------------------------------------</span><br><span class="line">  4011bd:	48 8b 10             	mov    (%rax),%rdx #rax指向位置拿出node变量的地址</span><br><span class="line">  4011c0:	48 89 51 08          	mov    %rdx,0x8(%rcx) #node-&gt;next</span><br><span class="line">  4011c4:	48 83 c0 08          	add    $0x8,%rax</span><br><span class="line">  4011c8:	48 39 f0             	cmp    %rsi,%rax</span><br><span class="line">  4011cb:	74 05                	je     4011d2 &lt;phase_6+0xde&gt; #相等跳 4011d2</span><br><span class="line">  4011cd:	48 89 d1             	mov    %rdx,%rcx</span><br><span class="line">  4011d0:	eb eb                	jmp    4011bd &lt;phase_6+0xc9&gt;</span><br><span class="line">  4011d2:	48 c7 42 08 00 00 00 	movq   $0x0,0x8(%rdx) #指向最后一个节点</span><br><span class="line">  4011d9:	00 </span><br><span class="line">  ---------------------------------------------------------------------</span><br><span class="line">  4011da:	bd 05 00 00 00       	mov    $0x5,%ebp #循环变量 索引</span><br><span class="line">  4011df:	48 8b 43 08          	mov    0x8(%rbx),%rax #rbx指向第一个索引对应的节点 node.next放入 rax</span><br><span class="line">  4011e3:	8b 00                	mov    (%rax),%eax #rax解引用指向节点的val值 放入eax</span><br><span class="line">  4011e5:	39 03                	cmp    %eax,(%rbx) #比较eax和 rbx（上一个元素）</span><br><span class="line">  4011e7:	7d 05                	jge    4011ee &lt;phase_6+0xfa&gt; #rbx大于eax后者 则跳转4011ee 通过</span><br><span class="line">  4011e9:	e8 4c 02 00 00       	callq  40143a &lt;explode_bomb&gt; #否则就bomb</span><br><span class="line">  4011ee:	48 8b 5b 08          	mov    0x8(%rbx),%rbx</span><br><span class="line">  4011f2:	83 ed 01             	sub    $0x1,%ebp #ebp--</span><br><span class="line">  4011f5:	75 e8                	jne    4011df &lt;phase_6+0xeb&gt; #不循环</span><br><span class="line">  4011f7:	48 83 c4 50          	add    $0x50,%rsp #恢复栈顶</span><br><span class="line">  4011fb:	5b                   	pop    %rbx</span><br><span class="line">  4011fc:	5d                   	pop    %rbp</span><br><span class="line">  4011fd:	41 5c                	pop    %r12</span><br><span class="line">  4011ff:	41 5d                	pop    %r13</span><br><span class="line">  401201:	41 5e                	pop    %r14</span><br><span class="line">  401203:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>思路</strong></p>
+<ul>
+<li>实际上是链表的应用</li>
+<li></li>
+<li>将第一个大循环转换成c语言代码可以得</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> sixNum[<span class="number">6</span>] = &#123;输入的<span class="number">6</span>个数&#125; </span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">6</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">if</span> (sixNum[i] &gt; <span class="number">6</span>) <span class="built_in">explode_bomb</span>();</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> j = i + <span class="number">1</span>; j &lt; <span class="number">6</span>; j++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (sixNum[i] == sixNum[j]) explode_bomb;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>x/wx 0x6032d0</code></p>
+<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231028113244985.png" alt="image-20231028113244985"></li>
+<li>node 变量 链表！！！</li>
+</ul>
+</li>
+<li><p><code>x/24wx 0x6032d0</code> 24字节</p>
+<ul>
+<li><p><img src="/2023/10/25/CSAPP-3-bomblab/image-20231028114724993.png" alt="image-20231028114724993"></p>
+</li>
+<li><table>
+<thead>
+<tr>
+<th align="center">索引</th>
+<th align="center">值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td align="center">332[0x14c]</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">168[0xa8]</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">924[0x39c]</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td align="center">691[0x2b3]</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td align="center">477[0x1dd]</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td align="center">443[0x1bb]</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+<li><p>单向链表：</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">//单链表</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">ListNode</span> &#123;</span><br><span class="line">    <span class="type">int</span> val;<span class="comment">//节点上存储的元素</span></span><br><span class="line">    ListNode *next;<span class="comment">//指向下一个节点的指针</span></span><br><span class="line">    <span class="built_in">ListNode</span> (<span class="type">int</span> x) : <span class="built_in">val</span>(x), <span class="built_in">next</span>(<span class="literal">NULL</span>)&#123;&#125;<span class="comment">//节点的构造函数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>那么前面的嵌套循环作用：根据输入的索引，找到对应的node值，并且把这个值放入到一个数组中</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">Node* addresses[<span class="number">6</span>] = &#123;&#125;;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i&lt; <span class="number">6</span>; i++) &#123;</span><br><span class="line">    <span class="type">int</span> index = sixNum[i];</span><br><span class="line">    addresses[i] = &amp;node1;</span><br><span class="line">    <span class="keyword">while</span> (addresses[i]-&gt;index != index)&#123;</span><br><span class="line">        addresses[i] = addresses[i]-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>所以题目要我们输入的是<strong>链表的索引顺序</strong>，这个顺序是降序排列的，并且每个值都要用 7- 。所以降序排列顺序为<code>3 4 5 6 1 2</code>答案为 <code>4 3 2 1 6 5</code><ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231028152223411.png" alt="image-20231028152223411"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-7-secret-phase"><a href="#3-7-secret-phase" class="headerlink" title="3.7 secret_phase"></a>3.7 secret_phase</h2>]]></content>
+      <categories>
+        <category>CSAPP</category>
+      </categories>
+      <tags>
+        <tag>bomblab</tag>
       </tags>
   </entry>
 </search>

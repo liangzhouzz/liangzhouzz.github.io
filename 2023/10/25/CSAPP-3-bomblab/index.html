@@ -1,0 +1,431 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CSAPP-3-bomblab | Sifanのblog</title><meta name="author" content="liangzhou"><meta name="copyright" content="liangzhou"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="3.bomb lab参考：  深入理解计算机系统-bomblab详解_独小雪的博客-CSDN博客 Lab2 CSAPP: BombLab环境+思路+全注释 - 知乎 (zhihu.com) 手把手教你拆解 CSAPP 的 炸弹实验室 BombLab - 知乎 (zhihu.com)  3.1基本指令 必须反汇编对炸弹进行拆除 objdump -d bomb &gt; bomb.s生成bomb的汇编">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CSAPP-3-bomblab">
+<meta property="og:url" content="http://liangzhouzz.github.io/2023/10/25/CSAPP-3-bomblab/index.html">
+<meta property="og:site_name" content="Sifanのblog">
+<meta property="og:description" content="3.bomb lab参考：  深入理解计算机系统-bomblab详解_独小雪的博客-CSDN博客 Lab2 CSAPP: BombLab环境+思路+全注释 - 知乎 (zhihu.com) 手把手教你拆解 CSAPP 的 炸弹实验室 BombLab - 知乎 (zhihu.com)  3.1基本指令 必须反汇编对炸弹进行拆除 objdump -d bomb &gt; bomb.s生成bomb的汇编">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://liangzhouzz.github.io/img/duck.jpg">
+<meta property="article:published_time" content="2023-10-25T12:12:36.000Z">
+<meta property="article:modified_time" content="2023-10-28T07:27:17.838Z">
+<meta property="article:author" content="liangzhou">
+<meta property="article:tag" content="bomblab">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liangzhouzz.github.io/img/duck.jpg"><link rel="shortcut icon" href="/img/duck.jpg"><link rel="canonical" href="http://liangzhouzz.github.io/2023/10/25/CSAPP-3-bomblab/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: liangzhou","link":"链接: ","source":"来源: Sifanのblog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CSAPP-3-bomblab',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2023-10-28 15:27:17'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load',() => { preloader.endLoading() })
+
+  if (false) {
+    document.addEventListener('pjax:send', () => { preloader.initLoading() })
+    document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/duck.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 链接</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/cloud.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Sifanのblog"><span class="site-name">Sifanのblog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 链接</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">CSAPP-3-bomblab</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2023-10-25T12:12:36.000Z" title="发表于 2023-10-25 20:12:36">2023-10-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2023-10-28T07:27:17.838Z" title="更新于 2023-10-28 15:27:17">2023-10-28</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/CSAPP/">CSAPP</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="CSAPP-3-bomblab"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="3-bomb-lab"><a href="#3-bomb-lab" class="headerlink" title="3.bomb lab"></a>3.bomb lab</h1><p><strong>参考：</strong></p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/aufefgavo/article/details/119697258">深入理解计算机系统-bomblab详解_独小雪的博客-CSDN博客</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/449879729">Lab2 CSAPP: BombLab环境+思路+全注释 - 知乎 (zhihu.com)</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/451623574">手把手教你拆解 CSAPP 的 炸弹实验室 BombLab - 知乎 (zhihu.com)</a></li>
+</ol>
+<h2 id="3-1基本指令"><a href="#3-1基本指令" class="headerlink" title="3.1基本指令"></a>3.1基本指令</h2><ul>
+<li>必须反汇编对炸弹进行拆除</li>
+<li><code>objdump -d bomb &gt; bomb.s</code>生成bomb的汇编文件</li>
+<li><code>objdump -d bomb &gt; bomb.t</code>生成bomb的符号表</li>
+<li><strong>所有的字符串都是通过%rdi寄存器传入的</strong>，在 bomb.s中搜索 phase_1，可以得到如下的代码：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">400e32:	e8 67 06 00 00       	callq  40149e &lt;read_line&gt; # 读取命令行的字符串，%rax是 readline 的返回值也就是输入的string</span><br><span class="line">400e37:	48 89 c7             	mov    %rax,%rdi #将输入的string存入 %rdi 寄存器，传入phase函数</span><br><span class="line">400e3a:	e8 a1 00 00 00       	callq  400ee0 &lt;phase_1&gt;</span><br><span class="line">400e3f:	e8 80 07 00 00       	callq  4015c4 &lt;phase_defused&gt;</span><br><span class="line">400e44:	bf a8 23 40 00       	mov    $0x4023a8,%edi</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+<h2 id="3-2-phase1"><a href="#3-2-phase1" class="headerlink" title="3.2 phase1"></a>3.2 phase1</h2><p>在<strong>bomb.s</strong>搜素 phase_1 ，可以得到如下的反汇编代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0000000000400ee0 &lt;phase_1&gt;:</span><br><span class="line">  400ee0:	48 83 ec 08          	sub    $0x8,%rsp </span><br><span class="line">  400ee4:	be 00 24 40 00       	mov    $0x402400,%esi</span><br><span class="line">  400ee9:	e8 4a 04 00 00       	callq  401338 &lt;strings_not_equal&gt;</span><br><span class="line">  400eee:	85 c0                	test   %eax,%eax</span><br><span class="line">  400ef0:	74 05                	je     400ef7 &lt;phase_1+0x17&gt;</span><br><span class="line">  400ef2:	e8 43 05 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  400ef7:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  400efb:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+<p><strong>题目分析：</strong></p>
+<ul>
+<li>函数调用了<code>strings_not_equal</code>这个函数，主要是判断输入的字符串与对比的字符串是否不相等：相等返回0，不相等则会返回非0。<strong>即 如果%rdi 与 地址（0x402400）存的字符串相等就不会bomb</strong></li>
+</ul>
+<p><strong>汇编代码分析：</strong></p>
+<ul>
+<li><code>sub    $0x8,%rsp </code>  %rsp是栈指针寄存器，存储栈的顶部位置， 这一行将栈顶减去8位，为函数的局部变量分配空间。</li>
+<li><code>mov    $0x402400,%esi</code>将 地址（0x402400）的字符串，放入到 %esi 中。</li>
+<li><code>callq  401338 &lt;strings_not_equal&gt;</code>  调用地址（401338）的函数 用于判断两个字符串是否不相等</li>
+<li><code>test   %eax,%eax</code>  对%eax寄存器中的内容 进行与运算。<strong>test</strong>指令执行按位与的操作，类似于<strong>and</strong>指令，但是<strong>test 不会保存结果，只会更新标志寄存器的值</strong>。<ul>
+<li>因此test指令通常用作检查某个寄存器或者内存位置的位模式，而不需要保存结果。</li>
+<li>test操作，如果结果为0，则将零标志位（ZF），设置为1 通常与（je、jne、j1、jg）配合使用</li>
+</ul>
+</li>
+<li><code>je     400ef7 &lt;phase_1+0x17&gt;</code> 与运算设置了0 标志位 ，那么就跳转400ef7 <code>add    $0x8,%rsp</code> 释放之前的空间。<ul>
+<li>je指令 对应于标志寄存器中的零标志（ZF），如果上一条指令产生了零标志，那么程序会跳转到指定地址。</li>
+</ul>
+</li>
+<li><code>callq  40143a &lt;explode_bomb&gt;</code> 否则执行地址（40143a）的函数 爆炸</li>
+</ul>
+<p><strong>题解：</strong></p>
+<ul>
+<li><code>gdb bomb</code></li>
+<li><code>x/s 0x402400</code><ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231025214536447.png" alt="image-20231025214536447"></li>
+</ul>
+</li>
+<li>在中断中输入：Border relations with Canada have never been better.<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231025214702401.png" alt="image-20231025214702401"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-2-phase-2"><a href="#3-2-phase-2" class="headerlink" title="3.2 phase_2"></a>3.2 phase_2</h2><p><strong>phase_2汇编代码：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">0000000000400efc &lt;phase_2&gt;:</span><br><span class="line">  400efc:	55                   	push   %rbp</span><br><span class="line">  400efd:	53                   	push   %rbx</span><br><span class="line">  400efe:	48 83 ec 28          	sub    $0x28,%rsp #开了10个4字节的空间，多开了4个？？？</span><br><span class="line">  400f02:	48 89 e6             	mov    %rsp,%rsi#将开辟的地址传入%rsp存放的就是数组第一个元素</span><br><span class="line">  400f05:	e8 52 05 00 00       	callq  40145c &lt;read_six_numbers&gt; #读取六个数字</span><br><span class="line">  400f0a:	83 3c 24 01          	cmpl   $0x1,(%rsp) #第一个参数是否是1</span><br><span class="line">  400f0e:	74 20                	je     400f30 &lt;phase_2+0x34&gt; #是1则跳转0x400f30</span><br><span class="line">  400f10:	e8 25 05 00 00       	callq  40143a &lt;explode_bomb&gt; #否则就bomb</span><br><span class="line">  400f15:	eb 19                	jmp    400f30 &lt;phase_2+0x34&gt;</span><br><span class="line">  400f17:	8b 43 fc             	mov    -0x4(%rbx),%eax #取得上一个输入的数，放入%eax</span><br><span class="line">  400f1a:	01 c0                	add    %eax,%eax #%加倍</span><br><span class="line">  400f1c:	39 03                	cmp    %eax,(%rbx) #与当前的数比较</span><br><span class="line">  400f1e:	74 05                	je     400f25 &lt;phase_2+0x29&gt; #相等则跳过下一行到0x400f25</span><br><span class="line">  400f20:	e8 15 05 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  400f25:	48 83 c3 04          	add    $0x4,%rbx #指向下一个参数的位置 %rbx加上立即数</span><br><span class="line">  400f29:	48 39 eb             	cmp    %rbp,%rbx #判断是否是第六个参数 0x18 == 24 == 4*6</span><br><span class="line">  400f2c:	75 e9                	jne    400f17 &lt;phase_2+0x1b&gt; #不是则继续进行循环</span><br><span class="line">  400f2e:	eb 0c                	jmp    400f3c &lt;phase_2+0x40&gt; # 是则跳转0x400f3c</span><br><span class="line">  400f30:	48 8d 5c 24 04       	lea    0x4(%rsp),%rbx #第二个数</span><br><span class="line">  400f35:	48 8d 6c 24 18       	lea    0x18(%rsp),%rbp</span><br><span class="line">  400f3a:	eb db                	jmp    400f17 &lt;phase_2+0x1b&gt;#跳转0x400f17继续循环</span><br><span class="line">  400f3c:	48 83 c4 28          	add    $0x28,%rsp</span><br><span class="line">  400f40:	5b                   	pop    %rbx</span><br><span class="line">  400f41:	5d                   	pop    %rbp</span><br><span class="line">  400f42:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+<p><strong>read_six_numbers汇编代码：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">000000000040145c &lt;read_six_numbers&gt;:#从我们输入的字符串中读取6个数字   第一个参数是%rdi</span><br><span class="line">  40145c:	48 83 ec 18          	sub    $0x18,%rsp #0x18 = 4 * 6 6个4字节的地址</span><br><span class="line">  401460:	48 89 f2             	mov    %rsi,%rdx #%rdx第三个参数寄存器</span><br><span class="line">  401463:	48 8d 4e 04          	lea    0x4(%rsi),%rcx #%rcx第四个</span><br><span class="line">  401467:	48 8d 46 14          	lea    0x14(%rsi),%rax </span><br><span class="line">  40146b:	48 89 44 24 08       	mov    %rax,0x8(%rsp) #第八个</span><br><span class="line">  401470:	48 8d 46 10          	lea    0x10(%rsi),%rax</span><br><span class="line">  401474:	48 89 04 24          	mov    %rax,(%rsp)</span><br><span class="line">  401478:	4c 8d 4e 0c          	lea    0xc(%rsi),%r9# 第六个</span><br><span class="line">  40147c:	4c 8d 46 08          	lea    0x8(%rsi),%r8 #第五个</span><br><span class="line">  401480:	be c3 25 40 00       	mov    $0x4025c3,%esi</span><br><span class="line">  401485:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  40148a:	e8 61 f7 ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt; #sscanf</span><br><span class="line">  40148f:	83 f8 05             	cmp    $0x5,%eax</span><br><span class="line">  401492:	7f 05                	jg     401499 &lt;read_six_numbers+0x3d&gt;</span><br><span class="line">  401494:	e8 a1 ff ff ff       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  401499:	48 83 c4 18          	add    $0x18,%rsp</span><br><span class="line">  40149d:	c3                   	retq</span><br></pre></td></tr></table></figure>
+
+<p><strong>思路：</strong></p>
+<ul>
+<li><code>callq  40145c &lt;read_six_numbers&gt;</code>调用函数“先读入六个数”，同 phase1一样，%rdi原封不动的传入了这个函数，那么%rsi存入的是什么呢？</li>
+<li><code>sub    $0x28,%rsp</code>和<code>mov    %rsp,%rsi</code> 这两行代码可以看出，先将%rsp中的栈指针栈顶 减去 0x28，然后存入%rsi中，<strong>所以%rsi中存入的是地址</strong>。结合函数<read_six_numbers> 可以得%rsi 在源码是一个指针，指向一个数组的开头</read_six_numbers></li>
+<li>在read six numbers中 0x4（%rsi） 。。有几个地址还因为寄存器放不下 放入到了栈中，sscanf的第一个参数是read six numbers的第一个参数，输入的字符串 第二个参数是存储在0x4025c3中的字符串格式<ul>
+<li><code>x/s 0x4025c3</code>查看 字符串存储的格式</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026153037844.png" alt="image-20231026153037844"></li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026151232389.png" alt="image-20231026151232389"></li>
+</ul>
+</li>
+<li>回到phase_2函数<ul>
+<li>判断第一个元素是否是1，是则跳转0x400f30</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026151727168.png" alt="image-20231026151727168"></li>
+<li>0x400f30 是%rsp增加四字节（数组的第二个元素），放入%rbx中，然后把最后一个数字的下一个字节放入到%rbp——–0x18 &#x3D; 24 &#x3D; 4 * 6  用于判断循环终止，然后回到0x400f17</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026151852711.png" alt="image-20231026151852711"></li>
+<li>0x400f17  <code>mov    -0x4(%rbx),%eax</code> <strong>取得%rbx上一个数 放入%eax ，然后相加使其翻倍</strong>，最后将翻倍的数与当前的数进行比较 ，循环比较剩下五个数。</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026152238146.png" alt="image-20231026152238146"></li>
+<li>其实是以1为首项，2为公比的等比数列。</li>
+</ul>
+</li>
+<li>所以答案输入1 2 4 8 16 32就好</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026153417850.png" alt="phrase_2"></li>
+</ul>
+<h2 id="3-3-phase-3"><a href="#3-3-phase-3" class="headerlink" title="3.3 phase_3"></a>3.3 phase_3</h2><p><strong>phase_3 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">0000000000400f43 &lt;phase_3&gt;:</span><br><span class="line">  400f43:	48 83 ec 18          	sub    $0x18,%rsp</span><br><span class="line">  400f47:	48 8d 4c 24 0c       	lea    0xc(%rsp),%rcx</span><br><span class="line">  400f4c:	48 8d 54 24 08       	lea    0x8(%rsp),%rdx</span><br><span class="line">  400f51:	be cf 25 40 00       	mov    $0x4025cf,%esi #“%d %d”</span><br><span class="line">  400f56:	b8 00 00 00 00       	mov    $0x0,%eax</span><br><span class="line">  400f5b:	e8 90 fc ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt;</span><br><span class="line">  400f60:	83 f8 01             	cmp    $0x1,%eax #和1比较</span><br><span class="line">  400f63:	7f 05                	jg     400f6a &lt;phase_3+0x27&gt; #greater大于则跳转 0x400f6a</span><br><span class="line">  400f65:	e8 d0 04 00 00       	callq  40143a &lt;explode_bomb&gt; #否则bomb</span><br><span class="line">  400f6a:	83 7c 24 08 07       	cmpl   $0x7,0x8(%rsp) #比较第一个数是否小于7 </span><br><span class="line">  400f6f:	77 3c                	ja     400fad &lt;phase_3+0x6a&gt; #above无符号大于则跳转 bomb不满足 case</span><br><span class="line">  400f71:	8b 44 24 08          	mov    0x8(%rsp),%eax </span><br><span class="line">  400f75:	ff 24 c5 70 24 40 00 	jmpq   *0x402470(,%rax,8) #无条件跳转 0x400f7c case0</span><br><span class="line">  400f7c:	b8 cf 00 00 00       	mov    $0xcf,%eax #case 0  0xcf = 207</span><br><span class="line">  400f81:	eb 3b                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f83:	b8 c3 02 00 00       	mov    $0x2c3,%eax #case 1 0x2c3 = 707</span><br><span class="line">  400f88:	eb 34                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f8a:	b8 00 01 00 00       	mov    $0x100,%eax #case 2 0x100 = 256</span><br><span class="line">  400f8f:	eb 2d                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f91:	b8 85 01 00 00       	mov    $0x185,%eax #case 3 0x185 = 389</span><br><span class="line">  400f96:	eb 26                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f98:	b8 ce 00 00 00       	mov    $0xce,%eax #case 4 0xce = 206</span><br><span class="line">  400f9d:	eb 1f                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400f9f:	b8 aa 02 00 00       	mov    $0x2aa,%eax #case 5 0x2aa = 682</span><br><span class="line">  400fa4:	eb 18                	jmp    400fbe &lt;phase_3+0x7b&gt; </span><br><span class="line">  400fa6:	b8 47 01 00 00       	mov    $0x147,%eax #case 6 0x147 = 327</span><br><span class="line">  400fab:	eb 11                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fad:	e8 88 04 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  400fb2:	b8 00 00 00 00       	mov    $0x0,%eax #else case</span><br><span class="line">  400fb7:	eb 05                	jmp    400fbe &lt;phase_3+0x7b&gt;</span><br><span class="line">  400fb9:	b8 37 01 00 00       	mov    $0x137,%eax</span><br><span class="line">  400fbe:	3b 44 24 0c          	cmp    0xc(%rsp),%eax #处理第二个数 与case中存放的数进行比较</span><br><span class="line">  400fc2:	74 05                	je     400fc9 &lt;phase_3+0x86&gt; #equal相等则跳转</span><br><span class="line">  400fc4:	e8 71 04 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  400fc9:	48 83 c4 18          	add    $0x18,%rsp</span><br><span class="line">  400fcd:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>思路：</strong></p>
+<ul>
+<li>考察的是switch语句的汇编表示，也调用了sscanf<ul>
+<li><code>x/s 0x4025cf</code>结果是两个数，第一个放在0xc（%rsp）存入rcx 和 第二个数放在0x8（rsp）存入 rdx</li>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026161957698.png" alt="0x4025cf"></li>
+</ul>
+</li>
+<li>对于0x8（rsp）只在下面出现过<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026162400954.png" alt="image-20231026162400954"></li>
+<li>*解引用 也就是0x402470这个地址在存储的 值与8乘rax的值加在一起组成的地址 rax既是前一个输入的参数 </li>
+<li><code>x/wx 0x402470</code>得到  指令x：查看内存指令、w：四字节 x：16进制显示，<strong>跳转到0x400f7c，也就是下一行，对应switch的第一个case</strong><ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026162723425.png" alt="image-20231026162723425"></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>对于0xc：<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026163415020.png" alt="image-20231026163415020"></li>
+</ul>
+</li>
+<li>这七个case 处理不同的逻辑，即我们传入两个数，第一个数用来判断要去哪个case， 第二个数用来和这个case存放的书进行比较，如果相等则通过，不相等则bomb </li>
+<li>答案不唯一 对应的case 输入对应的值就好 0 207<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026164924005.png" alt="phase_3"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-4-phase-4"><a href="#3-4-phase-4" class="headerlink" title="3.4 phase_4"></a>3.4 phase_4</h2><p><strong>phase_4 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">000000000040100c &lt;phase_4&gt;:</span><br><span class="line">  40100c:	48 83 ec 18          	sub    $0x18,%rsp</span><br><span class="line">  401010:	48 8d 4c 24 0c       	lea    0xc(%rsp),%rcx #第二个数</span><br><span class="line">  401015:	48 8d 54 24 08       	lea    0x8(%rsp),%rdx #第一个数</span><br><span class="line">  40101a:	be cf 25 40 00       	mov    $0x4025cf,%esi # %d %d </span><br><span class="line">  40101f:	b8 00 00 00 00       	mov    $0x0,%eax #eax存入0</span><br><span class="line">  401024:	e8 c7 fb ff ff       	callq  400bf0 &lt;__isoc99_sscanf@plt&gt; #sscanf</span><br><span class="line">  401029:	83 f8 02             	cmp    $0x2,%eax #</span><br><span class="line">  40102c:	75 07                	jne    401035 &lt;phase_4+0x29&gt;  #jump not equal 不相等则跳转 bomb</span><br><span class="line">  40102e:	83 7c 24 08 0e       	cmpl   $0xe,0x8(%rsp) #32位比较0xe = 14</span><br><span class="line">  401033:	76 05                	jbe    40103a &lt;phase_4+0x2e&gt; #jbe小于等于则跳转 0x40103a </span><br><span class="line">  401035:	e8 00 04 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  40103a:	ba 0e 00 00 00       	mov    $0xe,%edx # 14</span><br><span class="line">  40103f:	be 00 00 00 00       	mov    $0x0,%esi # 0 传入func函数</span><br><span class="line">  401044:	8b 7c 24 08          	mov    0x8(%rsp),%edi #第一个参数传入 edi</span><br><span class="line">  401048:	e8 81 ff ff ff       	callq  400fce &lt;func4&gt; # func 调用</span><br><span class="line">  40104d:	85 c0                	test   %eax,%eax #test 与运算</span><br><span class="line">  40104f:	75 07                	jne    401058 &lt;phase_4+0x4c&gt; #不相等 不等于0则bomb</span><br><span class="line">  401051:	83 7c 24 0c 00       	cmpl   $0x0,0xc(%rsp) #0 比较 </span><br><span class="line">  401056:	74 05                	je     40105d &lt;phase_4+0x51&gt;</span><br><span class="line">  401058:	e8 dd 03 00 00       	callq  40143a &lt;explode_bomb&gt;</span><br><span class="line">  40105d:	48 83 c4 18          	add    $0x18,%rsp</span><br><span class="line">  401061:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+<p><strong>func4 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">0000000000400fce &lt;func4&gt;:</span><br><span class="line">  400fce:	48 83 ec 08          	sub    $0x8,%rsp</span><br><span class="line">  400fd2:	89 d0                	mov    %edx,%eax #edx = 14  eax = 0xe</span><br><span class="line">  400fd4:	29 f0                	sub    %esi,%eax #esi = 0   eax = 0xe - 0x0</span><br><span class="line">  400fd6:	89 c1                	mov    %eax,%ecx # ecx = 0xe</span><br><span class="line">  400fd8:	c1 e9 1f             	shr    $0x1f,%ecx #逻辑右移 0x1f = 31位 ecx = 0</span><br><span class="line">  400fdb:	01 c8                	add    %ecx,%eax # eax = 0xe</span><br><span class="line">  400fdd:	d1 f8                	sar    %eax  #算数右移1位 符号位不变 1110(14)  -&gt;0111(7)</span><br><span class="line">  400fdf:	8d 0c 30             	lea    (%rax,%rsi,1),%ecx #rsi(0) + rax(7) = 0x7 </span><br><span class="line">  400fe2:	39 f9                	cmp    %edi,%ecx #与传入的参数比较</span><br><span class="line">  400fe4:	7e 0c                	jle    400ff2 &lt;func4+0x24&gt; #小于或等于跳0x400ff2 </span><br><span class="line">  400fe6:	8d 51 ff             	lea    -0x1(%rcx),%edx #大于的情况 则减一</span><br><span class="line">  400fe9:	e8 e0 ff ff ff       	callq  400fce &lt;func4&gt;</span><br><span class="line">  400fee:	01 c0                	add    %eax,%eax</span><br><span class="line">  400ff0:	eb 15                	jmp    401007 &lt;func4+0x39&gt;</span><br><span class="line">  400ff2:	b8 00 00 00 00       	mov    $0x0,%eax #eax = 0</span><br><span class="line">  400ff7:	39 f9                	cmp    %edi,%ecx # 比较ecx = 7 edi 传入的参数</span><br><span class="line">  400ff9:	7d 0c                	jge    401007 &lt;func4+0x39&gt; #&gt;= 跳401007</span><br><span class="line">  400ffb:	8d 71 01             	lea    0x1(%rcx),%esi #否则（小于的情况） esi + 1</span><br><span class="line">  400ffe:	e8 cb ff ff ff       	callq  400fce &lt;func4&gt; #递归</span><br><span class="line">  401003:	8d 44 00 01          	lea    0x1(%rax,%rax,1),%eax</span><br><span class="line">  401007:	48 83 c4 08          	add    $0x8,%rsp</span><br><span class="line">  40100b:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+<p><strong>思路</strong></p>
+<ul>
+<li>同上sscanf 输入标准化是“%d %d” 第一个数放在0x8(%rsp)，第二个数放在0xc(%rsp)</li>
+<li>要求第一个数不大于14<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026194939554.png" alt="image-20231026194939554"></li>
+</ul>
+</li>
+<li>要求第二个数等于0<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026195056021.png" alt="image-20231026195056021"></li>
+</ul>
+</li>
+<li>使用 0x8，调用了func4 函数,func函数的第一个参数是我们输入的第一个数 0x8(%rsp)，第二个 第三个参数是常数，然后判断func的返回值 是否等于0，不能等0则bomb<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026171015752.png" alt="image-20231026171015752"></li>
+</ul>
+</li>
+<li>然后就分析 func函数传入0和 14实现了什么 那么 ecx &#x3D; 7 只需要让rdi也等于7 即第一参数等于7即可<ul>
+<li><code>sar    %eax</code> 等价于<code>SAR EAX 1</code></li>
+</ul>
+</li>
+<li>输入 7 0<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026202629160.png" alt="phase_4"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-5-phase-5"><a href="#3-5-phase-5" class="headerlink" title="3.5 phase_5"></a>3.5 phase_5</h2><p><strong>phase_5 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">0000000000401062 &lt;phase_5&gt;:</span><br><span class="line">  401062:	53                   	push   %rbx</span><br><span class="line">  401063:	48 83 ec 20          	sub    $0x20,%rsp #开辟空间 32字节</span><br><span class="line">  401067:	48 89 fb             	mov    %rdi,%rbx #rdi = rbx</span><br><span class="line">  40106a:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax #fs偏移0x28(40)存入%rax中 保护堆栈</span><br><span class="line">  401071:	00 00 </span><br><span class="line">  401073:	48 89 44 24 18       	mov    %rax,0x18(%rsp)</span><br><span class="line">  401078:	31 c0                	xor    %eax,%eax #异或</span><br><span class="line">  40107a:	e8 9c 02 00 00       	callq  40131b &lt;string_length&gt; #调用函数</span><br><span class="line">  40107f:	83 f8 06             	cmp    $0x6,%eax #6 和eax比较 传入6个字符</span><br><span class="line">  401082:	74 4e                	je     4010d2 &lt;phase_5+0x70&gt; #相等则跳转4010d2</span><br><span class="line">  401084:	e8 b1 03 00 00       	callq  40143a &lt;explode_bomb&gt; #否则bomb</span><br><span class="line">  401089:	eb 47                	jmp    4010d2 &lt;phase_5+0x70&gt; </span><br><span class="line">  40108b:	0f b6 0c 03          	movzbl (%rbx,%rax,1),%ecx # 0扩展 ecx = *rax + *rbx = *rdi + *rax 第rax个字符</span><br><span class="line">  40108f:	88 0c 24             	mov    %cl,(%rsp) #栈顶rsp = cl（rax的低4位） </span><br><span class="line">  401092:	48 8b 14 24          	mov    (%rsp),%rdx  #rdx = rsp = cl （rax的低4位）</span><br><span class="line">  401096:	83 e2 0f             	and    $0xf,%edx #edx与运算 1111 即取cl的低四位 存入edx</span><br><span class="line">  401099:	0f b6 92 b0 24 40 00 	movzbl 0x4024b0(%rdx),%edx #第一条字符串 0x4024b0[rdx]处的字符加载到edx上</span><br><span class="line">  4010a0:	88 54 04 10          	mov    %dl,0x10(%rsp,%rax,1) #dl-&gt;rax + rsp + 0x10处</span><br><span class="line">  4010a4:	48 83 c0 01          	add    $0x1,%rax #rax++</span><br><span class="line">  4010a8:	48 83 f8 06          	cmp    $0x6,%rax #循环6次</span><br><span class="line">  4010ac:	75 dd                	jne    40108b &lt;phase_5+0x29&gt; #不相等最跳转0x40108b循环</span><br><span class="line">  4010ae:	c6 44 24 16 00       	movb   $0x0,0x16(%rsp)</span><br><span class="line">  4010b3:	be 5e 24 40 00       	mov    $0x40245e,%esi #第二条字符串 “flyers”</span><br><span class="line">  4010b8:	48 8d 7c 24 10       	lea    0x10(%rsp),%rdi #0x10~0x15（rsp） 和flyers是否相等</span><br><span class="line">  4010bd:	e8 76 02 00 00       	callq  401338 &lt;strings_not_equal&gt; #看字符串是否不相等 不相等则爆炸</span><br><span class="line">  4010c2:	85 c0                	test   %eax,%eax #与运算</span><br><span class="line">  4010c4:	74 13                	je     4010d9 &lt;phase_5+0x77&gt; #相等跳d9</span><br><span class="line">  4010c6:	e8 6f 03 00 00       	callq  40143a &lt;explode_bomb&gt; #否则报错</span><br><span class="line">  4010cb:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)</span><br><span class="line">  4010d0:	eb 07                	jmp    4010d9 &lt;phase_5+0x77&gt;</span><br><span class="line">  4010d2:	b8 00 00 00 00       	mov    $0x0,%eax # 最初 eax = 0</span><br><span class="line">  4010d7:	eb b2                	jmp    40108b &lt;phase_5+0x29&gt; #跳转40108b</span><br><span class="line">  4010d9:	48 8b 44 24 18       	mov    0x18(%rsp),%rax</span><br><span class="line">  4010de:	64 48 33 04 25 28 00 	xor    %fs:0x28,%rax</span><br><span class="line">  4010e5:	00 00 </span><br><span class="line">  4010e7:	74 05                	je     4010ee &lt;phase_5+0x8c&gt;</span><br><span class="line">  4010e9:	e8 42 fa ff ff       	callq  400b30 &lt;__stack_chk_fail@plt&gt;</span><br><span class="line">  4010ee:	48 83 c4 20          	add    $0x20,%rsp</span><br><span class="line">  4010f2:	5b                   	pop    %rbx</span><br><span class="line">  4010f3:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>思路：</strong></p>
+<ul>
+<li><code>gdb x/s 0x4024b0</code>得到如下字符串<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026204707552.png" alt="image-20231026204707552"></li>
+</ul>
+</li>
+<li><code>gdb x/s 0x40245e</code> 得到如下字符串：<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026205058798.png" alt="image-20231026205058798"></li>
+</ul>
+</li>
+<li><code>cmp    $0x6,%eax</code> 和 <code>je     4010d2 &lt;phase_5+0x70&gt;</code> 规定了要传入6个字符 否则会爆炸</li>
+<li>即我们<strong>输入的6个字符 低四位rdx 在0x4024b0[rdx]</strong> 得到一个字符串<strong>要与 flyers相等</strong>就行</li>
+<li>所以在字符串1中找出rdx即可 分别是9（1001）、15（1111）、14（1110）、5（0101）、6（0110）、7（0111）</li>
+<li>查找ascii码数的低四位即可是上述即可 9?NUVW<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231026214015659.png" alt="image-20231026214015659"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-6-phase-6"><a href="#3-6-phase-6" class="headerlink" title="3.6 phase_6"></a>3.6 phase_6</h2><p><strong>phase_6 coding</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line">00000000004010f4 &lt;phase_6&gt;:</span><br><span class="line">  4010f4:	41 56                	push   %r14</span><br><span class="line">  4010f6:	41 55                	push   %r13</span><br><span class="line">  4010f8:	41 54                	push   %r12</span><br><span class="line">  4010fa:	55                   	push   %rbp</span><br><span class="line">  4010fb:	53                   	push   %rbx</span><br><span class="line">  4010fc:	48 83 ec 50          	sub    $0x50,%rsp #开辟0x50 空间</span><br><span class="line">  401100:	49 89 e5             	mov    %rsp,%r13 # r13 = rsp </span><br><span class="line">  401103:	48 89 e6             	mov    %rsp,%rsi #rsi = rsp  </span><br><span class="line">  401106:	e8 51 03 00 00       	callq  40145c &lt;read_six_numbers&gt; #调用函数</span><br><span class="line">  40110b:	49 89 e6             	mov    %rsp,%r14 #r14 = rsp</span><br><span class="line">  40110e:	41 bc 00 00 00 00    	mov    $0x0,%r12d #r12d = 0x0</span><br><span class="line">  --------------------------------------------------------------------#大循环1 r12d是下标</span><br><span class="line">  401114:	4c 89 ed             	mov    %r13,%rbp #rbp = r13 =rsp</span><br><span class="line">  401117:	41 8b 45 00          	mov    0x0(%r13),%eax #</span><br><span class="line">  40111b:	83 e8 01             	sub    $0x1,%eax #eax--</span><br><span class="line">  40111e:	83 f8 05             	cmp    $0x5,%eax </span><br><span class="line">  401121:	76 05                	jbe    401128 &lt;phase_6+0x34&gt; #&lt;=5 则跳401128说明输入在[1,6]之间 !!!!--------判断这个数是否处于[1,6]之间</span><br><span class="line">  401123:	e8 12 03 00 00       	callq  40143a &lt;explode_bomb&gt; #&gt;5 bomb</span><br><span class="line">  401128:	41 83 c4 01          	add    $0x1,%r12d # r12d++ r12d = 1 当前值的索引值加1</span><br><span class="line">  40112c:	41 83 fc 06          	cmp    $0x6,%r12d # #循环6次</span><br><span class="line">  401130:	74 21                	je     401153 &lt;phase_6+0x5f&gt; #相等则跳转401153</span><br><span class="line">  401132:	44 89 e3             	mov    %r12d,%ebx #ebx = r12d 索引下一个数</span><br><span class="line">  ------------------------#嵌套循环 ！！！判断这个数是否与数组中其余数相等</span><br><span class="line">  401135:	48 63 c3             	movslq %ebx,%rax #sign 符号拓展 索引放入rax </span><br><span class="line">  401138:	8b 04 84             	mov    (%rsp,%rax,4),%eax #eax = 4*rax + rsp 算出上面查过数的地址，通过地址找到这个数，放入eax rsp[4*ebx]</span><br><span class="line">  40113b:	39 45 00             	cmp    %eax,0x0(%rbp) #把eax找的数与rbp的比较 即六个数字不能相等</span><br><span class="line">  40113e:	75 05                	jne    401145 &lt;phase_6+0x51&gt; #不相等则跳转401145</span><br><span class="line">  401140:	e8 f5 02 00 00       	callq  40143a &lt;explode_bomb&gt; #相等则bomb</span><br><span class="line">  401145:	83 c3 01             	add    $0x1,%ebx #ebx++</span><br><span class="line">  401148:	83 fb 05             	cmp    $0x5,%ebx #</span><br><span class="line">  40114b:	7e e8                	jle    401135 &lt;phase_6+0x41&gt; #小于跳401135 循环</span><br><span class="line">  ---------------------- #嵌套循环结束</span><br><span class="line">  40114d:	49 83 c5 04          	add    $0x4,%r13 #r13继续指向下一个数</span><br><span class="line">  401151:	eb c1                	jmp    401114 &lt;phase_6+0x20&gt;</span><br><span class="line">  -------------------------------------------------------------#大循环结束</span><br><span class="line">  401153:	48 8d 74 24 18       	lea    0x18(%rsp),%rsi</span><br><span class="line">  401158:	4c 89 f0             	mov    %r14,%rax #r14 = rsp = 输入的6个数</span><br><span class="line">  40115b:	b9 07 00 00 00       	mov    $0x7,%ecx #exc = 7</span><br><span class="line">  401160:	89 ca                	mov    %ecx,%edx #edx=ecx = 7</span><br><span class="line">  401162:	2b 10                	sub    (%rax),%edx #rax 指向输入的数然后用7减 edx -= rax</span><br><span class="line">  401164:	89 10                	mov    %edx,(%rax) #将结果放入rax</span><br><span class="line">  401166:	48 83 c0 04          	add    $0x4,%rax #下一个数</span><br><span class="line">  40116a:	48 39 f0             	cmp    %rsi,%rax #比较rsi与rax</span><br><span class="line">  40116d:	75 f1                	jne    401160 &lt;phase_6+0x6c&gt; #不相等则跳转 441160循环直到把所有参数都改变了 </span><br><span class="line">  40116f:	be 00 00 00 00       	mov    $0x0,%esi</span><br><span class="line">  401174:	eb 21                	jmp    401197 &lt;phase_6+0xa3&gt; #全都不相等跳401197</span><br><span class="line">  --------------------------# edx中的7-int的元素放入 链表中</span><br><span class="line">  401176:	48 8b 52 08          	mov    0x8(%rdx),%rdx #rdx = *rdx + 8 字节对齐 p = p-&gt;next</span><br><span class="line">  40117a:	83 c0 01             	add    $0x1,%eax #eax++</span><br><span class="line">  40117d:	39 c8                	cmp    %ecx,%eax #</span><br><span class="line">  40117f:	75 f5                	jne    401176 &lt;phase_6+0x82&gt; #不等跳401176</span><br><span class="line">  401181:	eb 05                	jmp    401188 &lt;phase_6+0x94&gt; #否则跳401188</span><br><span class="line">  401183:	ba d0 32 60 00       	mov    $0x6032d0,%edx #链表头指针</span><br><span class="line">  401188:	48 89 54 74 20       	mov    %rdx,0x20(%rsp,%rsi,2) #rdx -》 rsp[2*rsi+0x20]</span><br><span class="line">  40118d:	48 83 c6 04          	add    $0x4,%rsi #指向下一个</span><br><span class="line">  401191:	48 83 fe 18          	cmp    $0x18,%rsi</span><br><span class="line">  401195:	74 14                	je     4011ab &lt;phase_6+0xb7&gt; #相等跳4011ab</span><br><span class="line">  ----------------------------------------------------------------</span><br><span class="line">  401197:	8b 0c 34             	mov    (%rsp,%rsi,1),%ecx #ecx = rsp[rsi]</span><br><span class="line">  40119a:	83 f9 01             	cmp    $0x1,%ecx #和1 比较</span><br><span class="line">  40119d:	7e e4                	jle    401183 &lt;phase_6+0x8f&gt; #&lt;=1 跳转401183</span><br><span class="line">  40119f:	b8 01 00 00 00       	mov    $0x1,%eax # eax = 1</span><br><span class="line">  4011a4:	ba d0 32 60 00       	mov    $0x6032d0,%edx #edx = 0x6032d0 gdb一下 node变量</span><br><span class="line">  4011a9:	eb cb                	jmp    401176 &lt;phase_6+0x82&gt; #然会跳转401176 上面那段</span><br><span class="line">  -------------------------------------------------------------------------</span><br><span class="line">  4011ab:	48 8b 5c 24 20       	mov    0x20(%rsp),%rbx #rbx最初节点</span><br><span class="line">  4011b0:	48 8d 44 24 28       	lea    0x28(%rsp),%rax # 下一个节点</span><br><span class="line">  4011b5:	48 8d 74 24 50       	lea    0x50(%rsp),%rsi</span><br><span class="line">  4011ba:	48 89 d9             	mov    %rbx,%rcx</span><br><span class="line">  -------------------------------------------------------------</span><br><span class="line">  4011bd:	48 8b 10             	mov    (%rax),%rdx #rax指向位置拿出node变量的地址</span><br><span class="line">  4011c0:	48 89 51 08          	mov    %rdx,0x8(%rcx) #node-&gt;next</span><br><span class="line">  4011c4:	48 83 c0 08          	add    $0x8,%rax</span><br><span class="line">  4011c8:	48 39 f0             	cmp    %rsi,%rax</span><br><span class="line">  4011cb:	74 05                	je     4011d2 &lt;phase_6+0xde&gt; #相等跳 4011d2</span><br><span class="line">  4011cd:	48 89 d1             	mov    %rdx,%rcx</span><br><span class="line">  4011d0:	eb eb                	jmp    4011bd &lt;phase_6+0xc9&gt;</span><br><span class="line">  4011d2:	48 c7 42 08 00 00 00 	movq   $0x0,0x8(%rdx) #指向最后一个节点</span><br><span class="line">  4011d9:	00 </span><br><span class="line">  ---------------------------------------------------------------------</span><br><span class="line">  4011da:	bd 05 00 00 00       	mov    $0x5,%ebp #循环变量 索引</span><br><span class="line">  4011df:	48 8b 43 08          	mov    0x8(%rbx),%rax #rbx指向第一个索引对应的节点 node.next放入 rax</span><br><span class="line">  4011e3:	8b 00                	mov    (%rax),%eax #rax解引用指向节点的val值 放入eax</span><br><span class="line">  4011e5:	39 03                	cmp    %eax,(%rbx) #比较eax和 rbx（上一个元素）</span><br><span class="line">  4011e7:	7d 05                	jge    4011ee &lt;phase_6+0xfa&gt; #rbx大于eax后者 则跳转4011ee 通过</span><br><span class="line">  4011e9:	e8 4c 02 00 00       	callq  40143a &lt;explode_bomb&gt; #否则就bomb</span><br><span class="line">  4011ee:	48 8b 5b 08          	mov    0x8(%rbx),%rbx</span><br><span class="line">  4011f2:	83 ed 01             	sub    $0x1,%ebp #ebp--</span><br><span class="line">  4011f5:	75 e8                	jne    4011df &lt;phase_6+0xeb&gt; #不循环</span><br><span class="line">  4011f7:	48 83 c4 50          	add    $0x50,%rsp #恢复栈顶</span><br><span class="line">  4011fb:	5b                   	pop    %rbx</span><br><span class="line">  4011fc:	5d                   	pop    %rbp</span><br><span class="line">  4011fd:	41 5c                	pop    %r12</span><br><span class="line">  4011ff:	41 5d                	pop    %r13</span><br><span class="line">  401201:	41 5e                	pop    %r14</span><br><span class="line">  401203:	c3                   	retq   </span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>思路</strong></p>
+<ul>
+<li>实际上是链表的应用</li>
+<li></li>
+<li>将第一个大循环转换成c语言代码可以得</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> sixNum[<span class="number">6</span>] = &#123;输入的<span class="number">6</span>个数&#125; </span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">6</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">if</span> (sixNum[i] &gt; <span class="number">6</span>) <span class="built_in">explode_bomb</span>();</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> j = i + <span class="number">1</span>; j &lt; <span class="number">6</span>; j++) &#123;</span><br><span class="line">        <span class="keyword">if</span> (sixNum[i] == sixNum[j]) explode_bomb;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>x/wx 0x6032d0</code></p>
+<ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231028113244985.png" alt="image-20231028113244985"></li>
+<li>node 变量 链表！！！</li>
+</ul>
+</li>
+<li><p><code>x/24wx 0x6032d0</code> 24字节</p>
+<ul>
+<li><p><img src="/2023/10/25/CSAPP-3-bomblab/image-20231028114724993.png" alt="image-20231028114724993"></p>
+</li>
+<li><table>
+<thead>
+<tr>
+<th align="center">索引</th>
+<th align="center">值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td align="center">332[0x14c]</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">168[0xa8]</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">924[0x39c]</td>
+</tr>
+<tr>
+<td align="center">4</td>
+<td align="center">691[0x2b3]</td>
+</tr>
+<tr>
+<td align="center">5</td>
+<td align="center">477[0x1dd]</td>
+</tr>
+<tr>
+<td align="center">6</td>
+<td align="center">443[0x1bb]</td>
+</tr>
+</tbody></table>
+</li>
+</ul>
+</li>
+<li><p>单向链表：</p>
+</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//单链表</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">ListNode</span> &#123;</span><br><span class="line">    <span class="type">int</span> val;<span class="comment">//节点上存储的元素</span></span><br><span class="line">    ListNode *next;<span class="comment">//指向下一个节点的指针</span></span><br><span class="line">    <span class="built_in">ListNode</span> (<span class="type">int</span> x) : <span class="built_in">val</span>(x), <span class="built_in">next</span>(<span class="literal">NULL</span>)&#123;&#125;<span class="comment">//节点的构造函数</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>那么前面的嵌套循环作用：根据输入的索引，找到对应的node值，并且把这个值放入到一个数组中</strong></li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Node* addresses[<span class="number">6</span>] = &#123;&#125;;</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i&lt; <span class="number">6</span>; i++) &#123;</span><br><span class="line">    <span class="type">int</span> index = sixNum[i];</span><br><span class="line">    addresses[i] = &amp;node1;</span><br><span class="line">    <span class="keyword">while</span> (addresses[i]-&gt;index != index)&#123;</span><br><span class="line">        addresses[i] = addresses[i]-&gt;next;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>所以题目要我们输入的是<strong>链表的索引顺序</strong>，这个顺序是降序排列的，并且每个值都要用 7- 。所以降序排列顺序为<code>3 4 5 6 1 2</code>答案为 <code>4 3 2 1 6 5</code><ul>
+<li><img src="/2023/10/25/CSAPP-3-bomblab/image-20231028152223411.png" alt="image-20231028152223411"></li>
+</ul>
+</li>
+</ul>
+<h2 id="3-7-secret-phase"><a href="#3-7-secret-phase" class="headerlink" title="3.7 secret_phase"></a>3.7 secret_phase</h2></article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://liangzhouzz.github.io">liangzhou</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://liangzhouzz.github.io/2023/10/25/CSAPP-3-bomblab/">http://liangzhouzz.github.io/2023/10/25/CSAPP-3-bomblab/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://liangzhouzz.github.io" target="_blank">Sifanのblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/bomblab/">bomblab</a></div><div class="post_share"><div class="social-share" data-image="/img/duck.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/" title="二叉树"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">二叉树</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/duck.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liangzhou</div><div class="author-info__description">要努力，不要急！</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">34</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/liangzhouzz/"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#3-bomb-lab"><span class="toc-number">1.</span> <span class="toc-text">3.bomb lab</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1%E5%9F%BA%E6%9C%AC%E6%8C%87%E4%BB%A4"><span class="toc-number">1.1.</span> <span class="toc-text">3.1基本指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-phase1"><span class="toc-number">1.2.</span> <span class="toc-text">3.2 phase1</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-phase-2"><span class="toc-number">1.3.</span> <span class="toc-text">3.2 phase_2</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-phase-3"><span class="toc-number">1.4.</span> <span class="toc-text">3.3 phase_3</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-phase-4"><span class="toc-number">1.5.</span> <span class="toc-text">3.4 phase_4</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-phase-5"><span class="toc-number">1.6.</span> <span class="toc-text">3.5 phase_5</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-6-phase-6"><span class="toc-number">1.7.</span> <span class="toc-text">3.6 phase_6</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-7-secret-phase"><span class="toc-number">1.8.</span> <span class="toc-text">3.7 secret_phase</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/25/CSAPP-3-bomblab/" title="CSAPP-3-bomblab">CSAPP-3-bomblab</a><time datetime="2023-10-25T12:12:36.000Z" title="发表于 2023-10-25 20:12:36">2023-10-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/19/%E4%BA%8C%E5%8F%89%E6%A0%91/" title="二叉树">二叉树</a><time datetime="2023-10-19T03:46:29.000Z" title="发表于 2023-10-19 11:46:29">2023-10-19</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/18/CSAPP-3-textbook/" title="CSAPP-3-textbook">CSAPP-3-textbook</a><time datetime="2023-10-18T08:54:45.000Z" title="发表于 2023-10-18 16:54:45">2023-10-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/18/CSAPP-2-datalab/" title="CSAPP-2-datalab">CSAPP-2-datalab</a><time datetime="2023-10-18T08:00:41.000Z" title="发表于 2023-10-18 16:00:41">2023-10-18</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/10/10/%E6%A0%88%E4%B8%8E%E9%98%9F%E5%88%97/" title="栈与队列">栈与队列</a><time datetime="2023-10-10T02:14:01.000Z" title="发表于 2023-10-10 10:14:01">2023-10-10</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/footer.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 By liangzhou</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Hi!!!!!!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
