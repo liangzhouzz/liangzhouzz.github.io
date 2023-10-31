@@ -1139,6 +1139,48 @@ public:
 <li>时间复杂度：O(n logn)排序</li>
 <li>空间复杂度：O(log n) 排序算法</li>
 </ul>
+<h1 id="36-leetcode-275-H指数Ⅱ-20231030-M"><a href="#36-leetcode-275-H指数Ⅱ-20231030-M" class="headerlink" title="36.leetcode-275-H指数Ⅱ-20231030-M"></a>36.leetcode-275-H指数Ⅱ-20231030-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/h-index-ii/description/?envType=daily-question&envId=2023-10-30">275. H 指数 II - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li><code>citations</code> 已经按照 <strong>升序排列</strong> ，就不用sort了</li>
+<li>设计并实现对数时间复杂度的算法解决此问题。—–二分法</li>
+</ul>
+<p><strong>代码实现—上一提的</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">hIndex</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; citations)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> h = <span class="number">0</span>, i = citations.<span class="built_in">size</span>() - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span> (i &gt;= <span class="number">0</span> &amp;&amp; citations[i] &gt; h) &#123;</span><br><span class="line">            h++;</span><br><span class="line">            i--;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> h;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n) 最坏情况需要全部遍历  不满足题目要求</li>
+<li>空间复杂度：O(1)</li>
+</ul>
+<p><strong>代码实现—二分法</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">int</span> <span class="title">hIndex</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; citations)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> n = citations.<span class="built_in">size</span>();</span><br><span class="line">        <span class="type">int</span> left = <span class="number">0</span>, right = n - <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span> (left &lt;= right) &#123;</span><br><span class="line">            <span class="type">int</span> mid = left + (right - left) / <span class="number">2</span>;</span><br><span class="line">            <span class="keyword">if</span> (citations[mid] &gt;= n - mid) &#123;</span><br><span class="line">                right = mid - <span class="number">1</span>;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                left = mid + <span class="number">1</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> n - left;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(log n) 二分法</li>
+<li>空间复杂度：O(1)</li>
+</ul>
+<h1 id="37-leetcode-2003-每棵子树内缺失的最小基因值-20231031-H"><a href="#37-leetcode-2003-每棵子树内缺失的最小基因值-20231031-H" class="headerlink" title="37.leetcode-2003-每棵子树内缺失的最小基因值-20231031-H"></a>37.leetcode-2003-每棵子树内缺失的最小基因值-20231031-H</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/smallest-missing-genetic-value-in-each-subtree/description/?envType=daily-question&envId=2023-10-31">2003. 每棵子树内缺失的最小基因值 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li><p>返回一个数组，子树内缺失的最小基因值</p>
+</li>
+<li><p>所有基因值均不相同，因此只会存在至多只有一个基因值为1的节点</p>
+</li>
+<li><p>不包含1，那么1就是任一节点的缺失最小基因值</p>
+</li>
+<li><p>包含1：找到一的节点。</p>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">smallestMissingValueSubtree</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; parents, vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">        <span class="type">int</span> n = parents.<span class="built_in">size</span>();</span><br><span class="line">        vector&lt;vector&lt;<span class="type">int</span>&gt;&gt; <span class="built_in">children</span>(n);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">1</span>; i &lt; n; i++) &#123;</span><br><span class="line">            children[parents[i]].<span class="built_in">push_back</span>(i);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        unordered_set&lt;<span class="type">int</span>&gt; geneSet;</span><br><span class="line">        <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">visited</span><span class="params">(n, <span class="number">0</span>)</span></span>;</span><br><span class="line">        function&lt;<span class="type">void</span>(<span class="type">int</span>)&gt; dfs = [&amp;](<span class="type">int</span> node) &#123;</span><br><span class="line">            <span class="keyword">if</span> (visited[node]) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            visited[node] = <span class="number">1</span>;</span><br><span class="line">            geneSet.<span class="built_in">insert</span>(nums[node]);</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">auto</span> child : children[node]) &#123;</span><br><span class="line">                <span class="built_in">dfs</span>(child);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="function">vector&lt;<span class="type">int</span>&gt; <span class="title">res</span><span class="params">(n, <span class="number">1</span>)</span></span>;</span><br><span class="line">        <span class="type">int</span> iNode = <span class="number">1</span>, node = <span class="number">-1</span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; n; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (nums[i] == <span class="number">1</span>) &#123;</span><br><span class="line">                node = i;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">while</span> (node != <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="built_in">dfs</span>(node);</span><br><span class="line">            <span class="keyword">while</span> (geneSet.<span class="built_in">count</span>(iNode)) &#123;</span><br><span class="line">                iNode++;</span><br><span class="line">            &#125;</span><br><span class="line">            res[node] = iNode;</span><br><span class="line">            node = parents[node];</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n) 节点 每个节点遍历一次</li>
+<li>空间复杂度：O(n) 哈希表</li>
+</ul>
 ]]></content>
       <categories>
         <category>基础算法</category>
@@ -3386,6 +3428,116 @@ public:
 <ul>
 <li>时间复杂度：O(n) 递归 每个节点遍历一次</li>
 <li>空间复杂度：O(n) 递归开辟的栈空间</li>
+</ul>
+<h1 id="12-leetcode-112-路径总和-E"><a href="#12-leetcode-112-路径总和-E" class="headerlink" title="12.leetcode-112-路径总和-E"></a>12.leetcode-112-路径总和-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/path-sum/description/">112. 路径总和 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>递归<ul>
+<li>确定遍历顺序 前后中都可以，—–不涉及到中节点的处理逻辑</li>
+<li>确定返回值<code>（bool）</code>、参数<code>（treenode *node，int input）</code>— 找某一条路径就行，因此可以直接</li>
+<li>传入目标值 对节点做减法，到叶子节点为0则 找到路径。</li>
+<li><strong>注意回溯</strong></li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">hasPathSum</span><span class="params">(TreeNode* root, <span class="type">int</span> targetSum)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!root) <span class="keyword">return</span> <span class="literal">false</span>; <span class="comment">//空节点</span></span><br><span class="line">        <span class="keyword">if</span> (!root-&gt;left &amp;&amp; !root-&gt;right &amp;&amp; targetSum == root-&gt;val) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>; <span class="comment">//遇到叶子节点，并且剩余的值相等</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">hasPathSum</span>(root-&gt;left, targetSum - root-&gt;val) || <span class="built_in">hasPathSum</span>(root-&gt;right, targetSum - root-&gt;val); <span class="comment">//||或逻辑，回溯过程隐藏在targetSum - root-&gt;val中</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n)最坏情况 全部节点遍历一次</li>
+<li>空间复杂度：O(n) 最坏情况 递归开辟栈空间</li>
+</ul>
+<h1 id="13-leetcode-106-从中序与后序遍历序列构造二叉树-M"><a href="#13-leetcode-106-从中序与后序遍历序列构造二叉树-M" class="headerlink" title="13.leetcode-106-从中序与后序遍历序列构造二叉树-M"></a>13.leetcode-106-从中序与后序遍历序列构造二叉树-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/description/">106. 从中序与后序遍历序列构造二叉树 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>中序遍历（左 中 右），后序遍历（左 右 中）<ul>
+<li>后序最后一个元素 一定是根节点</li>
+<li>找到根节点在中序数组中分左右区间</li>
+<li>递归处理上述步骤</li>
+</ul>
+</li>
+<li>递归终止条件： 后序数组为0 return NULL</li>
+<li>切割中序数组（根节点index）—-&gt;切后序数组（中序左区间得到的大小 切）<strong>注意区间的开闭</strong></li>
+</ul>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function">TreeNode* <span class="title">traversal</span><span class="params">(vector&lt;<span class="type">int</span>&gt; &amp;inorder, <span class="type">int</span> inorderBegin, <span class="type">int</span> inorderEnd, </span></span></span><br><span class="line"><span class="params"><span class="function">    vector&lt;<span class="type">int</span>&gt; &amp;postorder, <span class="type">int</span> postorderBegin, <span class="type">int</span> postorderEnd)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (postorderBegin == postorderEnd) <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> rootVal = postorder[postorderEnd - <span class="number">1</span>];<span class="comment">//根节点</span></span><br><span class="line">        TreeNode* root =  <span class="keyword">new</span> <span class="built_in">TreeNode</span>(rootVal);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (postorderEnd - postorderBegin == <span class="number">1</span>) <span class="keyword">return</span> root;<span class="comment">//只有根节点</span></span><br><span class="line">        </span><br><span class="line">        <span class="type">int</span> delimiterIndex;<span class="comment">//切割</span></span><br><span class="line">        <span class="comment">//找出根节点在中序遍历中的索引</span></span><br><span class="line">        <span class="keyword">for</span> (delimiterIndex = inorderBegin; delimiterIndex &lt; inorderEnd; delimiterIndex++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (inorder[delimiterIndex] == rootVal) <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">//切割中序数组 左闭右开[ , )</span></span><br><span class="line">        <span class="type">int</span> leftInorderBegin = inorderBegin;</span><br><span class="line">        <span class="type">int</span> leftInorderEnd = delimiterIndex;</span><br><span class="line">        <span class="type">int</span> rightInorderBegin = delimiterIndex + <span class="number">1</span>;<span class="comment">//左闭右开 所以左边加一</span></span><br><span class="line">        <span class="type">int</span> rightInorderEnd = inorderEnd;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//切割后序数组</span></span><br><span class="line">        <span class="comment">//左后序</span></span><br><span class="line">        <span class="type">int</span> leftPostorderBegin = postorderBegin;</span><br><span class="line">        <span class="type">int</span> leftPostorderEnd = postorderBegin + delimiterIndex - inorderBegin;</span><br><span class="line">        <span class="comment">//右后序</span></span><br><span class="line">        <span class="type">int</span> rightPostorderBegin = postorderBegin + delimiterIndex - inorderBegin;</span><br><span class="line">        <span class="type">int</span> rightPostorderEnd = postorderEnd - <span class="number">1</span>; <span class="comment">// 减去根节点</span></span><br><span class="line"></span><br><span class="line">        root-&gt;left = <span class="built_in">traversal</span>(inorder, leftInorderBegin, leftInorderEnd, postorder, leftPostorderBegin, leftPostorderEnd); <span class="comment">//左区间递归</span></span><br><span class="line">        root-&gt;right = <span class="built_in">traversal</span>(inorder, rightInorderBegin, rightInorderEnd, postorder, rightPostorderBegin, rightPostorderEnd); <span class="comment">//右区间递归</span></span><br><span class="line">        <span class="keyword">return</span> root; </span><br><span class="line">    &#125;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">TreeNode* <span class="title">buildTree</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; inorder, vector&lt;<span class="type">int</span>&gt;&amp; postorder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (inorder.<span class="built_in">size</span>() == <span class="number">0</span> || postorder.<span class="built_in">size</span>() == <span class="number">0</span>) <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">        <span class="comment">//遵循左闭右开的原则</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">traversal</span>(inorder, <span class="number">0</span>, inorder.<span class="built_in">size</span>(), postorder, <span class="number">0</span>, postorder.<span class="built_in">size</span>());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n) 二叉树每个遍历一次</li>
+<li>空间复杂度：O(n) 递归栈</li>
+</ul>
+<h1 id="14-leetcode-654-最大二叉树-M"><a href="#14-leetcode-654-最大二叉树-M" class="headerlink" title="14.leetcode-654-最大二叉树-M"></a>14.leetcode-654-最大二叉树-M</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/maximum-binary-tree/description/">654. 最大二叉树 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>找到最大点数组元素作为根节点，然后对数组进行划分，递归</li>
+<li>凡是构造二叉树都使用<strong>前序遍历</strong>（中左右），先把中间节点或根节点构造出来</li>
+<li>递归：<ul>
+<li>返回值 参数确定</li>
+<li>终止条件：数组的大小 &#x3D;&#x3D; 1 既是根节点也是叶子节点了</li>
+<li>找到最大值numMax，中左右逻辑写实现代码</li>
+<li>注意数组的开闭，左闭右开</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="comment">//[left, right)构建二叉树</span></span><br><span class="line">    <span class="function">TreeNode* <span class="title">traversal</span><span class="params">(vector&lt;<span class="type">int</span>&gt; nums, <span class="type">int</span> left, <span class="type">int</span> right)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (left &gt;= right) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">        <span class="comment">//分割点的索引</span></span><br><span class="line">        <span class="type">int</span> maxValIndex = left;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = left + <span class="number">1</span>; i &lt; right; i++) &#123;</span><br><span class="line">            <span class="keyword">if</span> (nums[i] &gt; nums[maxValIndex]) maxValIndex = i;</span><br><span class="line">        &#125; </span><br><span class="line"></span><br><span class="line">        TreeNode* root = <span class="keyword">new</span> <span class="built_in">TreeNode</span>(nums[maxValIndex]);<span class="comment">//中</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//[left, maxValIndex)</span></span><br><span class="line">        root-&gt;left = <span class="built_in">traversal</span>(nums, left, maxValIndex);</span><br><span class="line">        root-&gt;right = <span class="built_in">traversal</span>(nums, maxValIndex + <span class="number">1</span>, right);</span><br><span class="line">        <span class="keyword">return</span> root;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">TreeNode* <span class="title">constructMaximumBinaryTree</span><span class="params">(vector&lt;<span class="type">int</span>&gt;&amp; nums)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">traversal</span>(nums, <span class="number">0</span>, nums.<span class="built_in">size</span>());<span class="comment">//左闭右开</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n) 每个节点遍历一遍</li>
+<li>空间复杂度：O(n) 递归</li>
+</ul>
+<h1 id="15-leetcode-617-合并二叉树-E"><a href="#15-leetcode-617-合并二叉树-E" class="headerlink" title="15.leetcode-617-合并二叉树-E"></a>15.leetcode-617-合并二叉树-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/merge-two-binary-trees/description/">617. 合并二叉树 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>前序比较容易理解，直接将两个节点相加即可</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">TreeNode* <span class="title">mergeTrees</span><span class="params">(TreeNode* root1, TreeNode* root2)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root1 == <span class="literal">NULL</span>) <span class="keyword">return</span> root2;</span><br><span class="line">        <span class="keyword">if</span> (root2 == <span class="literal">NULL</span>) <span class="keyword">return</span> root1;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//中 修改root1</span></span><br><span class="line">        root1-&gt;val += root2-&gt;val;</span><br><span class="line">        <span class="comment">//左</span></span><br><span class="line">        root1-&gt;left = <span class="built_in">mergeTrees</span>(root1-&gt;left, root2-&gt;left);</span><br><span class="line">        <span class="comment">//右</span></span><br><span class="line">        root1-&gt;right = <span class="built_in">mergeTrees</span>(root1-&gt;right, root2-&gt;right);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> root1;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(min(n, m)) 两个二叉树都不为空才进行操作 索引被访问到节点数不会大于较小的二叉树</li>
+<li>空间复杂度：O(min(n, m))</li>
+</ul>
+<h1 id="16-leetcode-700-二叉搜索树中的搜索-E"><a href="#16-leetcode-700-二叉搜索树中的搜索-E" class="headerlink" title="16.leetcode-700-二叉搜索树中的搜索-E"></a>16.leetcode-700-二叉搜索树中的搜索-E</h1><p><strong>题目：</strong><a href="https://leetcode.cn/problems/search-in-a-binary-search-tree/">700. 二叉搜索树中的搜索 - 力扣（LeetCode）</a></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>二叉搜索树：有数值，根节点左边的子树均小于根节点，根节点右边的子树均大于根节点</li>
+<li>前序遍历<ul>
+<li>终止条件：root&#x3D;&#x3D;null  || root-&gt;val &#x3D;&#x3D; val   return root 指针</li>
+<li>搜索根据二叉搜索树的有序性</li>
+</ul>
+</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Solution</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">TreeNode* <span class="title">searchBST</span><span class="params">(TreeNode* root, <span class="type">int</span> val)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == <span class="literal">nullptr</span> || root-&gt;val == val) <span class="keyword">return</span> root;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//搜索</span></span><br><span class="line">        TreeNode* res = <span class="literal">nullptr</span>;</span><br><span class="line">        <span class="keyword">if</span> (root-&gt;val &gt; val) res = <span class="built_in">searchBST</span>(root-&gt;left, val);</span><br><span class="line">        <span class="keyword">if</span> (root-&gt;val &lt; val) res = <span class="built_in">searchBST</span>(root-&gt;right, val);</span><br><span class="line">        <span class="keyword">return</span> res;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析</strong></p>
+<ul>
+<li>时间复杂度：O(n) 最坏情况全部需要遍历一次</li>
+<li>空间复杂度：O(n)</li>
+</ul>
+<h1 id="17-leetcode-98-验证二叉搜索树-M"><a href="#17-leetcode-98-验证二叉搜索树-M" class="headerlink" title="17.leetcode-98-验证二叉搜索树-M"></a>17.leetcode-98-验证二叉搜索树-M</h1><p><strong>题目：<a href="https://leetcode.cn/problems/validate-binary-search-tree/">98. 验证二叉搜索树 - 力扣（LeetCode）</a></strong></p>
+<p><strong>思路：</strong></p>
+<ul>
+<li>验证一个棵树是否是二叉搜索树，根据性质来</li>
+<li>方法一：中序遍历（左中右）可以得到递增的数组   —判断数组是否有序</li>
+<li>方法二：中序遍历，但是不用数组去判断，直接用单个数值来判断<ul>
+<li>long long maxVal（有int 最小值 所以要用LONG_MIN）记录了当前节点前一个节点的数值</li>
+</ul>
+</li>
+<li>方法三：中序遍历，前一个节点和后一个节点直接进行比较 pre记录root 的前一个节点</li>
+</ul>
+<p><strong>代码实现</strong></p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">lass Solution &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    TreeNode* pre = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">isValidBST</span><span class="params">(TreeNode* root)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (root == <span class="literal">NULL</span>) <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//中序遍历 左中右</span></span><br><span class="line">        <span class="type">bool</span> left = <span class="built_in">isValidBST</span>(root-&gt;left);</span><br><span class="line">        <span class="keyword">if</span> (pre != <span class="literal">NULL</span> &amp;&amp; pre-&gt;val &gt;= root-&gt;val) <span class="keyword">return</span> <span class="literal">false</span>; <span class="comment">//前一个节点大于当前节点的值</span></span><br><span class="line">        pre = root;<span class="comment">//记录前一个节点</span></span><br><span class="line">        <span class="type">bool</span> right = <span class="built_in">isValidBST</span>(root-&gt;right);</span><br><span class="line">        <span class="keyword">return</span> left &amp;&amp; right;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>复杂度分析：</strong></p>
+<ul>
+<li>时间复杂度：O(n) 全部遍历</li>
+<li>空间复杂度：O(n) 栈递归</li>
 </ul>
 ]]></content>
       <categories>
