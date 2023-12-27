@@ -1231,4 +1231,49 @@ fa 18 40 00 00 00 00 00
         <tag>操作系统</tag>
       </tags>
   </entry>
+  <entry>
+    <title>wsl2配置PCL并可视化</title>
+    <url>/2023/12/27/wsl2%E9%85%8D%E7%BD%AEPCL%E5%B9%B6%E5%8F%AF%E8%A7%86%E5%8C%96/</url>
+    <content><![CDATA[<h1 id="1-引言"><a href="#1-引言" class="headerlink" title="1.引言"></a>1.引言</h1><ul>
+<li>之前在 <code>win10</code> 上安装了<code>wsl2</code>，基于<code>Ubuntu20.04</code>的系统，就想着能不能在 <code>wsl2</code> 配置 <code>PCL</code> 并实现可视化。</li>
+<li>目前实现了在<code>Ubuntu20.04</code> 上 安装了 <code>PCL1.12.0</code>，并且实现了可视化。</li>
+<li>就此记录一下，参考很多教程，再次表示感谢！！！</li>
+</ul>
+<img src="/2023/12/27/wsl2%E9%85%8D%E7%BD%AEPCL%E5%B9%B6%E5%8F%AF%E8%A7%86%E5%8C%96/image-20231227222726732.png" alt="image-20231227222726732" style="zoom:50%;">
+
+
+
+<h1 id="2-wsl2的安装"><a href="#2-wsl2的安装" class="headerlink" title="2.wsl2的安装"></a>2.wsl2的安装</h1><ul>
+<li><strong>win10的版本必须是2004以上！！！</strong></li>
+<li>具体的参考了<a href="https://zhuanlan.zhihu.com/p/629314758">win10配置wsl2 - 知乎 (zhihu.com)</a>，这里不做赘述。</li>
+</ul>
+<h1 id="3-wsl2的GUI"><a href="#3-wsl2的GUI" class="headerlink" title="3.wsl2的GUI"></a>3.wsl2的GUI</h1><ul>
+<li>最新的更新 <code>wsl2</code> 已经支持了<code>Linux</code> 的GUI</li>
+<li>具体实现方式见：<a href="https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/gui-apps">使用 WSL 运行 Linux GUI 应用 | Microsoft Learn</a></li>
+<li>之前安装了 使用<code>wsl --update</code>更新就好，也可以安装其他的一些<code>GUI</code>的工具</li>
+</ul>
+<h1 id="4-PCL的安装"><a href="#4-PCL的安装" class="headerlink" title="4.PCL的安装"></a>4.PCL的安装</h1><ul>
+<li>具体的思路就跟在平时安装一样，但需要注意几个点。</li>
+<li>可以参照<a href="https://blog.csdn.net/m0_48919875/article/details/123863892">ubuntu20.04下安装pcl_ubuntu20.04安装pcl-CSDN博客</a>这篇博客的安装方法</li>
+<li>在安装过程中可能存在的问题：<ul>
+<li><code>VTK</code>的安装过程中 缺<code>QT</code>的依赖，直接进行安装就行，解决方案：<a href="https://blog.csdn.net/m0_56035193/article/details/123615445">解决Cmake的一个小问题及QT4与QT5的安装和切换_cmake error at &#x2F;usr&#x2F;share&#x2F;cmake-3.16&#x2F;modules&#x2F;findq-CSDN博客</a></li>
+<li>报错信息：<code>CMake Error at /usr/share/cmake-3.16/Modules/FindQt4</code></li>
+<li>在 <code>PCL</code>文件 <code>make</code>的时候，可能存在一些问题：<ul>
+<li>若采用<code>make -j8</code>或<code>-j4</code>，可能因为CPU性能不够导致系统重启，降低进程数或者使用<code>make</code>即可</li>
+<li><code>C++: fatal error: Killed signal terminated program cc1plus</code>报错，内存分配不足，解决方法见：<a href="https://blog.csdn.net/YiWHuang/article/details/125199044">C++: fatal error: Killed signal terminated program cc1plus的问题解决-CSDN博客</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>我所遇到的问题大概是如上这些，解决完这些也就安装成功可以用了。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>环境安装</category>
+      </categories>
+      <tags>
+        <tag>PCL</tag>
+        <tag>wsl</tag>
+      </tags>
+  </entry>
 </search>
