@@ -1276,4 +1276,37 @@ fa 18 40 00 00 00 00 00
         <tag>wsl</tag>
       </tags>
   </entry>
+  <entry>
+    <title>effective_c++</title>
+    <url>/2024/01/16/effective-c/</url>
+    <content><![CDATA[<h1 id="第一章-让自己习惯c"><a href="#第一章-让自己习惯c" class="headerlink" title="第一章 让自己习惯c++"></a>第一章 让自己习惯c++</h1><h2 id="条款2-define"><a href="#条款2-define" class="headerlink" title="条款2 define"></a>条款2 define</h2><ul>
+<li><strong>尽量以<code>const,enum,inline</code> 替换 <code>#define</code></strong></li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240116214039472.png" alt="image-20240116214039472"></p>
+<p>替代方案：<code>const double aaaa = 1.653</code>  —&gt; c++11 也可以用<code>constexpr</code></p>
+<ul>
+<li><strong>字符串的常量替换，采取 string 的构造函数，并且让他变为常量</strong></li>
+</ul>
+<p><img src="/2024/01/16/effective-c/ZL\source_posts\effective-c\image-20240116215343354.png" alt="image-20240116215343354"></p>
+<ul>
+<li>**把常量的作用域限制为类，就必须把它设置为成员，要确保最多又一个常量的副本，就必须把它设置为静态成员 **</li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240116220204788.png" alt="image-20240116220204788"></p>
+<p><img src="/2024/01/16/effective-c/image-20240116220555992.png" alt="image-20240116220555992"></p>
+<p><strong>另一种方式是使用枚举，枚举类型的值可以在需要int的地方使用</strong></p>
+<p><img src="/2024/01/16/effective-c/image-20240116221154937.png" alt="image-20240116221154937"></p>
+<p><img src="/2024/01/16/effective-c/image-20240116221735417.png" alt="image-20240116221735417"></p>
+<p><strong>总结：</strong></p>
+<ul>
+<li>对于简单的常量，首选const对象或枚举，而不是#define</li>
+<li>对于类似函数的宏，优先选择内联函数</li>
+</ul>
+]]></content>
+      <categories>
+        <category>cpp</category>
+      </categories>
+      <tags>
+        <tag>cpp</tag>
+      </tags>
+  </entry>
 </search>
