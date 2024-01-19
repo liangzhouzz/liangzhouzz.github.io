@@ -1301,6 +1301,49 @@ fa 18 40 00 00 00 00 00
 <li>对于简单的常量，首选const对象或枚举，而不是#define</li>
 <li>对于类似函数的宏，优先选择内联函数</li>
 </ul>
+<h2 id="条款3：尽可能使用const"><a href="#条款3：尽可能使用const" class="headerlink" title="条款3：尽可能使用const"></a>条款3：尽可能使用const</h2><ul>
+<li><strong>指针</strong></li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240118205736779.png" alt="image-20240118205736779"></p>
+<ul>
+<li><strong>STL迭代器</strong></li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240118210151382.png" alt="image-20240118210151382"></p>
+<ul>
+<li><strong>const在函数声明中的应用 — 程序更健壮</strong><a href="https://blog.csdn.net/weixin_44039187/article/details/105182211">c++中const在函数声明不同位置的作用_const 修饰函数不同位置-CSDN博客</a></li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240118210517238.png" alt="image-20240118210517238"></p>
+<p>仅仅是返回类型不同，是无法重载的</p>
+<p><img src="/2024/01/16/effective-c/image-20240118211426175.png" alt="image-20240118211426175"></p>
+<p><img src="/2024/01/16/effective-c/image-20240118214556751.png" alt="image-20240118214556751"></p>
+<ul>
+<li><p>逻辑常量 — 需要的是逻辑常量 但c++ 无法判断</p>
+</li>
+<li><p><strong>先写const的版本</strong>，然后脱离const的限制 —  先写要求高的 — 避免代码重复 反之不可以</p>
+</li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240118215746510.png" alt="image-20240118215746510"></p>
+<p><strong>总结：</strong></p>
+<ul>
+<li><strong>声明const可以借助编译器检测使用错误。</strong>const可以应用于任何作用域的对象、函数参数和返回类型，以及作为一个整体的成员函数。</li>
+<li>编译器强制执行<strong>位常量</strong>，但你应该使用<strong>逻辑常量</strong>进行编程。</li>
+<li>当const和非const成员函数具有本质上相同的实现时，可以通过<strong>让非const版本调用const版本来避免代码重复。</strong></li>
+</ul>
+<h2 id="条款4：确保对象在使用之前被初始化"><a href="#条款4：确保对象在使用之前被初始化" class="headerlink" title="条款4：确保对象在使用之前被初始化"></a>条款4：确保对象在使用之前被初始化</h2><ul>
+<li>最好 — 用之前都要初始化 – 标准库的部分会调用默认构造函数  <strong>内置类型不能保证</strong></li>
+<li>不要混淆 赋值 和 初始化</li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240118220852383.png" alt="image-20240118220852383"></p>
+<ul>
+<li>更高效的方法：</li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240118220954868.png" alt="image-20240118220954868"></p>
+<p><strong>总结：</strong></p>
+<ul>
+<li>手动初始化内置类型的对象，因为C++<strong>不确保</strong>会初始化它们。</li>
+<li>在构造函数中，<strong>优先使用成员初始化列表</strong>，而不是在构造函数体内赋值。以类中声明的顺序在初始化列表中列出数据成员。</li>
+<li>通过将<strong>非局部静态对象替换为局部静态对象</strong>，避免跨编译单元的初始化顺序问题</li>
+</ul>
 ]]></content>
       <categories>
         <category>cpp</category>
