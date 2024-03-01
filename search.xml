@@ -1344,6 +1344,52 @@ fa 18 40 00 00 00 00 00
 <li>在构造函数中，<strong>优先使用成员初始化列表</strong>，而不是在构造函数体内赋值。以类中声明的顺序在初始化列表中列出数据成员。</li>
 <li>通过将<strong>非局部静态对象替换为局部静态对象</strong>，避免跨编译单元的初始化顺序问题</li>
 </ul>
+<h1 id="第二章-构造、析构、赋值运算"><a href="#第二章-构造、析构、赋值运算" class="headerlink" title="第二章 构造、析构、赋值运算"></a>第二章 构造、析构、赋值运算</h1><h2 id="条款5：了解c-默默编写并调用哪些函数"><a href="#条款5：了解c-默默编写并调用哪些函数" class="headerlink" title="条款5：了解c++默默编写并调用哪些函数"></a>条款5：了解c++默默编写并调用哪些函数</h2><p><code>know what functions c++ silently writes and calls</code></p>
+<ul>
+<li>如果自己不声明，编译器会自动声明 ，需要用到才会生成</li>
+<li>编译器可以隐式的生成类的默认构造函数，拷贝构造函数、拷贝赋值运算函数和析构函数，但是只是实现了基本的功能，需要更强大的功能还是自己写更好</li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240119203330560.png" alt="image-20240119203330560"></p>
+<p><img src="/2024/01/16/effective-c/image-20240119204801399.png" alt="image-20240119204801399"></p>
+<h2 id="条款6：若不想使用编译器自动生成的函数，就应该明确的拒绝"><a href="#条款6：若不想使用编译器自动生成的函数，就应该明确的拒绝" class="headerlink" title="条款6：若不想使用编译器自动生成的函数，就应该明确的拒绝"></a>条款6：若不想使用编译器自动生成的函数，就应该明确的拒绝</h2><p><code>explicitly disallow the use of compiler-generated functions you do not want</code></p>
+<ul>
+<li>将构造函数放在 private中 只有声明，不提供定义，但是会存在编译通过 ，链接的时候会错误</li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240119205349605.png" alt="image-20240119205349605"></p>
+<ul>
+<li>c++11的做法：使用delete</li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240119210208805.png" alt="image-20240119210208805"></p>
+<h2 id="条款7：为多态基类声明虚析构函数"><a href="#条款7：为多态基类声明虚析构函数" class="headerlink" title="条款7：为多态基类声明虚析构函数"></a>条款7：为多态基类声明虚析构函数</h2><p><code>declare destruction virtual in polymorphic base classes</code></p>
+<p><img src="/2024/01/16/effective-c/image-20240119211432695.png" alt="image-20240119211432695"></p>
+<ul>
+<li>当一个类不打算成为基类时，将析构函数设置为 虚函数 通常不是一个好主意</li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240119211634168.png" alt="image-20240119211634168"></p>
+<p><strong>总结：</strong></p>
+<ul>
+<li>多态基类应该 声明虚析构函数，如果一个类有虚函数，它就应该有一个虚析构函数</li>
+<li>非基类或非多态使用的类不应该声明虚析构函数</li>
+</ul>
+<h2 id="条款8：别让异常逃离析构函数"><a href="#条款8：别让异常逃离析构函数" class="headerlink" title="条款8：别让异常逃离析构函数"></a>条款8：别让异常逃离析构函数</h2><p><code>prevent exceptions from leaving destruction</code></p>
+<ul>
+<li>c++ 并不禁止析构函数吐出 emit 异常<ul>
+<li>直接终止程序，调用abort()</li>
+<li>吞下调用close引起的异常</li>
+<li>更好的：提供一个接口，让使用者做出相应的反应</li>
+</ul>
+</li>
+</ul>
+<p><img src="/2024/01/16/effective-c/image-20240119213110567.png" alt="image-20240119213110567"></p>
+<p><strong>总结：</strong></p>
+<ul>
+<li>析构函数永远不应该吐出 (emit) 异常。如果在析构函数中调用的函数可能抛出异常，则析构函数应该捕获任何异常，然后将其吞下或终止程序。</li>
+<li>如果类客户需要能够对操作期间抛出的异常做出反应，则类应该提供执行该操作的普通(即非析构函数)函数。— 提供一个接口</li>
+</ul>
+<h2 id="条款9：绝不在构造和析构过程中调用虚函数"><a href="#条款9：绝不在构造和析构过程中调用虚函数" class="headerlink" title="条款9：绝不在构造和析构过程中调用虚函数"></a>条款9：绝不在构造和析构过程中调用虚函数</h2><p><code>never call virtual functions during construction or destruction</code></p>
+<ul>
+<li>不要再构造或析构函数中调用虚函数，因为这样的调用永远不会下降至派生的类（相对于正在执行的构造函数或析构函数的那一层）</li>
+</ul>
 ]]></content>
       <categories>
         <category>cpp</category>
