@@ -1277,125 +1277,263 @@ fa 18 40 00 00 00 00 00
       </tags>
   </entry>
   <entry>
-    <title>effective_c++</title>
-    <url>/2024/01/16/effective-c/</url>
-    <content><![CDATA[<h1 id="第一章-让自己习惯c"><a href="#第一章-让自己习惯c" class="headerlink" title="第一章 让自己习惯c++"></a>第一章 让自己习惯c++</h1><h2 id="条款2-define"><a href="#条款2-define" class="headerlink" title="条款2 define"></a>条款2 define</h2><ul>
-<li><strong>尽量以<code>const,enum,inline</code> 替换 <code>#define</code></strong></li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240116214039472.png" alt="image-20240116214039472"></p>
-<p>替代方案：<code>const double aaaa = 1.653</code>  —&gt; c++11 也可以用<code>constexpr</code></p>
+    <title>对缝融合特征提取</title>
+    <url>/2024/03/16/%E5%AF%B9%E7%BC%9D%E8%9E%8D%E5%90%88%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/</url>
+    <content><![CDATA[<h1 id="一、引言"><a href="#一、引言" class="headerlink" title="一、引言"></a>一、引言</h1><p><strong>出发点：</strong></p>
 <ul>
-<li><strong>字符串的常量替换，采取 string 的构造函数，并且让他变为常量</strong></li>
+<li>在对缝的间隙和阶差的测量过程，对缝结构的正确，完整提取是非常重要的。</li>
+<li>实际的点云采集过程中，易受到环境光照条件，以及被测量物体的表面反光条件的影响，点云的密度分布是不规律的，会收到光环境的影响，不再是传统意义上的在边界部分，或者拐角部分的密度大，<strong>密度差异不一致</strong> —— 对缝结构采取 密度差异提取不可行。</li>
+<li>融合曲率与边界特征提取，能极大的提高特征提取算法的鲁棒性。</li>
 </ul>
-<p><img src="/2024/01/16/effective-c/ZL\source_posts\effective-c\image-20240116215343354.png" alt="image-20240116215343354"></p>
+<p>如下图：点云的密度分布不均匀，采用密度分割 无法将特征提取。</p>
+<img src="/2024/03/16/%E5%AF%B9%E7%BC%9D%E8%9E%8D%E5%90%88%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/image-20240316162943455.png" alt="密度分布不均匀" style="zoom:50%;">
+
+<p>因此提出曲率边界融合特征提取：</p>
 <ul>
-<li>**把常量的作用域限制为类，就必须把它设置为成员，要确保最多又一个常量的副本，就必须把它设置为静态成员 **</li>
+<li>点云的曲率特征能够很大程度上的保留关键特征信息</li>
+<li>点云的边界特征能够保留轮廓的信息</li>
 </ul>
-<p><img src="/2024/01/16/effective-c/image-20240116220204788.png" alt="image-20240116220204788"></p>
-<p><img src="/2024/01/16/effective-c/image-20240116220555992.png" alt="image-20240116220555992"></p>
-<p><strong>另一种方式是使用枚举，枚举类型的值可以在需要int的地方使用</strong></p>
-<p><img src="/2024/01/16/effective-c/image-20240116221154937.png" alt="image-20240116221154937"></p>
-<p><img src="/2024/01/16/effective-c/image-20240116221735417.png" alt="image-20240116221735417"></p>
-<p><strong>总结：</strong></p>
+<h1 id="二、实现"><a href="#二、实现" class="headerlink" title="二、实现"></a>二、实现</h1><p><strong>曲率估计</strong></p>
+<p>PCL中的曲率有两个 一个是 <code>NormalEstimation</code>中的曲率 ，另一个是<code>PrincipalCurvaturesEstimation</code>  .</p>
 <ul>
-<li>对于简单的常量，首选const对象或枚举，而不是#define</li>
-<li>对于类似函数的宏，优先选择内联函数</li>
+<li>前者表示是表面曲率，即表示表面的起伏程度；</li>
+<li>后者见下图，曲率估计出来有两个值，一个最大，一个最小曲率—&gt;即可求平均曲率</li>
 </ul>
-<h2 id="条款3：尽可能使用const"><a href="#条款3：尽可能使用const" class="headerlink" title="条款3：尽可能使用const"></a>条款3：尽可能使用const</h2><ul>
-<li><strong>指针</strong></li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240118205736779.png" alt="image-20240118205736779"></p>
+<img src="/2024/03/16/%E5%AF%B9%E7%BC%9D%E8%9E%8D%E5%90%88%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/image-20240316171027015.png" alt="image-20240316171027015" style="zoom: 67%;">
+
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">   <span class="comment">// 计算</span></span><br><span class="line">pcl::PrincipalCurvaturesEstimation&lt;pcl::PointXYZ, pcl::Normal, pcl::PrincipalCurvatures&gt;pointCur;</span><br><span class="line">pcl::PointCloud&lt;pcl::PrincipalCurvatures&gt;::<span class="function">Ptr <span class="title">cloudCurvature</span><span class="params">(<span class="keyword">new</span> pcl::PointCloud&lt;pcl::PrincipalCurvatures&gt;)</span></span>;</span><br><span class="line">pointCur.<span class="built_in">setInputCloud</span>(cloud);</span><br><span class="line">pointCur.<span class="built_in">setInputNormals</span>(normals);</span><br><span class="line">pointCur.<span class="built_in">setSearchMethod</span>(tree);</span><br><span class="line">pointCur.<span class="built_in">setRadiusSearch</span>(<span class="number">0.5</span>);</span><br><span class="line">pointCur.<span class="built_in">compute</span>(*cloudCurvature);</span><br><span class="line"><span class="comment">// 保存</span></span><br><span class="line"><span class="type">int</span> cloudCurSize = cloudCurvature-&gt;<span class="built_in">size</span>();</span><br><span class="line">vector&lt;<span class="type">float</span>&gt; tempCur;</span><br><span class="line"><span class="type">float</span> meanCur = <span class="number">0.0</span>, curThreshold = <span class="number">0.001</span>;</span><br><span class="line">   std::unordered_set&lt;<span class="type">int</span>&gt; pointIdxSet;</span><br><span class="line">       </span><br><span class="line"><span class="keyword">for</span> (<span class="type">size_t</span> i = <span class="number">0</span>; i &lt; cloudCurSize; i++)&#123;</span><br><span class="line">	meanCur = (cloudCurvature-&gt;points[i].pc1 + cloudCurvature-&gt;points[i].pc2) / <span class="number">2</span>; <span class="comment">// 平均曲率</span></span><br><span class="line">	tempCur.<span class="built_in">push_back</span>(meanCur);</span><br><span class="line">	<span class="keyword">if</span> (meanCur &gt; curThreshold)&#123;</span><br><span class="line">                pointIdxSet.<span class="built_in">insert</span>(i);</span><br><span class="line">	&#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>边界计算</strong></p>
+<p>参考文献：Bendels G H , Schnabel R , Klein R .Detecting Holes in Point Set Surfaces[J].Journal of WSCG, 2006, 14.</p>
+<p>边界计算采用<code>BoundaryEstimation</code>，其原理即：</p>
 <ul>
-<li><strong>STL迭代器</strong></li>
+<li>搜索每个点的邻域信息，建立点 到其邻域点的连线</li>
+<li>统计每两个连线之间的夹角值，</li>
+<li>超过给定的阈值即为边界点</li>
 </ul>
-<p><img src="/2024/01/16/effective-c/image-20240118210151382.png" alt="image-20240118210151382"></p>
-<ul>
-<li><strong>const在函数声明中的应用 — 程序更健壮</strong><a href="https://blog.csdn.net/weixin_44039187/article/details/105182211">c++中const在函数声明不同位置的作用_const 修饰函数不同位置-CSDN博客</a></li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240118210517238.png" alt="image-20240118210517238"></p>
-<p>仅仅是返回类型不同，是无法重载的</p>
-<p><img src="/2024/01/16/effective-c/image-20240118211426175.png" alt="image-20240118211426175"></p>
-<p><img src="/2024/01/16/effective-c/image-20240118214556751.png" alt="image-20240118214556751"></p>
-<ul>
-<li><p>逻辑常量 — 需要的是逻辑常量 但c++ 无法判断</p>
-</li>
-<li><p><strong>先写const的版本</strong>，然后脱离const的限制 —  先写要求高的 — 避免代码重复 反之不可以</p>
-</li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240118215746510.png" alt="image-20240118215746510"></p>
-<p><strong>总结：</strong></p>
-<ul>
-<li><strong>声明const可以借助编译器检测使用错误。</strong>const可以应用于任何作用域的对象、函数参数和返回类型，以及作为一个整体的成员函数。</li>
-<li>编译器强制执行<strong>位常量</strong>，但你应该使用<strong>逻辑常量</strong>进行编程。</li>
-<li>当const和非const成员函数具有本质上相同的实现时，可以通过<strong>让非const版本调用const版本来避免代码重复。</strong></li>
-</ul>
-<h2 id="条款4：确保对象在使用之前被初始化"><a href="#条款4：确保对象在使用之前被初始化" class="headerlink" title="条款4：确保对象在使用之前被初始化"></a>条款4：确保对象在使用之前被初始化</h2><ul>
-<li>最好 — 用之前都要初始化 – 标准库的部分会调用默认构造函数  <strong>内置类型不能保证</strong></li>
-<li>不要混淆 赋值 和 初始化</li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240118220852383.png" alt="image-20240118220852383"></p>
-<ul>
-<li>更高效的方法：</li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240118220954868.png" alt="image-20240118220954868"></p>
-<p><strong>总结：</strong></p>
-<ul>
-<li>手动初始化内置类型的对象，因为C++<strong>不确保</strong>会初始化它们。</li>
-<li>在构造函数中，<strong>优先使用成员初始化列表</strong>，而不是在构造函数体内赋值。以类中声明的顺序在初始化列表中列出数据成员。</li>
-<li>通过将<strong>非局部静态对象替换为局部静态对象</strong>，避免跨编译单元的初始化顺序问题</li>
-</ul>
-<h1 id="第二章-构造、析构、赋值运算"><a href="#第二章-构造、析构、赋值运算" class="headerlink" title="第二章 构造、析构、赋值运算"></a>第二章 构造、析构、赋值运算</h1><h2 id="条款5：了解c-默默编写并调用哪些函数"><a href="#条款5：了解c-默默编写并调用哪些函数" class="headerlink" title="条款5：了解c++默默编写并调用哪些函数"></a>条款5：了解c++默默编写并调用哪些函数</h2><p><code>know what functions c++ silently writes and calls</code></p>
-<ul>
-<li>如果自己不声明，编译器会自动声明 ，需要用到才会生成</li>
-<li>编译器可以隐式的生成类的默认构造函数，拷贝构造函数、拷贝赋值运算函数和析构函数，但是只是实现了基本的功能，需要更强大的功能还是自己写更好</li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240119203330560.png" alt="image-20240119203330560"></p>
-<p><img src="/2024/01/16/effective-c/image-20240119204801399.png" alt="image-20240119204801399"></p>
-<h2 id="条款6：若不想使用编译器自动生成的函数，就应该明确的拒绝"><a href="#条款6：若不想使用编译器自动生成的函数，就应该明确的拒绝" class="headerlink" title="条款6：若不想使用编译器自动生成的函数，就应该明确的拒绝"></a>条款6：若不想使用编译器自动生成的函数，就应该明确的拒绝</h2><p><code>explicitly disallow the use of compiler-generated functions you do not want</code></p>
-<ul>
-<li>将构造函数放在 private中 只有声明，不提供定义，但是会存在编译通过 ，链接的时候会错误</li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240119205349605.png" alt="image-20240119205349605"></p>
-<ul>
-<li>c++11的做法：使用delete</li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240119210208805.png" alt="image-20240119210208805"></p>
-<h2 id="条款7：为多态基类声明虚析构函数"><a href="#条款7：为多态基类声明虚析构函数" class="headerlink" title="条款7：为多态基类声明虚析构函数"></a>条款7：为多态基类声明虚析构函数</h2><p><code>declare destruction virtual in polymorphic base classes</code></p>
-<p><img src="/2024/01/16/effective-c/image-20240119211432695.png" alt="image-20240119211432695"></p>
-<ul>
-<li>当一个类不打算成为基类时，将析构函数设置为 虚函数 通常不是一个好主意</li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240119211634168.png" alt="image-20240119211634168"></p>
-<p><strong>总结：</strong></p>
-<ul>
-<li>多态基类应该 声明虚析构函数，如果一个类有虚函数，它就应该有一个虚析构函数</li>
-<li>非基类或非多态使用的类不应该声明虚析构函数</li>
-</ul>
-<h2 id="条款8：别让异常逃离析构函数"><a href="#条款8：别让异常逃离析构函数" class="headerlink" title="条款8：别让异常逃离析构函数"></a>条款8：别让异常逃离析构函数</h2><p><code>prevent exceptions from leaving destruction</code></p>
-<ul>
-<li>c++ 并不禁止析构函数吐出 emit 异常<ul>
-<li>直接终止程序，调用abort()</li>
-<li>吞下调用close引起的异常</li>
-<li>更好的：提供一个接口，让使用者做出相应的反应</li>
-</ul>
-</li>
-</ul>
-<p><img src="/2024/01/16/effective-c/image-20240119213110567.png" alt="image-20240119213110567"></p>
-<p><strong>总结：</strong></p>
-<ul>
-<li>析构函数永远不应该吐出 (emit) 异常。如果在析构函数中调用的函数可能抛出异常，则析构函数应该捕获任何异常，然后将其吞下或终止程序。</li>
-<li>如果类客户需要能够对操作期间抛出的异常做出反应，则类应该提供执行该操作的普通(即非析构函数)函数。— 提供一个接口</li>
-</ul>
-<h2 id="条款9：绝不在构造和析构过程中调用虚函数"><a href="#条款9：绝不在构造和析构过程中调用虚函数" class="headerlink" title="条款9：绝不在构造和析构过程中调用虚函数"></a>条款9：绝不在构造和析构过程中调用虚函数</h2><p><code>never call virtual functions during construction or destruction</code></p>
-<ul>
-<li>不要再构造或析构函数中调用虚函数，因为这样的调用永远不会下降至派生的类（相对于正在执行的构造函数或析构函数的那一层）</li>
-</ul>
+<img src="/2024/03/16/%E5%AF%B9%E7%BC%9D%E8%9E%8D%E5%90%88%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/image-20240316172453892.png" alt="image-20240316172453892" style="zoom:150%;">
+
+<h1 id="三、结果"><a href="#三、结果" class="headerlink" title="三、结果"></a>三、结果</h1><p>曲面的对缝：</p>
+<p><img src="/2024/03/16/%E5%AF%B9%E7%BC%9D%E8%9E%8D%E5%90%88%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/image-20240316172630043.png" alt="image-20240316172630043"></p>
+<p>平面的对缝：</p>
+<p><img src="/2024/03/16/%E5%AF%B9%E7%BC%9D%E8%9E%8D%E5%90%88%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/image-20240316172708011.png" alt="image-20240316172708011"></p>
+<p>均能提取出对缝特征，并且在划分测量小区间方面，融合特征算法也表现不错。划分的区间数量稳定。</p>
+<p><strong>区间划分示意图：</strong></p>
+<img src="/2024/03/16/%E5%AF%B9%E7%BC%9D%E8%9E%8D%E5%90%88%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/image-20240317165722491.png" alt="image-20240317165722491" style="zoom:50%;">
+
+<p><strong>平面：</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center"><strong>平面</strong></th>
+<th align="center"></th>
+<th align="center"></th>
+<th align="center"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"></td>
+<td align="center"><strong>融合</strong> （个）</td>
+<td align="center"><strong>仅曲率</strong></td>
+<td align="center"><strong>仅边界</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>1</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>59</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.9</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.8</strong></td>
+<td align="center"><strong>58</strong></td>
+<td align="center"><strong>58</strong></td>
+<td align="center"><strong>58</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.7</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.6</strong></td>
+<td align="center"><strong>55</strong></td>
+<td align="center"><strong>55</strong></td>
+<td align="center"><strong>56</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.5</strong></td>
+<td align="center"><strong>55</strong></td>
+<td align="center"><strong>55</strong></td>
+<td align="center"><strong>60</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.4</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>59</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.3</strong></td>
+<td align="center"><strong>55</strong></td>
+<td align="center"><strong>55</strong></td>
+<td align="center"><strong>57</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.2</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>44</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.1</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>47</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.075</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+<td align="center"><strong>57</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.050</strong></td>
+<td align="center"><strong>56</strong></td>
+<td align="center"><strong>56</strong></td>
+<td align="center"><strong>56</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.025</strong></td>
+<td align="center"><strong>56</strong></td>
+<td align="center"><strong>10</strong></td>
+<td align="center"><strong>56</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.000</strong></td>
+<td align="center"><strong>61</strong></td>
+<td align="center"><strong>0</strong></td>
+<td align="center"><strong>61</strong></td>
+</tr>
+</tbody></table>
+<p><strong>曲面：</strong></p>
+<table>
+<thead>
+<tr>
+<th align="center"><strong>斜面</strong></th>
+<th align="center"></th>
+<th align="center"></th>
+<th align="center"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"></td>
+<td align="center"><strong>融合</strong></td>
+<td align="center"><strong>曲率</strong></td>
+<td align="center"><strong>边界</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>1</strong></td>
+<td align="center"><strong>77</strong></td>
+<td align="center"><strong>77</strong></td>
+<td align="center"><strong>73</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.9</strong></td>
+<td align="center"><strong>77</strong></td>
+<td align="center"><strong>77</strong></td>
+<td align="center"><strong>70</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.8</strong></td>
+<td align="center"><strong>78</strong></td>
+<td align="center"><strong>78</strong></td>
+<td align="center"><strong>73</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.7</strong></td>
+<td align="center"><strong>78</strong></td>
+<td align="center"><strong>78</strong></td>
+<td align="center"><strong>72</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.6</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>71</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.5</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>73</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.4</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>47</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.3</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>47</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.2</strong></td>
+<td align="center"><strong>72</strong></td>
+<td align="center"><strong>72</strong></td>
+<td align="center"><strong>30</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.1</strong></td>
+<td align="center"><strong>74</strong></td>
+<td align="center"><strong>74</strong></td>
+<td align="center"><strong>47</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.075</strong></td>
+<td align="center"><strong>69</strong></td>
+<td align="center"><strong>70</strong></td>
+<td align="center"><strong>28</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.050</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>19</strong></td>
+<td align="center"><strong>72</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.025</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>6</strong></td>
+<td align="center"><strong>76</strong></td>
+</tr>
+<tr>
+<td align="center"><strong>0.000</strong></td>
+<td align="center"><strong>76</strong></td>
+<td align="center"><strong>0</strong></td>
+<td align="center"><strong>76</strong></td>
+</tr>
+</tbody></table>
 ]]></content>
       <categories>
-        <category>cpp</category>
+        <category>点云处理</category>
       </categories>
       <tags>
-        <tag>cpp</tag>
+        <tag>特征提取</tag>
+        <tag>PCL</tag>
+        <tag>C++</tag>
+        <tag>融合</tag>
       </tags>
   </entry>
 </search>
