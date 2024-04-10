@@ -1,0 +1,260 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>ysyx-预学习阶段 | Sifanのblog</title><meta name="author" content="liangzhou"><meta name="copyright" content="liangzhou"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1.预学习主要参考：  搭建verilator仿真环境 | 官方文档 (oscc.cc)  1.1verilator仿真环境搭建verilator：Verilator 是一款开源的硬件描述语言（HDL）模拟器，它主要用于将 Verilog 代码转换成 C++ 或 SystemC 代码，进而允许在仿真环境中高效地执行硬件设计。这款工具特别适合于大规模复杂的数字设计项目，因为它在处理大型代码库时速度非">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ysyx-预学习阶段">
+<meta property="og:url" content="http://liangzhouzz.github.io/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/index.html">
+<meta property="og:site_name" content="Sifanのblog">
+<meta property="og:description" content="1.预学习主要参考：  搭建verilator仿真环境 | 官方文档 (oscc.cc)  1.1verilator仿真环境搭建verilator：Verilator 是一款开源的硬件描述语言（HDL）模拟器，它主要用于将 Verilog 代码转换成 C++ 或 SystemC 代码，进而允许在仿真环境中高效地执行硬件设计。这款工具特别适合于大规模复杂的数字设计项目，因为它在处理大型代码库时速度非">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://liangzhouzz.github.io/img/duck.jpg">
+<meta property="article:published_time" content="2024-04-08T13:16:07.000Z">
+<meta property="article:modified_time" content="2024-04-09T13:04:07.554Z">
+<meta property="article:author" content="liangzhou">
+<meta property="article:tag" content="操作系统">
+<meta property="article:tag" content="riscv，ysyx">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liangzhouzz.github.io/img/duck.jpg"><link rel="shortcut icon" href="/img/duck.jpg"><link rel="canonical" href="http://liangzhouzz.github.io/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: liangzhou","link":"链接: ","source":"来源: Sifanのblog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'ysyx-预学习阶段',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-04-09 21:04:07'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load',() => { preloader.endLoading() })
+
+  if (false) {
+    document.addEventListener('pjax:send', () => { preloader.initLoading() })
+    document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/duck.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">12</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 链接</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/cloud.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Sifanのblog"><span class="site-name">Sifanのblog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 链接</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">ysyx-预学习阶段</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-04-08T13:16:07.000Z" title="发表于 2024-04-08 21:16:07">2024-04-08</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-04-09T13:04:07.554Z" title="更新于 2024-04-09 21:04:07">2024-04-09</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/ysyx/">ysyx</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="ysyx-预学习阶段"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="1-预学习"><a href="#1-预学习" class="headerlink" title="1.预学习"></a>1.预学习</h1><p><strong>主要参考</strong>：</p>
+<ol>
+<li><a target="_blank" rel="noopener" href="https://ysyx.oscc.cc/docs/2306/prestudy/0.4.html">搭建verilator仿真环境 | 官方文档 (oscc.cc)</a></li>
+</ol>
+<h2 id="1-1verilator仿真环境搭建"><a href="#1-1verilator仿真环境搭建" class="headerlink" title="1.1verilator仿真环境搭建"></a>1.1verilator仿真环境搭建</h2><h3 id="verilator："><a href="#verilator：" class="headerlink" title="verilator："></a><strong>verilator：</strong></h3><p>Verilator 是一款开源的硬件描述语言（HDL）模拟器，<strong>它主要用于将 Verilog 代码转换成 C++ 或 SystemC 代码</strong>，进而允许在仿真环境中高效地执行硬件设计。这款工具特别适合于大规模复杂的数字设计项目，因为它在处理大型代码库时速度非常快，同时也支持大部分 Verilog-2005 标准的特性。</p>
+<p><strong>主要特点</strong></p>
+<ul>
+<li><strong>高性能</strong>：Verilator 生成的模拟代码是编译型的，与解释型仿真器相比，这可以显著提升仿真速度。</li>
+<li><strong>开源</strong>：作为一个开源工具，Verilator 受到了广泛的社区支持，用户可以自由地使用、修改和分发它。</li>
+<li><strong>灵活性</strong>：Verilator 允许用户通过 C++ 或 SystemC 代码与仿真模型进行交互，这为高级仿真提供了极大的灵活性。</li>
+<li><strong>支持多种操作系统</strong>：包括 Linux、macOS 和 Windows，使其适用于多种开发环境。</li>
+</ul>
+<p><strong>以上来自 GPT4.0</strong></p>
+<h3 id="安装verilator"><a href="#安装verilator" class="headerlink" title="安装verilator"></a><strong>安装verilator</strong></h3><p><strong>按照环境依赖：</strong></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install help2man</span><br><span class="line">sudo apt-get install git perl python3 make autoconf g++ flex bison ccache</span><br><span class="line">sudo apt-get install libgoogle-perftools-dev numactl perl-doc</span><br><span class="line">sudo apt-get install libfl2  # Ubuntu only (ignore if gives error)</span><br><span class="line">sudo apt-get install libfl-dev  # Ubuntu only (ignore if gives error)</span><br><span class="line">sudo apt-get install zlibc zlib1g zlib1g-dev  # Ubuntu only </span><br></pre></td></tr></table></figure>
+
+<p>最后一条会报错，暂时忽略它</p>
+<p>然后在新建一个文件夹用于存放源码，使用git命令克隆</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/verilator/verilator</span><br></pre></td></tr></table></figure>
+
+
+
+<p>切换到<code>v5.008</code>版本</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">cd verilator</span><br><span class="line">git chechout v5.008</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">然后使用下面命令进行安装</span></span><br><span class="line">autoconf</span><br><span class="line">unset VERILATOR_ROOT</span><br><span class="line">./configure</span><br><span class="line">make -j `nproc`</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">最后</span></span><br><span class="line">sudo make install</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">检测安装的版本</span></span><br><span class="line">verilator --version</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/image-20240408214422838.png" alt="image-20240408214422838"></p>
+<h3 id="安装波型查看器GTKwave"><a href="#安装波型查看器GTKwave" class="headerlink" title="安装波型查看器GTKwave"></a>安装波型查看器GTKwave</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install gtkwave</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>至此 环境配置搭建完成</strong></p>
+<h3 id="verilator示例："><a href="#verilator示例：" class="headerlink" title="verilator示例："></a>verilator示例：</h3><p>在官方手册中：<a target="_blank" rel="noopener" href="https://www.veripool.org/ftp/verilator_doc.pdf">Verilator (veripool.org)</a></p>
+<p>根据示例进行操作</p>
+<h4 id="创建二进制的执行文件"><a href="#创建二进制的执行文件" class="headerlink" title="创建二进制的执行文件"></a><strong>创建二进制的执行文件</strong></h4><p>新建一个verilog 文件 然后写入文件内容“</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cat &gt;our<span class="variable">.v</span> &lt;&lt;&#x27;EOF&#x27;</span><br><span class="line"><span class="keyword">module</span> our;</span><br><span class="line"><span class="keyword">initial</span> <span class="keyword">begin</span> <span class="built_in">$display</span>(<span class="string">&quot;Hello World&quot;</span>); <span class="built_in">$finish</span>; <span class="keyword">end</span></span><br><span class="line"><span class="keyword">endmodule</span></span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<p>编译文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">verilator --binary -j 0 -Wall our.v</span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">--binary 创建一切所需要的可执行文件</span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">-j 0 尽可能多使用cpu 的线程</span></span><br></pre></td></tr></table></figure>
+
+<p> 运行文件并输出：</p>
+<p><img src="/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/image-20240409111720849.png" alt="image-20240409111720849"></p>
+<hr>
+<h4 id="创建c-执行文件"><a href="#创建c-执行文件" class="headerlink" title="创建c++执行文件"></a><strong>创建c++执行文件</strong></h4><p>根据示例创建即可</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">mkdir test_our</span><br><span class="line">cd test_our</span><br><span class="line">cat &gt;our.v &lt;&lt;&#x27;EOF&#x27;</span><br><span class="line">	module our;</span><br><span class="line">	initial begin $display(&quot;Hello World&quot;); $finish; end</span><br><span class="line">	endmodule</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line">cat &gt;sim_main.cpp &lt;&lt;&#x27;EOF&#x27;</span><br><span class="line"><span class="meta prompt_">	#</span><span class="language-bash">include <span class="string">&quot;Vour.h&quot;</span></span></span><br><span class="line"><span class="meta prompt_">	#</span><span class="language-bash">include <span class="string">&quot;verilated.h&quot;</span></span></span><br><span class="line">	int main(int argc, char** argv) &#123;</span><br><span class="line">		VerilatedContext* contextp = new VerilatedContext;</span><br><span class="line"><span class="meta prompt_">		contextp-&gt;</span><span class="language-bash">commandArgs(argc, argv);</span></span><br><span class="line">		Vour* top = new Vour&#123;contextp&#125;;</span><br><span class="line">		while (!contextp-&gt;gotFinish()) &#123; top-&gt;eval(); &#125;</span><br><span class="line">		delete top;</span><br><span class="line">		delete contextp;</span><br><span class="line">		return 0;</span><br><span class="line">	&#125;</span><br><span class="line">EOF</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">编译 --cc c++输出 --exe 创建一个可执行文件 --build 调用cmake</span> </span><br><span class="line">verilator --cc --exe --build -j 0 -Wall sim_main.cpp our.v</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="双控开关"><a href="#双控开关" class="headerlink" title="双控开关"></a>双控开关</h3><p>做这个之前先可以做一些官方教程指代的DUT实验，通过DUT 可以了解波形输出之类的</p>
+<p>下面是双控开关：双控开关是一个应用通过两个开关（a，b）联合控制一盏灯的亮灭</p>
+<p>Verilog 顶层模块代码 top.v文件</p>
+<figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">module</span> top(</span><br><span class="line">  <span class="keyword">input</span> a,</span><br><span class="line">  <span class="keyword">input</span> b,</span><br><span class="line">  <span class="keyword">output</span> f</span><br><span class="line">);</span><br><span class="line">  <span class="keyword">assign</span> f = a ^ b;</span><br><span class="line"><span class="keyword">endmodule</span></span><br></pre></td></tr></table></figure>
+
+<p>使用指令将Verilog代码转换为C++代码</p>
+<blockquote>
+<p>verilator –cc top.v</p>
+</blockquote>
+<p>创建sim_main.cpp 文件 并在文件中添加记录波形代码</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//sim_main.cpp</span></span><br><span class="line"> <span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="keyword">include</span><span class="string">&lt;assert.h&gt;</span></span></span><br><span class="line"> <span class="meta">#<span class="keyword">include</span> <span class="string">&lt;verilated.h&gt;</span>        <span class="comment">// 访问验证程序例程的库</span></span></span><br><span class="line"> <span class="meta">#<span class="keyword">include</span> <span class="string">&lt;verilated_vcd_c.h&gt;</span>  <span class="comment">// 向VCD文件中写入波形</span></span></span><br><span class="line"> <span class="meta">#<span class="keyword">include</span> <span class="string">&quot;Vtop.h&quot;</span>             <span class="comment">// 包含top模型的顶层文件</span></span></span><br><span class="line"> <span class="meta">#<span class="keyword">define</span> MAX_SIM_TIME 20       <span class="comment">// 最大仿真时间</span></span></span><br><span class="line"> <span class="type">vluint64_t</span> sim_time = <span class="number">0</span>;</span><br><span class="line"> <span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>** argv)</span> </span>&#123;</span><br><span class="line">     <span class="comment">//构建VerilatedContext以保留模拟时间</span></span><br><span class="line">     VerilatedContext* contextp = <span class="keyword">new</span> VerilatedContext;</span><br><span class="line">     contextp-&gt;<span class="built_in">commandArgs</span>(argc, argv);</span><br><span class="line">     <span class="comment">//用VerilatedContext实例化自己的顶层类</span></span><br><span class="line">     Vtop* top = <span class="keyword">new</span> Vtop&#123;contextp&#125;;</span><br><span class="line">     <span class="comment">//开启波形追踪</span></span><br><span class="line">     Verilated::<span class="built_in">traceEverOn</span>(<span class="literal">true</span>);</span><br><span class="line">     VerilatedVcdC *m_trace = <span class="keyword">new</span> VerilatedVcdC;</span><br><span class="line">     top-&gt;<span class="built_in">trace</span>(m_trace, <span class="number">5</span>); <span class="comment">//顶层类设置测试波形参数</span></span><br><span class="line">     m_trace-&gt;<span class="built_in">open</span>(<span class="string">&quot;waveform.vcd&quot;</span>); <span class="comment">//设置波形写入的文件</span></span><br><span class="line">     </span><br><span class="line">     <span class="keyword">while</span> (sim_time &lt; MAX_SIM_TIME) &#123;</span><br><span class="line">         <span class="type">int</span> a = <span class="built_in">rand</span>() &amp;<span class="number">1</span>;</span><br><span class="line">         <span class="type">int</span> b = <span class="built_in">rand</span>() &amp;<span class="number">1</span>;</span><br><span class="line">         top-&gt;a = a; <span class="comment">//实例化模型的信号赋值</span></span><br><span class="line">         top-&gt;b = b;</span><br><span class="line">         top-&gt;<span class="built_in">eval</span>(); <span class="comment">//评估信号    </span></span><br><span class="line">         m_trace-&gt;<span class="built_in">dump</span>(sim_time); <span class="comment">//将信号写入波形</span></span><br><span class="line">         sim_time++;        </span><br><span class="line">         <span class="built_in">printf</span>(<span class="string">&quot;a = %d, b = %d,f = %d\n&quot;</span>,a,b,top-&gt;f);</span><br><span class="line">         <span class="built_in">assert</span>(top-&gt;f == (a^b));</span><br><span class="line">     &#125;</span><br><span class="line">     m_trace-&gt;<span class="built_in">close</span>();</span><br><span class="line">     top-&gt;<span class="built_in">final</span>();</span><br><span class="line">     <span class="keyword">delete</span> top;    <span class="comment">// 删除开辟的内存</span></span><br><span class="line">     <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"> &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>使用下面指令重新链接</p>
+<blockquote>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">verilator -Wall--trace -cc top.v --exe sim_main.cpp</span><br><span class="line">make -C obj_dir -f Vtop.mk Vtop</span><br><span class="line">./obj_dir/Vtop  #运行可执行程序</span><br><span class="line">gtkwave waveform.vcd  # 可视化波形信号</span><br></pre></td></tr></table></figure>
+</blockquote>
+<p><img src="/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/image-20240409203828500.png" alt="image-20240409203828500"></p>
+<h3 id="接入nvboard"><a href="#接入nvboard" class="headerlink" title="接入nvboard"></a>接入nvboard</h3><p>阅读文件夹中的readme文件</p>
+<blockquote>
+<p>#安装依赖</p>
+<p>sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev</p>
+<p>#添加环境变量</p>
+<p>export NVBOARD_HOME&#x3D;&#x2F;home&#x2F;liangzhou&#x2F;Desktop&#x2F;ysyx&#x2F;ysyx-workbench&#x2F;nvboard</p>
+</blockquote>
+<p><img src="/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/image-20240409210330340.png" alt="image-20240409210330340"></p>
+<p><strong>在nvboard 上实现双控开关</strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://liangzhouzz.github.io">liangzhou</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://liangzhouzz.github.io/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/">http://liangzhouzz.github.io/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://liangzhouzz.github.io" target="_blank">Sifanのblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><a class="post-meta__tags" href="/tags/riscv%EF%BC%8Cysyx/">riscv，ysyx</a></div><div class="post_share"><div class="social-share" data-image="/img/duck.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/03/25/%E5%9F%BA%E4%BA%8Eqemu-riscv%E6%9E%84%E4%BB%B6%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="基于qemu-riscv构件嵌入式系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">基于qemu-riscv构件嵌入式系统</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2023/11/14/CSAPP-6-cachelab/" title="CSAPP-6-cachelab"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2023-11-14</div><div class="title">CSAPP-6-cachelab</div></div></a></div><div><a href="/2024/03/25/%E5%9F%BA%E4%BA%8Eqemu-riscv%E6%9E%84%E4%BB%B6%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="基于qemu-riscv构件嵌入式系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-25</div><div class="title">基于qemu-riscv构件嵌入式系统</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/duck.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liangzhou</div><div class="author-info__description">要努力，不要急！</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">12</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">20</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">5</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/liangzhouzz/"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E9%A2%84%E5%AD%A6%E4%B9%A0"><span class="toc-number">1.</span> <span class="toc-text">1.预学习</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1verilator%E4%BB%BF%E7%9C%9F%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA"><span class="toc-number">1.1.</span> <span class="toc-text">1.1verilator仿真环境搭建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#verilator%EF%BC%9A"><span class="toc-number">1.1.1.</span> <span class="toc-text">verilator：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85verilator"><span class="toc-number">1.1.2.</span> <span class="toc-text">安装verilator</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%B3%A2%E5%9E%8B%E6%9F%A5%E7%9C%8B%E5%99%A8GTKwave"><span class="toc-number">1.1.3.</span> <span class="toc-text">安装波型查看器GTKwave</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#verilator%E7%A4%BA%E4%BE%8B%EF%BC%9A"><span class="toc-number">1.1.4.</span> <span class="toc-text">verilator示例：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E4%BA%8C%E8%BF%9B%E5%88%B6%E7%9A%84%E6%89%A7%E8%A1%8C%E6%96%87%E4%BB%B6"><span class="toc-number">1.1.4.1.</span> <span class="toc-text">创建二进制的执行文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%9B%E5%BB%BAc-%E6%89%A7%E8%A1%8C%E6%96%87%E4%BB%B6"><span class="toc-number">1.1.4.2.</span> <span class="toc-text">创建c++执行文件</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8C%E6%8E%A7%E5%BC%80%E5%85%B3"><span class="toc-number">1.1.5.</span> <span class="toc-text">双控开关</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A5%E5%85%A5nvboard"><span class="toc-number">1.1.6.</span> <span class="toc-text">接入nvboard</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/" title="ysyx-预学习阶段">ysyx-预学习阶段</a><time datetime="2024-04-08T13:16:07.000Z" title="发表于 2024-04-08 21:16:07">2024-04-08</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/03/25/%E5%9F%BA%E4%BA%8Eqemu-riscv%E6%9E%84%E4%BB%B6%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="基于qemu-riscv构件嵌入式系统">基于qemu-riscv构件嵌入式系统</a><time datetime="2024-03-25T13:03:40.000Z" title="发表于 2024-03-25 21:03:40">2024-03-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2024/03/16/%E5%AF%B9%E7%BC%9D%E8%9E%8D%E5%90%88%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/" title="对缝融合特征提取"><img src="/img/hf.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="对缝融合特征提取"/></a><div class="content"><a class="title" href="/2024/03/16/%E5%AF%B9%E7%BC%9D%E8%9E%8D%E5%90%88%E7%89%B9%E5%BE%81%E6%8F%90%E5%8F%96/" title="对缝融合特征提取">对缝融合特征提取</a><time datetime="2024-03-16T08:13:31.000Z" title="发表于 2024-03-16 16:13:31">2024-03-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/12/27/wsl2%E9%85%8D%E7%BD%AEPCL%E5%B9%B6%E5%8F%AF%E8%A7%86%E5%8C%96/" title="wsl2配置PCL并可视化">wsl2配置PCL并可视化</a><time datetime="2023-12-27T14:10:35.000Z" title="发表于 2023-12-27 22:10:35">2023-12-27</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2023/11/14/CSAPP-6-cachelab/" title="CSAPP-6-cachelab">CSAPP-6-cachelab</a><time datetime="2023-11-14T06:42:49.000Z" title="发表于 2023-11-14 14:42:49">2023-11-14</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/footer.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 - 2024 By liangzhou</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Hi!!!!!!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
