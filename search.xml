@@ -1543,6 +1543,60 @@ fa 18 40 00 00 00 00 00
 <ol>
 <li><a href="https://ysyx.oscc.cc/docs/2306/prestudy/0.4.html">搭建verilator仿真环境 | 官方文档 (oscc.cc)</a></li>
 </ol>
+<p><strong>Verilog基本语法：</strong> — GPT4.0</p>
+<p>Verilog 语言是一种用于电子设计自动化和硬件描述的硬件描述语言（HDL）。它使设计者能够以文本形式描述复杂的电子系统。Verilog 的基本语法元素包括：</p>
+<p><strong>1. 模块 (Modules)</strong></p>
+<p>模块是 Verilog 中的基本结构单元，用于封装硬件设计的各个部分。一个模块可以表示一个简单的门电路，一个复杂的微处理器，或者任何中间规模的组件。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">verilogCopy codemodule moduleName(input input1, output output1);</span><br><span class="line">  // 模块体</span><br><span class="line">endmodule</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 数据类型</strong></p>
+<ul>
+<li><strong>网线 (wire)</strong>: 用于连接模块内部的组件，或模块间的连接。它代表一个物理连接，可以携带一个信号。</li>
+<li><strong>寄存器 (reg)</strong>: 用于在模块内部存储值。与 wire 不同，reg 可以保持其值，直到被新的值更新。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">verilogCopy codewire w; // 声明一个 wire 类型的变量</span><br><span class="line">reg r;  // 声明一个 reg 类型的变量</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 运算符</strong></p>
+<p>Verilog 提供了多种运算符，包括算术运算符、逻辑运算符、比较运算符等。</p>
+<ul>
+<li><strong>算术运算符</strong>: <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code> (取余)</li>
+<li><strong>逻辑运算符</strong>: <code>&amp;&amp;</code> (与), <code>||</code> (或), <code>!</code> (非)</li>
+<li><strong>比较运算符</strong>: <code>==</code> (等于), <code>!=</code> (不等于), <code>&lt;</code> (小于), <code>&gt;</code> (大于), <code>&lt;=</code> (小于等于), <code>&gt;=</code> (大于等于)</li>
+<li><strong>位运算符</strong>: <code>&amp;</code> (位与), <code>|</code> (位或), <code>^</code> (异或), <code>~</code> (位非), <code>&lt;&lt;</code> (左移), <code>&gt;&gt;</code> (右移)</li>
+</ul>
+<p><strong>4. 赋值语句</strong></p>
+<ul>
+<li><strong>连续赋值</strong>: 用于为 wire 类型变量赋值。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">verilogCopy code</span><br><span class="line">assign w = expression;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>过程赋值</strong>: 包括 <code>always</code> 和 <code>initial</code> 语句块内的赋值，主要用于为 reg 类型变量赋值。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">verilogCopy codealways @(trigger) begin</span><br><span class="line">  r = expression;</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p><strong>5. 控制结构</strong></p>
+<ul>
+<li><strong>条件语句</strong>: 如 <code>if</code>, <code>case</code> 用于实现条件逻辑。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">verilogCopy codeif (condition) begin</span><br><span class="line">  // 代码</span><br><span class="line">end else begin</span><br><span class="line">  // 代码</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>循环语句</strong>: 如 <code>for</code>, <code>while</code> 用于实现循环。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">verilogCopy codefor (initialization; condition; increment) begin</span><br><span class="line">  // 代码</span><br><span class="line">end</span><br></pre></td></tr></table></figure>
+
+<p><strong>6. 实例化 (Instantiation)</strong></p>
+<p>用于在一个模块内部创建另一个模块的实例，允许模块复用。</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">verilogCopy code</span><br><span class="line">moduleName instanceName(.input1(signal1), .output1(signal2));</span><br></pre></td></tr></table></figure>
+
+<p><strong>7. 任务和函数</strong></p>
+<ul>
+<li><strong>任务 (task)</strong>: 用于封装可以执行多个语句的代码块，可以有输入和输出参数，但不返回值。</li>
+<li><strong>函数 (function)</strong>: 用于封装执行单个返回值的代码块，可以有输入参数。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">verilogCopy codetask taskName; </span><br><span class="line">  // 任务体</span><br><span class="line">endtask</span><br><span class="line"></span><br><span class="line">function functionName; </span><br><span class="line">  // 函数体</span><br><span class="line">endfunction</span><br></pre></td></tr></table></figure>
+
 <h2 id="1-1verilator仿真环境搭建"><a href="#1-1verilator仿真环境搭建" class="headerlink" title="1.1verilator仿真环境搭建"></a>1.1verilator仿真环境搭建</h2><h3 id="verilator："><a href="#verilator：" class="headerlink" title="verilator："></a><strong>verilator：</strong></h3><p>Verilator 是一款开源的硬件描述语言（HDL）模拟器，<strong>它主要用于将 Verilog 代码转换成 C++ 或 SystemC 代码</strong>，进而允许在仿真环境中高效地执行硬件设计。这款工具特别适合于大规模复杂的数字设计项目，因为它在处理大型代码库时速度非常快，同时也支持大部分 Verilog-2005 标准的特性。</p>
 <p><strong>主要特点</strong></p>
 <ul>
@@ -1589,7 +1643,7 @@ fa 18 40 00 00 00 00 00
 <h3 id="双控开关"><a href="#双控开关" class="headerlink" title="双控开关"></a>双控开关</h3><p>做这个之前先可以做一些官方教程指代的DUT实验，通过DUT 可以了解波形输出之类的</p>
 <p>下面是双控开关：双控开关是一个应用通过两个开关（a，b）联合控制一盏灯的亮灭</p>
 <p>Verilog 顶层模块代码 top.v文件</p>
-<figure class="highlight verilog"><table><tr><td class="code"><pre><span class="line"><span class="keyword">module</span> top(</span><br><span class="line">  <span class="keyword">input</span> a,</span><br><span class="line">  <span class="keyword">input</span> b,</span><br><span class="line">  <span class="keyword">output</span> f</span><br><span class="line">);</span><br><span class="line">  <span class="keyword">assign</span> f = a ^ b;</span><br><span class="line"><span class="keyword">endmodule</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight verilog"><table><tr><td class="code"><pre><span class="line"><span class="comment">// top模块 模块定义</span></span><br><span class="line"><span class="keyword">module</span> top(</span><br><span class="line">  <span class="keyword">input</span> a,  <span class="comment">// 输入端口</span></span><br><span class="line">  <span class="keyword">input</span> b,  <span class="comment">// 输入端口</span></span><br><span class="line">  <span class="keyword">output</span> f  <span class="comment">// 输出端口</span></span><br><span class="line">);</span><br><span class="line">  <span class="keyword">assign</span> f = a ^ b;  <span class="comment">// 功能实现</span></span><br><span class="line"><span class="keyword">endmodule</span>  <span class="comment">// 模块定义结束</span></span><br></pre></td></tr></table></figure>
 
 <p>使用指令将Verilog代码转换为C++代码</p>
 <blockquote>
@@ -1612,6 +1666,19 @@ fa 18 40 00 00 00 00 00
 </blockquote>
 <p><img src="/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/image-20240409210330340.png" alt="image-20240409210330340"></p>
 <p><strong>在nvboard 上实现双控开关</strong></p>
+<p>要想在nvboard上实现双控开关，得先弄懂nvboard 的工作原理 用</p>
+<blockquote>
+<p>用tree命令查看 example文件夹结构</p>
+</blockquote>
+<img src="/2024/04/08/ysyx-%E9%A2%84%E5%AD%A6%E4%B9%A0%E9%98%B6%E6%AE%B5/image-20240410211628507.png" alt="image-20240410211628507" style="zoom: 80%;">
+
+
+
+<ul>
+<li>top.v 包含了顶层模块设计，定义了多种输入和输出，包括按钮，开关等，在led.v等文件当中包含了具体的实现逻辑</li>
+</ul>
+<figure class="highlight verilog"><table><tr><td class="code"><pre><span class="line">#top<span class="variable">.v</span></span><br><span class="line"><span class="keyword">module</span> top(</span><br><span class="line">    <span class="keyword">input</span> clk,</span><br><span class="line">    <span class="keyword">input</span> rst,</span><br><span class="line">    <span class="keyword">input</span> [<span class="number">4</span>:<span class="number">0</span>] btn,</span><br><span class="line">    <span class="keyword">input</span> [<span class="number">7</span>:<span class="number">0</span>] sw,</span><br><span class="line">    <span class="keyword">input</span> ps2_clk,</span><br><span class="line">    <span class="keyword">input</span> ps2_data,</span><br><span class="line">    <span class="keyword">input</span> uart_rx,</span><br><span class="line">    <span class="keyword">output</span> uart_tx,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">15</span>:<span class="number">0</span>] ledr,</span><br><span class="line">    <span class="keyword">output</span> VGA_CLK,</span><br><span class="line">    <span class="keyword">output</span> VGA_HSYNC,</span><br><span class="line">    <span class="keyword">output</span> VGA_VSYNC,</span><br><span class="line">    <span class="keyword">output</span> VGA_BLANK_N,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] VGA_R,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] VGA_G,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] VGA_B,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] seg0,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] seg1,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] seg2,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] seg3,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] seg4,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] seg5,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] seg6,</span><br><span class="line">    <span class="keyword">output</span> [<span class="number">7</span>:<span class="number">0</span>] seg7</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 实例化 通过.语法与top模块中的接口连接</span></span><br><span class="line">led my_led(</span><br><span class="line">    <span class="variable">.clk</span>(clk),</span><br><span class="line">    <span class="variable">.rst</span>(rst),</span><br><span class="line">    <span class="variable">.btn</span>(btn),</span><br><span class="line">    <span class="variable">.sw</span>(sw),</span><br><span class="line">    <span class="variable">.ledr</span>(ledr)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#led<span class="variable">.v</span></span><br><span class="line"><span class="keyword">module</span> led(</span><br><span class="line">  <span class="keyword">input</span> clk,</span><br><span class="line">  <span class="keyword">input</span> rst,</span><br><span class="line">  <span class="keyword">input</span> [<span class="number">4</span>:<span class="number">0</span>] btn,</span><br><span class="line">  <span class="keyword">input</span> [<span class="number">7</span>:<span class="number">0</span>] sw,</span><br><span class="line">  <span class="keyword">output</span> [<span class="number">15</span>:<span class="number">0</span>] ledr</span><br><span class="line">);</span><br><span class="line">    <span class="keyword">reg</span> [<span class="number">31</span>:<span class="number">0</span>] count;  <span class="comment">// 定义32位的计数器</span></span><br><span class="line">    <span class="keyword">reg</span> [<span class="number">7</span>:<span class="number">0</span>] led;     <span class="comment">// 8位寄存器，用于存储led灯的当前状态</span></span><br><span class="line">    <span class="keyword">always</span> @(<span class="keyword">posedge</span> clk) <span class="keyword">begin</span>   <span class="comment">// 当clk 上升沿触发，每个时钟周期都会执行当中的逻辑</span></span><br><span class="line">    <span class="keyword">if</span> (rst) <span class="keyword">begin</span> led &lt;= <span class="number">1</span>; count &lt;= <span class="number">0</span>; <span class="keyword">end</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">begin</span></span><br><span class="line">        <span class="keyword">if</span> (count == <span class="number">0</span>) led &lt;= &#123;led[<span class="number">6</span>:<span class="number">0</span>], led[<span class="number">7</span>]&#125;; <span class="comment">// 如果count为0，led寄存器左移一位，并将最高位的值复制到最低位，</span></span><br><span class="line">                                                   <span class="comment">// 实现循环移位的效果。这样，LED灯就会按顺序逐个点亮或熄灭。</span></span><br><span class="line">        count &lt;= (count &gt;= <span class="number">5000000</span> ? <span class="number">32&#x27;b0</span> : count + <span class="number">1</span>);  <span class="comment">// 大于500000重置 否则 +1</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">assign</span> ledr = &#123;led[<span class="number">7</span>:<span class="number">5</span>], led[<span class="number">4</span>:<span class="number">0</span>] ^ btn, sw&#125;;</span><br><span class="line"><span class="keyword">endmodule</span></span><br></pre></td></tr></table></figure>
+
 ]]></content>
       <categories>
         <category>ysyx</category>
