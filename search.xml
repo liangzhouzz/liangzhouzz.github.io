@@ -1820,4 +1820,320 @@ fa 18 40 00 00 00 00 00
         <tag>riscv，qemu</tag>
       </tags>
   </entry>
+  <entry>
+    <title>基于x86架构的简单内核实现</title>
+    <url>/2024/04/12/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="1-基础-环境配置与开发工具"><a href="#1-基础-环境配置与开发工具" class="headerlink" title="1.基础-环境配置与开发工具"></a>1.基础-环境配置与开发工具</h1><blockquote>
+<p>本机环境：Ubuntu22.04 </p>
+<p>需要的开发工具</p>
+<p>编译器：gcc </p>
+<p>链接器：ld</p>
+<p>汇编编译器：nasm</p>
+<p>虚拟机：qemu</p>
+</blockquote>
+<p><strong>参考：</strong></p>
+<blockquote>
+<ol>
+<li><a href="https://github.com/hurley25/hurlex-doc/tree/master">hurley25&#x2F;hurlex-doc: hurlex 小内核分章节代码和文档 (github.com)</a></li>
+<li></li>
+</ol>
+</blockquote>
+<h2 id="1-1qemu"><a href="#1-1qemu" class="headerlink" title="1.1qemu"></a>1.1qemu</h2><p>qemu安装：我之前安装了qemu8.0.0 故就不重新安装了</p>
+<blockquote>
+<p>sudo ln -s &#x2F;usr&#x2F;bin&#x2F;qemu-system-i386 &#x2F;usr&#x2F;bin&#x2F;qemu</p>
+<p>这个意思是后面直接可以用qemu代替 qemu-system-i386，会方便一些 但我觉得没有必要 </p>
+</blockquote>
+<h2 id="1-2-Makefile-文件"><a href="#1-2-Makefile-文件" class="headerlink" title="1.2 Makefile 文件"></a>1.2 Makefile 文件</h2><blockquote>
+<p>给出详细的注释，项目基本上以这个Makefile为主</p>
+</blockquote>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line"><span class="comment">#!Makefile</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#-----------------------------</span></span><br><span class="line"><span class="comment"># 编译: 通过.c.o和.s.o规则，所有的.c和.s文件分别被编译成.o文件。</span></span><br><span class="line"><span class="comment"># 链接: 所有的.o文件通过link规则被链接成单个内核文件hx_kernel。</span></span><br><span class="line"><span class="comment"># 更新映像文件: 通过update_image规则，将内核文件复制到软盘映像中。</span></span><br><span class="line"><span class="comment"># 清理: 通过clean命令删除所有生成的文件，以便重新构建。</span></span><br><span class="line"><span class="comment"># 运行和调试: 提供了多种运行和调试内核的方式，如使用QEMU、Bochs和cgdb。</span></span><br><span class="line"><span class="comment">#-----------------------------</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># patsubst 处理所有在 C_SOURCES 字列中的字（一列文件名），如果它的 结尾是 &#x27;.c&#x27;，就用 &#x27;.o&#x27; 把 &#x27;.c&#x27; 取代</span></span><br><span class="line">C_SOURCES = <span class="variable">$(<span class="built_in">shell</span> find . -name &quot;*.c&quot;)</span></span><br><span class="line">C_OBJECTS = <span class="variable">$(<span class="built_in">patsubst</span> %.c, %.o, <span class="variable">$(C_SOURCES)</span>)</span>   <span class="comment">#将所有.c文件转成 .o文件</span></span><br><span class="line">S_SOURCES = <span class="variable">$(<span class="built_in">shell</span> find . -name &quot;*.s&quot;)</span>          <span class="comment">#查找所有.s文件</span></span><br><span class="line">S_OBJECTS = <span class="variable">$(<span class="built_in">patsubst</span> %.s, %.o, <span class="variable">$(S_SOURCES)</span>)</span>   <span class="comment">#.s 文件转成 .o文件</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#定义编译器命令 cc = gcc 相当于起别名 编译器用gcc 链接器用ld 汇编器用nasm </span></span><br><span class="line">CC = gcc</span><br><span class="line">LD = ld</span><br><span class="line">ASM = nasm  </span><br><span class="line"></span><br><span class="line"><span class="comment">#编译  链接选项  注意链接文件目录</span></span><br><span class="line">C_FLAGS = -c -Wall -m32 -ggdb -gstabs+ -nostdinc -fno-builtin -fno-stack-protector -I <span class="keyword">include</span></span><br><span class="line">LD_FLAGS = -T scripts/kernel.ld -m elf_i386 -nostdlib</span><br><span class="line">ASM_FLAGS = -f elf -g -F stabs</span><br><span class="line"></span><br><span class="line"><span class="comment">#默认目标 编译生成并 更新</span></span><br><span class="line"><span class="section">all: <span class="variable">$(S_OBJECTS)</span> <span class="variable">$(C_OBJECTS)</span> link update_image</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># The automatic variable `$&lt;&#x27; is just the first prerequisite 表示规则中的第一个依赖项 使用模式规则来编译代码</span></span><br><span class="line"><span class="section">.c.o:</span></span><br><span class="line">	@echo 编译代码文件 <span class="variable">$&lt;</span> ...</span><br><span class="line">	<span class="variable">$(CC)</span> <span class="variable">$(C_FLAGS)</span> <span class="variable">$&lt;</span> -o <span class="variable">$@</span></span><br><span class="line"></span><br><span class="line"><span class="section">.s.o:</span></span><br><span class="line">	@echo 编译汇编文件 <span class="variable">$&lt;</span> ...</span><br><span class="line">	<span class="variable">$(ASM)</span> <span class="variable">$(ASM_FLAGS)</span> <span class="variable">$&lt;</span></span><br><span class="line"><span class="comment">#链接所有.o文件生成 内核文件</span></span><br><span class="line"><span class="section">link:</span></span><br><span class="line">	@echo 链接内核文件...</span><br><span class="line">	<span class="variable">$(LD)</span> <span class="variable">$(LD_FLAGS)</span> <span class="variable">$(S_OBJECTS)</span> <span class="variable">$(C_OBJECTS)</span> -o hx_kernel</span><br><span class="line"></span><br><span class="line"><span class="comment">#.PHONY 伪目标，无论是否存在同名文件 命令都被执行</span></span><br><span class="line"><span class="meta"><span class="keyword">.PHONY</span>:clean</span></span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	<span class="variable">$(RM)</span> <span class="variable">$(S_OBJECTS)</span> <span class="variable">$(C_OBJECTS)</span> hx_kernel</span><br><span class="line"><span class="comment">#将生成的内核文件挂载在映像文件</span></span><br><span class="line"><span class="meta"><span class="keyword">.PHONY</span>:update_image</span></span><br><span class="line"><span class="section">update_image:</span></span><br><span class="line">	sudo mount floppy.img /mnt/kernel</span><br><span class="line">	sudo cp hx_kernel /mnt/kernel/hx_kernel</span><br><span class="line">	sleep 1</span><br><span class="line">	sudo umount /mnt/kernel</span><br><span class="line"><span class="comment">#挂载</span></span><br><span class="line"><span class="meta"><span class="keyword">.PHONY</span>:mount_image</span></span><br><span class="line"><span class="section">mount_image:</span></span><br><span class="line">	sudo mount floppy.img /mnt/kernel</span><br><span class="line"><span class="comment"># 卸载</span></span><br><span class="line"><span class="meta"><span class="keyword">.PHONY</span>:umount_image</span></span><br><span class="line"><span class="section">umount_image:</span></span><br><span class="line">	sudo umount /mnt/kernel</span><br><span class="line"></span><br><span class="line"><span class="comment">#调试方式</span></span><br><span class="line"><span class="meta"><span class="keyword">.PHONY</span>:qemu</span></span><br><span class="line"><span class="section">qemu:</span></span><br><span class="line">	qemu -fda floppy.img -boot a	</span><br><span class="line">	<span class="comment">#add &#x27;-nographic&#x27; option if using server of linux distro, such as fedora-server,or &quot;gtk initialization failed&quot; error will occur.</span></span><br><span class="line"></span><br><span class="line"><span class="meta"><span class="keyword">.PHONY</span>:bochs</span></span><br><span class="line"><span class="section">bochs:</span></span><br><span class="line">	bochs -f scripts/bochsrc.txt</span><br><span class="line"></span><br><span class="line"><span class="meta"><span class="keyword">.PHONY</span>:debug</span></span><br><span class="line"><span class="section">debug:</span></span><br><span class="line">	qemu -S -s -fda floppy.img -boot a &amp;</span><br><span class="line">	sleep 1</span><br><span class="line">	cgdb -x scripts/gdbinit</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="1-3-kernel-ld-文件"><a href="#1-3-kernel-ld-文件" class="headerlink" title="1.3 kernel.ld 文件"></a>1.3 kernel.ld 文件</h2><figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">* kernel.ld −− 针对 kernel 格式所写的链接脚本</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"> ENTRY(start)</span><br><span class="line"> SECTIONS</span><br><span class="line"> &#123;</span><br><span class="line">	<span class="comment">/* 段起始位置 */</span></span><br><span class="line">	. = <span class="number">0x100000</span>;   <span class="comment">// 后面的段 从0x100000开始 即是1MB</span></span><br><span class="line">.text :</span><br><span class="line">&#123;</span><br><span class="line"> 	*(.text)</span><br><span class="line"> 	. = ALIGN(<span class="number">4096</span>);  <span class="comment">// 页对齐到 4096</span></span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line">.data :</span><br><span class="line"> &#123;</span><br><span class="line"> 	*(.data)</span><br><span class="line"> 	*(.rodata)</span><br><span class="line">	. = ALIGN(<span class="number">4096</span>);</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line"> .bss :</span><br><span class="line"> &#123;</span><br><span class="line"> 	*(.bss)</span><br><span class="line"> 	. = ALIGN(<span class="number">4096</span>);</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line">.stab :</span><br><span class="line"> &#123;</span><br><span class="line">	*(.stab)</span><br><span class="line">	. = ALIGN(<span class="number">4096</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">.stabstr :</span><br><span class="line"> &#123;</span><br><span class="line"> 	*(.stabstr)</span><br><span class="line"> 	. = ALIGN(<span class="number">4096</span>);</span><br><span class="line"> &#125;</span><br><span class="line"></span><br><span class="line">	/DISCARD/ : &#123; *(.comment) *(.eh_frame) &#125;  <span class="comment">// 丢弃段</span></span><br><span class="line"> &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>复习一下</p>
+<p>.text 代码段</p>
+<p>.data 已初始化数据段</p>
+<p>.bss 未初始化数据段</p>
+<p>.stab 调试符号表</p>
+<p>.stabstr 字符串表</p>
+</blockquote>
+<h1 id="2-启动过程-grub-和-multiboot"><a href="#2-启动过程-grub-和-multiboot" class="headerlink" title="2.启动过程 grub 和 multiboot"></a>2.启动过程 grub 和 multiboot</h1><blockquote>
+<p>模拟内核 是 32位的    地址寻址线也为32位  可以寻址 2的32次方  4GB地址空间</p>
+</blockquote>
+<p>启动过程，在bios 初始化设备完成后，读取存储设备的第一个扇区如果第一个扇区512个字节的最后两个字节是0x55 和 0xAA 那么该存储设备就是可以启动的</p>
+<blockquote>
+<p>为什么 要使用 grub 而不编写 bootloader呢  因为打算将这个内核与其他win Linux系统共存 所以使用grub （GRand Unified Bootloader） 从而需要了解 multiloader</p>
+</blockquote>
+<h1 id="3-Hello-OS-Kernel"><a href="#3-Hello-OS-Kernel" class="headerlink" title="3.Hello OS Kernel"></a>3.Hello OS Kernel</h1><h2 id="3-1-编译参数-解释"><a href="#3-1-编译参数-解释" class="headerlink" title="3.1 编译参数 解释"></a>3.1 编译参数 解释</h2><blockquote>
+<p><code>C_FLAGS = -c -Wall -m32 -ggdb -gstabs+ -nostdinc -fno-builtin -fno-stack-protector -I include</code></p>
+</blockquote>
+<ul>
+<li>-m32 生成32位代码</li>
+<li>-ggdb 和 -gstabs+ 添加相关的调试信息</li>
+<li>-nostdinc 不包含C语言的标准库的头文件</li>
+<li>-fno-builtin gcc 不主动使用自己的内建函数  除非显示的声明</li>
+<li>-fno-stack-protector 不使用栈保护</li>
+</ul>
+<blockquote>
+<p><code>LD_FLAGS = -T scripts/kernel.ld -m elf_i386 -nostdlib</code></p>
+</blockquote>
+<ul>
+<li>-T…  使用我们自己的链接器脚本</li>
+<li>-m elf_i386 生成i386平台下的elf 格式的 可执行文件，这是Linux 下的可执行文件格式</li>
+<li>-nostdlib 不使用 c语言标准库</li>
+</ul>
+<h2 id="3-2-启动镜像制作"><a href="#3-2-启动镜像制作" class="headerlink" title="3.2 启动镜像制作"></a>3.2 启动镜像制作</h2><ul>
+<li><p>作者使用 软盘制作，相对于硬盘 比较简单</p>
+</li>
+<li><p>并且使用FAT12 用作文件系统</p>
+</li>
+</ul>
+<h2 id="3-3-boot-s-文件"><a href="#3-3-boot-s-文件" class="headerlink" title="3.3 boot.s 文件"></a>3.3 boot.s 文件</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">;</span><br><span class="line">; boot.s</span><br><span class="line">; </span><br><span class="line">MBOOT_HEADER_MAGIC 	equ 	0x1BADB002 	; Multiboot 魔数，由规范决定的</span><br><span class="line"></span><br><span class="line">MBOOT_PAGE_ALIGN 	equ 	1 &lt;&lt; 0    	; 0 号位表示所有的引导模块将按页(4KB)边界对齐</span><br><span class="line">MBOOT_MEM_INFO 		equ 	1 &lt;&lt; 1    	; 1 号位通过 Multiboot 信息结构的 mem_* 域包括可用内存的信息</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">; 定义我们使用的 Multiboot 的标记</span><br><span class="line">MBOOT_HEADER_FLAGS 	equ 	MBOOT_PAGE_ALIGN | MBOOT_MEM_INFO</span><br><span class="line"></span><br><span class="line">; 域checksum是一个32位的无符号值，当与其他的magic域(也就是magic和flags)相加时，</span><br><span class="line">; 要求其结果必须是32位的无符号值 0 (即magic + flags + checksum = 0)</span><br><span class="line">MBOOT_CHECKSUM 		equ 	- (MBOOT_HEADER_MAGIC + MBOOT_HEADER_FLAGS)</span><br><span class="line"></span><br><span class="line">; 符合Multiboot规范的 OS 映象需要这样一个 magic Multiboot 头</span><br><span class="line"></span><br><span class="line">; Multiboot 头的分布必须如下表所示：</span><br><span class="line">; ----------------------------------------------------------</span><br><span class="line">; 偏移量  类型  域名        备注</span><br><span class="line">;</span><br><span class="line">;   0     u32   magic       必需</span><br><span class="line">;   4     u32   flags       必需 </span><br><span class="line">;   8     u32   checksum    必需 </span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">;--------------------------------</span><br><span class="line">; 代码真正开始</span><br><span class="line">;-----------------</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[BITS 32]  	; 所有代码以 32-bit 的方式编译</span><br><span class="line"></span><br><span class="line">section .text 	; 代码段从这里开始</span><br><span class="line"></span><br><span class="line">; 在代码段的起始位置设置符合 Multiboot 规范的标记</span><br><span class="line"></span><br><span class="line">dd MBOOT_HEADER_MAGIC 	; GRUB 会通过这个魔数判断该映像是否支持</span><br><span class="line">dd MBOOT_HEADER_FLAGS   ; GRUB 的一些加载时选项，其详细注释在定义处</span><br><span class="line">dd MBOOT_CHECKSUM       ; 检测数值，其含义在定义处</span><br><span class="line"></span><br><span class="line">[GLOBAL start] 		    ; 内核代码入口，此处提供该声明给 ld 链接器</span><br><span class="line">[GLOBAL glb_mboot_ptr] 	; 全局的 struct multiboot * 变量</span><br><span class="line">[EXTERN kern_entry] 	; 声明内核 C 代码的入口函数</span><br><span class="line"></span><br><span class="line">start:</span><br><span class="line">	cli  			    ; 此时还没有设置好保护模式的中断处理，要关闭中断</span><br><span class="line">				        ; 所以必须关闭中断</span><br><span class="line">	mov esp, STACK_TOP  	 ; 设置内核栈地址</span><br><span class="line">	mov ebp, 0 		    ; 帧指针修改为 0</span><br><span class="line">	and esp, 0FFFFFFF0H	 ; 栈地址按照16字节对齐</span><br><span class="line">	mov [glb_mboot_ptr], ebx ; 将 ebx 中存储的指针存入全局变量</span><br><span class="line">	call kern_entry		 ; 调用内核入口函数</span><br><span class="line">stop:</span><br><span class="line">	hlt 			 ; 停机指令，什么也不做，可以降低 CPU 功耗</span><br><span class="line">	jmp stop 		 ; 到这里结束，关机什么的后面再说</span><br><span class="line"></span><br><span class="line">;-----------------------------------------------------------------------------</span><br><span class="line"></span><br><span class="line">section .bss 			 ; 未初始化的数据段从这里开始</span><br><span class="line">stack:</span><br><span class="line">	resb 32768 	 	     ; 这里作为内核栈</span><br><span class="line">glb_mboot_ptr: 			 ; 全局的 multiboot 结构体指针</span><br><span class="line">	resb 4</span><br><span class="line"></span><br><span class="line">STACK_TOP equ $-stack-1 	 ; 内核栈顶，$ 符指代是当前地址</span><br><span class="line"></span><br><span class="line">;-----------------------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>multiboot 的头部 必须包含以下三个：</p>
+<ol>
+<li>magic  number ： 必须包含一个固定的数 – 0xABADB002 用于引导程序识别兼容multi内核</li>
+<li>flags ：标志引导程序需要提供哪些额外的信息 是否需要内核对齐 是否需要内存信息等</li>
+<li>checksum：校验和 用来确保 要求其结果必须是32位的无符号值 0 (即magic + flags + checksum &#x3D; 0)</li>
+</ol>
+</blockquote>
+<h2 id="3-4-入口函数实现"><a href="#3-4-入口函数实现" class="headerlink" title="3.4 入口函数实现"></a>3.4 入口函数实现</h2><blockquote>
+<p>init&#x2F;entry.c</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> <span class="title function_">kern_entry</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>inlcude&#x2F;types.h</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> INCLUDE_TYPES_H_</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INCLUDE_TYPES_H_</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> NULL</span></span><br><span class="line">        <span class="meta">#<span class="keyword">define</span> NULL 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifndef</span> TRUE</span></span><br><span class="line">    <span class="meta">#<span class="keyword">define</span> TRUE 1</span></span><br><span class="line">    <span class="meta">#<span class="keyword">define</span> FALSE 0</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">int</span> <span class="type">uint32_t</span>;</span><br><span class="line"><span class="keyword">typedef</span>          <span class="type">int</span> <span class="type">int32_t</span>;</span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">short</span> <span class="type">uint16_t</span>;</span><br><span class="line"><span class="keyword">typedef</span>          <span class="type">short</span> <span class="type">int16_t</span>;</span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">char</span> <span class="type">uint8_t</span>;</span><br><span class="line"><span class="keyword">typedef</span>          <span class="type">char</span> <span class="type">int8_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span>   <span class="comment">// include types h </span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>首先make</p>
+<p>然后执行 make qemu</p>
+<blockquote>
+<p>make 的时候 可能会报错 sudo mount floppy.img &#x2F;mnt&#x2F;kernel mount: &#x2F;mnt&#x2F;kernel: mount point does not exist.</p>
+<p>这个时候直接去 &#x2F;mnt 下创建kernel文件夹就行 提示权限不够就用sudo mkdir kernel</p>
+</blockquote>
+<p>此时出现的是空白</p>
+<p><img src="/2024/04/12/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0/image-20240430183522064.png" alt="image-20240430183522064"></p>
+<blockquote>
+<p>执行  make qemu</p>
+<p>注意！！！ 在vscode 下终端执行会报错 </p>
+<p>需要去终端执行</p>
+<p>解决方案见：<a href="https://blog.csdn.net/endangered_ds/article/details/135860103">qemu-system-i386 库文件libpthread.so.0未定义符号_undefined symbol:libc_pthread_init-CSDN博客</a></p>
+</blockquote>
+<p>在entry中添加下面代码会显示 hello OS kernel</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;typers.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">kern_entry</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">uint8_t</span> *input = (<span class="type">uint8_t</span> *)<span class="number">0xB8000</span>;</span><br><span class="line">	<span class="type">uint8_t</span> color = (<span class="number">0</span> &lt;&lt; <span class="number">4</span>) | (<span class="number">15</span> &amp; <span class="number">0x0F</span>);</span><br><span class="line"></span><br><span class="line">	*input++ = <span class="string">&#x27;H&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;e&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;l&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;l&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;o&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;,&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27; &#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;O&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;S&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27; &#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;K&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;e&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;r&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;n&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;e&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;l&#x27;</span>; *input++ = color;</span><br><span class="line">	*input++ = <span class="string">&#x27;!&#x27;</span>; *input++ = color;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="/2024/04/12/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0/image-20240430184001925.png" alt="image-20240430184001925"></p>
+<h1 id="4-字符模式下的显卡驱动"><a href="#4-字符模式下的显卡驱动" class="headerlink" title="4.字符模式下的显卡驱动"></a>4.字符模式下的显卡驱动</h1><blockquote>
+<p>所有在PC上工作的显卡 在加点初始化之后都会自动初始化到 <strong>80*25</strong> 文本模式，表示屏幕被划分成了25行，每行可以显示80个字符</p>
+<p>所以一屏可以显示2000个字符 0xB8000 - 0xBFFFF这个地址段 便是映射到文本模式的显存的</p>
+</blockquote>
+<p>内码：定义了字符在内存中存储的形式</p>
+<p>对应关系从0xB8000 开始 每两个字节表示屏幕上显示一个字符。这两个字节前一个字节是显示字符串的ASCII 码，后一个是控制这个字符颜色和属性的控制信息</p>
+<p><img src="/2024/04/12/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0/image-20240430204238998.png" alt="image-20240430204238998"></p>
+<p><img src="/2024/04/12/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0/image-20240430204540029.png" alt="image-20240430204540029"></p>
+<h2 id="4-1-端口读写函数的实现"><a href="#4-1-端口读写函数的实现" class="headerlink" title="4.1 端口读写函数的实现"></a>4.1 端口读写函数的实现</h2><blockquote>
+<p>libs&#x2F;common.c</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;common.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 写一个字节</span></span><br><span class="line"><span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">outb</span><span class="params">(<span class="type">uint16_t</span> port, <span class="type">uint8_t</span> value)</span> &#123;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;outb %1, %0&quot;</span> :: <span class="string">&quot;dN&quot;</span> (port), <span class="string">&quot;a&quot;</span> (value))</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读一个字节</span></span><br><span class="line"><span class="keyword">inline</span> <span class="type">uint8_t</span> <span class="title function_">inb</span><span class="params">(<span class="type">uint16_t</span> port)</span> &#123;</span><br><span class="line">    <span class="type">uint8_t</span> ret;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;inb %1, &amp;0&quot;</span> : <span class="string">&quot;=a&quot;</span>(ret) : <span class="string">&quot;dN&quot;</span> (port))</span>;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读一个字 （两个字节）</span></span><br><span class="line"><span class="keyword">inline</span> <span class="type">uint16_t</span> <span class="title function_">inw</span><span class="params">(<span class="type">uint16_t</span> port)</span> &#123;</span><br><span class="line">    <span class="type">uint16_t</span> ret;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;inw %1, %0&quot;</span> : <span class="string">&quot;=a&quot;</span> (ret) : <span class="string">&quot;dN&quot;</span> (port))</span>;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>采用c语言配合汇编代码编写</p>
+<ul>
+<li><code>outb %1, %0 </code> 输出指令 像端口发送数据 %1 和 %0 是操作占位符，对应后面的输入输出操作列表</li>
+<li><code>dN</code>（port）：告诉编译器 使用dx寄存器 或者一个立即数来存放端口号 port</li>
+<li><code>a (value)</code>：约束使用指定寄存器ax 存放要输出的值 value</li>
+</ul>
+<blockquote>
+<p>GCC 内嵌汇编语法</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">( AssemblerTemplate : OutputOperands : InputOperands : Clobbers )</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>AssemblerTemplate</code> 是实际的汇编指令。</li>
+<li><code>OutputOperands</code> 是输出操作数，指示汇编代码写入的变量。</li>
+<li><code>InputOperands</code> 是输入操作数，指示汇编代码读取的变量。</li>
+<li><code>Clobbers</code> 告诉编译器这段汇编代码可能会修改的寄存器或内存。</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>inline 用于提示编译器将函数的定义直接插入到函数调用的位置，而不是通过函数调用的 方式执行 好处：</p>
+<ol>
+<li>减少函数调用的开销 — 程序本身较小的时候 省略调用过程减少开销</li>
+<li>优化程序性能 — 函数体直接插入调用位置，编译器更容易优化</li>
+<li>避免链接问题</li>
+<li>提升模块化  — 小的 频繁调用的函数定义为inline</li>
+<li>支持递归</li>
+</ol>
+<p>宏定义 没有参数类型检查喔  inline 有</p>
+</blockquote>
+<blockquote>
+<p>include&#x2F;common.h</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> INCLUDE_COMMON_H_</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INCLUDE_COMMON_H_</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;typers.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//端口写一个字节</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">outb</span><span class="params">(<span class="type">uint16_t</span> port, <span class="type">uint8_t</span> value)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读一个字节</span></span><br><span class="line"><span class="type">uint8_t</span> <span class="title function_">inb</span><span class="params">(<span class="type">uint16_t</span> port)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读一个字</span></span><br><span class="line"><span class="type">uint16_t</span> <span class="title function_">inw</span><span class="params">(<span class="type">uint16_t</span> port)</span>; </span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">// include</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>libs&#x2F;common.c</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;common.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 写一个字节</span></span><br><span class="line"><span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">outb</span><span class="params">(<span class="type">uint16_t</span> port, <span class="type">uint8_t</span> value)</span> &#123;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;outb %1, %0&quot;</span> :: <span class="string">&quot;dN&quot;</span> (port), <span class="string">&quot;a&quot;</span> (value))</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读一个字节</span></span><br><span class="line"><span class="keyword">inline</span> <span class="type">uint8_t</span> <span class="title function_">inb</span><span class="params">(<span class="type">uint16_t</span> port)</span> &#123;</span><br><span class="line">    <span class="type">uint8_t</span> ret;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;inb %1, &amp;0&quot;</span> : <span class="string">&quot;=a&quot;</span>(ret) : <span class="string">&quot;dN&quot;</span> (port))</span>;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读一个字</span></span><br><span class="line"><span class="keyword">inline</span> <span class="type">uint16_t</span> <span class="title function_">inw</span><span class="params">(<span class="type">uint16_t</span> port)</span> &#123;</span><br><span class="line">    <span class="type">uint16_t</span> ret;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;inw %1, %0&quot;</span> : <span class="string">&quot;=a&quot;</span> (ret) : <span class="string">&quot;dN&quot;</span> (port))</span>;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-2-颜色的枚举定义和屏幕操作函数实现"><a href="#4-2-颜色的枚举定义和屏幕操作函数实现" class="headerlink" title="4.2 颜色的枚举定义和屏幕操作函数实现"></a>4.2 颜色的枚举定义和屏幕操作函数实现</h2><blockquote>
+<p>include&#x2F;console.h</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> INCLUDE_CONSOLE_H_</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INCLUDE_CONSOLE_H_</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;typers.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> </span><br><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">real_color</span> &#123;</span></span><br><span class="line">    rc_black = <span class="number">0</span>,</span><br><span class="line">    rc_blue = <span class="number">1</span>,</span><br><span class="line">    rc_green = <span class="number">2</span>,</span><br><span class="line">    rc_cyan = <span class="number">3</span>,</span><br><span class="line">    rc_red = <span class="number">4</span>,</span><br><span class="line">    rc_magenta = <span class="number">5</span>,</span><br><span class="line">    rc_brown = <span class="number">6</span>,</span><br><span class="line">    rc_light_grey = <span class="number">7</span>,</span><br><span class="line">    rc_dark_grey = <span class="number">8</span>,</span><br><span class="line">    rc_light_blue = <span class="number">9</span>,</span><br><span class="line">    rc_light_green = <span class="number">10</span>,</span><br><span class="line">    rc_light_cyan = <span class="number">11</span>,</span><br><span class="line">    rc_light_red = <span class="number">12</span>,</span><br><span class="line">    rc_light_magenta = <span class="number">13</span>,</span><br><span class="line">    rc_light_brown = <span class="number">14</span>,  <span class="comment">//yellow</span></span><br><span class="line">    rc_white = <span class="number">15</span></span><br><span class="line"></span><br><span class="line">&#125;<span class="type">real_color_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 清屏</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_clear</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 屏幕输出一个字符带颜色</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_putc_color</span><span class="params">(<span class="type">char</span> c, <span class="type">real_color_t</span> back, <span class="type">real_color_t</span> fore)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 屏幕打印一个以 \0 结尾的字符串 默认黑底白字</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_write</span><span class="params">(<span class="type">char</span> *cstr)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 屏幕打印一个以\0结尾的字符串 带颜色</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_write_color</span><span class="params">(<span class="type">char</span> *cstr, <span class="type">real_color_t</span> back, <span class="type">real_color_t</span> fore)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 十六进制的整形术</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_write_hex</span><span class="params">(<span class="type">uint32_t</span> n, <span class="type">real_color_t</span> back, <span class="type">real_color_t</span> fore)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 十进制</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_write_dec</span><span class="params">(<span class="type">uint32_t</span> n, <span class="type">real_color_t</span> back, <span class="type">real_color_t</span> fore)</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">// include</span></span></span><br></pre></td></tr></table></figure>
+
+<p><strong>使用枚举的好处</strong></p>
+<ol>
+<li><strong>提高代码可读性</strong>：使用枚举可以使代码更易读和维护。</li>
+<li><strong>减少错误</strong>：枚举限制了<strong>变量可以接受的值，减少了错误的可能性</strong>。</li>
+<li><strong>便于比较</strong>：枚举项可以很容易地进行比较和排序。</li>
+<li><strong>方便维护</strong>：如果未来需要添加或修改值，枚举使得这些变更更加集中和统一。</li>
+</ol>
+<blockquote>
+<p>driver&#x2F;console.c</p>
+</blockquote>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;console.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;common.h&quot;</span></span></span><br><span class="line"><span class="comment">// VGA 的显示缓冲的起点 0xB8000</span></span><br><span class="line"><span class="type">static</span> <span class="type">uint16_t</span> *video_memory = (<span class="type">uint16_t</span> *)<span class="number">0xB8000</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 屏幕光标的坐标   static 限定 作用域</span></span><br><span class="line"><span class="type">static</span> <span class="type">uint8_t</span> cursor_x = <span class="number">0</span>;  <span class="comment">// 光标的水平坐标</span></span><br><span class="line"><span class="type">static</span> <span class="type">uint8_t</span> cursor_y = <span class="number">0</span>;  <span class="comment">// 光标的垂直坐标</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 屏幕输入光标的移动</span></span><br><span class="line"><span class="function"><span class="type">static</span> <span class="type">void</span> <span class="title">move_cursor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 屏幕80 字节宽</span></span><br><span class="line">    <span class="type">uint16_t</span> cursorLocation = cursor_y * <span class="number">80</span> + cursor_x;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// VGA 内部的寄存器多达300多个，显然无法一一映射到I/O端口的地址空间。</span></span><br><span class="line">	<span class="comment">// 对此 VGA 控制器的解决方案是，将一个端口作为内部寄存器的索引：0x3D4，</span></span><br><span class="line">	<span class="comment">// 再通过 0x3D5 端口来设置相应寄存器的值。</span></span><br><span class="line">	<span class="comment">// 在这里用到的两个内部寄存器的编号为14与15，分别表示光标位置的高8位与低8位。</span></span><br><span class="line">    </span><br><span class="line">    <span class="built_in">outb</span>(<span class="number">0x3D4</span>, <span class="number">14</span>);                    <span class="comment">// VGA 我们要设置光标的高字节</span></span><br><span class="line">    <span class="built_in">outb</span>(<span class="number">0x3D5</span>, cursorLocation &gt;&gt; <span class="number">8</span>);   <span class="comment">// 发送高8位</span></span><br><span class="line">    <span class="built_in">outb</span>(<span class="number">0x3D4</span>, <span class="number">15</span>);                    <span class="comment">// 低字节</span></span><br><span class="line">    <span class="built_in">outb</span>(<span class="number">0x3D5</span>, cursorLocation);        <span class="comment">// 发送低8位</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>变量定义</strong></p>
+<ul>
+<li><code>static uint16_t *video_memory = (uint16_t *)0xB8000;</code><ul>
+<li>这是一个指向视频内存开始地址的指针，VGA文本模式通常从物理地址 <code>0xB8000</code> 开始。这块内存用于存放屏幕上显示的字符及其属性（如颜色）。</li>
+<li><code>uint16_t</code> 表示每个内存位置可以存储16位数据，<strong>通常前8位是字符的ASCII码，后8位是字符的属性（前景色和背景色）</strong>。</li>
+</ul>
+</li>
+</ul>
+<p><strong><code>move_cursor</code> 函数</strong></p>
+<ul>
+<li><p>这个函数用于移动屏幕光标到由 <code>cursor_x</code> 和 <code>cursor_y</code> 指定的位置。</p>
+</li>
+<li><p><code>uint16_t cursorLocation = cursor_y * 80 + cursor_x;</code></p>
+<ul>
+<li>这行代码计算光标在video内存中的位置索引。因为每<strong>行有80个字符，所以每增加一行，索引增加80。</strong></li>
+</ul>
+</li>
+<li><p><code>outb(0x3D4, 14);</code></p>
+<ul>
+<li>调用 <code>outb</code> 函数向端口 <code>0x3D4</code> 写入值 <code>14</code>。<code>0x3D4</code> 是VGA端口地址，用于指定接下来要设置的是光标位置的高字节。</li>
+</ul>
+</li>
+<li><p><code>outb(0x3D5, cursorLocation &gt;&gt; 8);</code></p>
+<ul>
+<li>将光标位置的高8位（通过右移8位获得）写入VGA数据寄存器 <code>0x3D5</code>。</li>
+</ul>
+</li>
+<li><p><code>outb(0x3D4, 15);</code></p>
+<ul>
+<li>再次向端口 <code>0x3D4</code> 写入值 <code>15</code>，指定接下来要设置的是光标位置的低字节。</li>
+</ul>
+</li>
+<li><p><code>outb(0x3D5, cursorLocation);</code></p>
+<ul>
+<li>将光标位置的低8位直接写入VGA数据寄存器 <code>0x3D5</code>。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>清屏操作</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 清屏操作  实际上就是利用白底黑字的空格 覆盖</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_clear</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">uint8_t</span> attribute_byte = (<span class="number">0</span> &lt;&lt; <span class="number">4</span>) | (<span class="number">15</span> &amp; <span class="number">0x0F</span>);  <span class="comment">// 0x0F = 0x00001111</span></span><br><span class="line">    <span class="type">uint16_t</span> blank = <span class="number">0x20</span> | (attribute_byte &lt;&lt; <span class="number">8</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">80</span> * <span class="number">25</span>; i++) &#123;</span><br><span class="line">        video_memory[i] = blank;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    cursor_x = <span class="number">0</span>;</span><br><span class="line">    cursor_y = <span class="number">0</span>;</span><br><span class="line">    move_cursor();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>uint8_t attribute_byte = (0 &lt;&lt; 4) | (15 &amp; 0x0F);</code><ul>
+<li>这行代码定义了字符的显示属性。VGA文本模式中每个字符占用两个字节：一个字节表示字符的ASCII码，另一个字节定义字符的显示属性（包括前景色和背景色）。</li>
+<li><code>(0 &lt;&lt; 4)</code> 设置背景色为黑色（颜色代码0）。0 左移 4 位是因为背景色占据属性字节的高4位。</li>
+<li><code>(15 &amp; 0x0F)</code> 设置前景色为白色（颜色代码15）。<code>&amp; 0x0F</code> 确保颜色代码不超过15，因为前景色占据低4位。</li>
+</ul>
+</li>
+<li><code>uint16_t blank = 0x20 | (attribute_byte &lt;&lt; 8);</code><ul>
+<li>将空格字符（ASCII码 0x20）和属性字节组合成一个16位的值。属性字节通过左移8位移到高字节位置，然后与空格字符的ASCII码合并。这样，<code>blank</code> 变量代表一个带有指定颜色属性的空格字符。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>屏幕滚动</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 屏幕滚动 就是将后24行的数据全部向上挪动一行 最后一行清空</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">scroll</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// attrbute_byte 被构造出一个黑底白字的描述格式</span></span><br><span class="line">    <span class="type">uint8_t</span> attribute_byte = (<span class="number">0</span> &lt;&lt; <span class="number">4</span>) | (<span class="number">15</span> &amp; <span class="number">0x0F</span>);</span><br><span class="line">    <span class="type">uint16_t</span> blank = <span class="number">0x20</span> | (attribute_byte &lt;&lt; <span class="number">8</span>);   <span class="comment">// space 是 0x20</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// cursor_y 到25的时候就该换行；</span></span><br><span class="line">    <span class="keyword">if</span> (cursor_y &gt;= <span class="number">25</span>) &#123;</span><br><span class="line">        <span class="comment">// 将所有的行显示数据复制到上一行 ，第一行永远消失</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span> * <span class="number">80</span>; i &lt; <span class="number">24</span> * <span class="number">80</span>; i++) &#123;</span><br><span class="line">            video_memory[i] = video_memory[i + <span class="number">80</span>];</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 最后一行填充数据</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">24</span>* <span class="number">80</span>; i &lt; <span class="number">25</span>* <span class="number">80</span>; i++) &#123;</span><br><span class="line">            video_memory[i] = blank;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 向上移动一行 所以cursor_y = 24</span></span><br><span class="line">        cursor_y = <span class="number">24</span>;</span><br><span class="line"></span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上同理</p>
+<blockquote>
+<p>显示字符</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 显示字符串</span></span><br><span class="line"><span class="comment">// 先实现一个字符</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_putc_color</span><span class="params">(<span class="type">char</span> c, <span class="type">real_color_t</span> back, <span class="type">real_color_t</span> fore)</span> &#123;</span><br><span class="line">    <span class="type">uint8_t</span> back_color = (<span class="type">uint8_t</span>)back;</span><br><span class="line">    <span class="type">uint8_t</span> fore_color = (<span class="type">uint8_t</span>)fore;</span><br><span class="line">	<span class="comment">//背景颜色左移4位，与前景色进行位或操作，合成一个字节的颜色属性。</span></span><br><span class="line">    <span class="type">uint8_t</span> attribute_byte = (back_color &lt;&lt; <span class="number">4</span>) | (fore_color &amp; <span class="number">0x0F</span>);</span><br><span class="line">    <span class="type">uint16_t</span> attribute = attribute_byte &lt;&lt; <span class="number">8</span>; <span class="comment">// 将属性字节左移8位，以便与字符的ASCII值合并形成16位的值，用于直接写入video内存</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 0x08 是退格的ASCII</span></span><br><span class="line">    <span class="comment">// 0x09 是tab</span></span><br><span class="line">    <span class="keyword">if</span> (c == <span class="number">0x08</span> &amp;&amp; cursor_x) &#123;</span><br><span class="line">        cursor_x--; <span class="comment">// 退格</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (c == <span class="number">0x09</span>) &#123;</span><br><span class="line">        cursor_x = (cursor_x + <span class="number">8</span>) &amp; ~(<span class="number">8</span> - <span class="number">1</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (c == <span class="string">&#x27;\r&#x27;</span>) &#123;</span><br><span class="line">        cursor_x = <span class="number">0</span>; <span class="comment">// </span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (c == <span class="string">&#x27;\n&#x27;</span>) &#123;</span><br><span class="line">        cursor_x = <span class="number">0</span>;</span><br><span class="line">        cursor_y++; <span class="comment">// 换行</span></span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (c &gt;= <span class="string">&#x27; &#x27;</span>) &#123;</span><br><span class="line">        video_memory[cursor_y* <span class="number">80</span> + cursor_x] = c | attribute;</span><br><span class="line">        cursor_x++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 超过80 换行</span></span><br><span class="line">    <span class="keyword">if</span> (cursor_x &gt;= <span class="number">80</span>) &#123;</span><br><span class="line">        cursor_x = <span class="number">0</span>;</span><br><span class="line">        cursor_y++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    scroll();</span><br><span class="line"></span><br><span class="line">    move_cursor();</span><br><span class="line">&#125;     </span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>字符串输出</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// yijuhua</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_write</span><span class="params">(<span class="type">char</span>*cstr)</span> &#123;</span><br><span class="line">    <span class="keyword">while</span>(*cstr) &#123;</span><br><span class="line">        console_putc_color(*cstr++, rc_black, rc_white);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 带颜色</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_write_color</span><span class="params">(<span class="type">char</span> *cstr, <span class="type">real_color_t</span> back, <span class="type">real_color_t</span> fore)</span> &#123;</span><br><span class="line">    <span class="keyword">while</span>(*cstr) &#123;</span><br><span class="line">        console_putc_color(*cstr++, back, fore);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>16进制</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 16 nums</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_write_hex</span><span class="params">(<span class="type">uint32_t</span> n, <span class="type">real_color_t</span> back, <span class="type">real_color_t</span> fore)</span> &#123;</span><br><span class="line">    <span class="type">int</span> tmp;</span><br><span class="line">	<span class="type">char</span> noZeroes = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">	console_write_color(<span class="string">&quot;0x&quot;</span>, back, fore); <span class="comment">// 先打印出0x</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 16进制转换</span></span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">28</span>; i &gt;= <span class="number">0</span>; i -= <span class="number">4</span>) &#123;</span><br><span class="line">		tmp = (n &gt;&gt; i) &amp; <span class="number">0xF</span>;</span><br><span class="line">		<span class="keyword">if</span> (tmp == <span class="number">0</span> &amp;&amp; noZeroes != <span class="number">0</span>) &#123;</span><br><span class="line">		      <span class="keyword">continue</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		noZeroes = <span class="number">0</span>;</span><br><span class="line">		<span class="keyword">if</span> (tmp &gt;= <span class="number">0xA</span>) &#123;</span><br><span class="line">		      console_putc_color(tmp<span class="number">-0xA</span>+<span class="string">&#x27;a&#x27;</span>, back, fore);  <span class="comment">// 如果输出的数字大于等于10 A-F 则转换相应的小写字母进行输出</span></span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		      console_putc_color(tmp+<span class="string">&#x27;0&#x27;</span>, back, fore);     <span class="comment">// 否则就正常输出</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>循环从28位开始，每次右移4位，直到0位。由于十六进制是基于4位二进制，这种方式可以每次处理一个十六进制数字。</p>
+</li>
+<li><pre><code>for (int i = 28; i &gt;= 0; i -= 4) &#123;
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">- ```</span><br><span class="line">  tmp = (n &gt;&gt; i) &amp; 0xF;</span><br></pre></td></tr></table></figure>
+
+  - 通过右移和与操作，每次提取4位，转换为一个十六进制的数字（0-15）。
+
+- ```
+  if (tmp == 0 &amp;&amp; noZeroes != 0) &#123; continue; &#125;
+  <figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">  - 如果提取的数字为0，并且还未遇到任何非零数字，则跳过当前循环迭代，不输出该零。</span><br><span class="line"></span><br><span class="line">- ```</span><br><span class="line">  noZeroes = 0;</span><br></pre></td></tr></table></figure>
+
+  - 一旦输出了第一个非零数字，将 `noZeroes` 设为0，以允许后续的零被输出。
+</code></pre>
+</li>
+</ul>
+<blockquote>
+<p>10进制</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 10 nums</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">console_write_dec</span><span class="params">(<span class="type">uint32_t</span> n, <span class="type">real_color_t</span> back, <span class="type">real_color_t</span> fore)</span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (n == <span class="number">0</span>) &#123;</span><br><span class="line">		console_putc_color(<span class="string">&#x27;0&#x27;</span>, back, fore);</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="type">uint32_t</span> acc = n;</span><br><span class="line">	<span class="type">char</span> c[<span class="number">32</span>];</span><br><span class="line">	<span class="type">int</span> i = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span> (acc &gt; <span class="number">0</span>) &#123;</span><br><span class="line">		c[i] = <span class="string">&#x27;0&#x27;</span> + acc % <span class="number">10</span>;</span><br><span class="line">		acc /= <span class="number">10</span>;</span><br><span class="line">		i++;</span><br><span class="line">	&#125;</span><br><span class="line">	c[i] = <span class="number">0</span>;  <span class="comment">// 字符串终结符</span></span><br><span class="line"></span><br><span class="line">	<span class="type">char</span> c2[<span class="number">32</span>];</span><br><span class="line">	c2[i--] = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="type">int</span> j = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">while</span>(i &gt;= <span class="number">0</span>) &#123;</span><br><span class="line">	      c2[i--] = c[j++];  <span class="comment">// 反转字符串</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	console_write_color(c2, back, fore);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><pre><code class="c">while (acc &gt; 0) &#123; c[i] = &#39;0&#39; + acc % 10; acc /= 10; i++; &#125;
+</code></pre>
+<ul>
+<li>循环直到 <code>acc</code> 为0。每次循环取出 <code>acc</code> 的最低位（<code>acc % 10</code>），加上字符 ‘0’ 转换成对应的字符，存入 <code>c[i]</code>，然后 <code>acc</code> 除以10准备下一次迭代。</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>执行make clean</p>
+<p>make</p>
+<p>make qemu</p>
+</blockquote>
+<p><img src="/2024/04/12/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0%5Cimage-20240507165856179.png" alt="image-20240507165856179"></p>
+]]></content>
+      <categories>
+        <category>x86内核实现</category>
+      </categories>
+      <tags>
+        <tag>x86</tag>
+        <tag>linxu</tag>
+        <tag>内核</tag>
+      </tags>
+  </entry>
 </search>
