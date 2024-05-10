@@ -2136,4 +2136,129 @@ fa 18 40 00 00 00 00 00
         <tag>内核</tag>
       </tags>
   </entry>
+  <entry>
+    <title>基于x86架构的简单内核实现-3-全局段描述符表</title>
+    <url>/2024/05/10/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0-3-%E5%85%A8%E5%B1%80%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%A1%A8/</url>
+    <content><![CDATA[<h1 id="6-添加全局段描述符表"><a href="#6-添加全局段描述符表" class="headerlink" title="6.添加全局段描述符表"></a>6.添加全局段描述符表</h1><h2 id="6-1保护模式"><a href="#6-1保护模式" class="headerlink" title="6.1保护模式"></a>6.1保护模式</h2><p>保护模式需要对内存段的性质和允许的操作给出定义，以实 现对特定内存段的访问检测和数据保护</p>
+<p>80386中原先的 AX，BX，CX，DX，SI，DI，SP，BP从16位扩展（Extend）到了32位，并改名EAX，EBX， ECX，EDX，ESI，EDI，ESP，EBP，<strong>E就是Extend</strong>的意思。</p>
+<blockquote>
+<p>8036<strong>保护模式下的分段</strong></p>
+<p>8036 虽然采用分段的方式进行寻址，但是 只是分了一个段</p>
+<p><strong>即段基址为0x00000000， 短长为0xFFFFFFFF（4GB）</strong></p>
+</blockquote>
+<p>32位的保护模式下，对一个内存段的描述需要8个字节 — 段描述符  （8字节 &#x3D; 64位）</p>
+<blockquote>
+<p>段描述符又分为：数据段描述符，指令段描述符和系统段描述符三种</p>
+</blockquote>
+<img src="/2024/05/10/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0-3-%E5%85%A8%E5%B1%80%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%A1%A8/image-20240510181329916.png" alt="image-20240510181329916" style="zoom:67%;">
+
+
+
+<p>描述符表：在<strong>内存中</strong>存放在描述符的集合</p>
+<blockquote>
+<p>intel 直接设置了一个48位的全局描述符表寄存器（GDTR）来保存描述符表的信息</p>
+</blockquote>
+<img src="/2024/05/10/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0-3-%E5%85%A8%E5%B1%80%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%A1%A8/image-20240510200652839.png" alt="image-20240510200652839" style="zoom:67%;">
+
+<p>16位来表示表的长度，那么2的16次方就是65536字节，除以每一个描述符的8字 节，<strong>那么最多能创建8192个描述符</strong></p>
+<blockquote>
+<p><strong>现代操作系统不在使用分段，而是直接使用分页技术</strong></p>
+<p>分页只是保护模式下的一种内存管理策略</p>
+</blockquote>
+<h2 id="6-2分段策略-gdt-h"><a href="#6-2分段策略-gdt-h" class="headerlink" title="6.2分段策略 - gdt.h"></a>6.2分段策略 - gdt.h</h2><p>GRUB 在载入内核时候的一些状态</p>
+<blockquote>
+<ol>
+<li><p>CS 指向基地址为 0x00000000，限长为4G – 1的<strong>代码段描述符</strong>。 </p>
+</li>
+<li><p>DS，SS，ES，FS 和 GS 指向基地址为0x00000000，限长为4G–1的<strong>数据段描述符</strong>。</p>
+</li>
+</ol>
+</blockquote>
+<p>在内核中实现GDT 全局描述符表</p>
+<blockquote>
+<p>include&#x2F;gdt.h</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> INCLUDE_GDT_H_</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INCLUDE_GDT_H_</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;types.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 全局描述符类型  具体多少位 对应可以看上述的图 共8字节 64位</span></span><br><span class="line"><span class="keyword">typedef</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">gdt_entry_t</span> &#123;</span></span><br><span class="line">	<span class="type">uint16_t</span> limit_low;     <span class="comment">// 段界限   15～0</span></span><br><span class="line">	<span class="type">uint16_t</span> base_low;      <span class="comment">// 段基地址 15～0</span></span><br><span class="line">	<span class="type">uint8_t</span>  base_middle;   <span class="comment">// 段基地址 23～16</span></span><br><span class="line">	<span class="type">uint8_t</span>  access;        <span class="comment">// 段存在位、描述符特权级、描述符类型、描述符子类别</span></span><br><span class="line">	<span class="type">uint8_t</span>  granularity; 	<span class="comment">// 其他标志、段界限 19～16</span></span><br><span class="line">	<span class="type">uint8_t</span>  base_high;     <span class="comment">// 段基地址 31～24</span></span><br><span class="line">&#125; __attribute__((packed)) <span class="type">gdt_entry_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// GDTR  48位</span></span><br><span class="line"><span class="keyword">typedef</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">gdt_ptr_t</span> &#123;</span></span><br><span class="line">	<span class="type">uint16_t</span> limit; 	<span class="comment">// 全局描述符表限长 16位</span></span><br><span class="line">	<span class="type">uint32_t</span> base; 		<span class="comment">// 全局描述符表 32位 基地址</span></span><br><span class="line">&#125; __attribute__((packed)) <span class="type">gdt_ptr_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化全局描述符表</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">init_gdt</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// GDT 加载到 GDTR 的函数[汇编实现]</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">gdt_flush</span><span class="params">(<span class="type">uint32_t</span>)</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> 	<span class="comment">// INCLUDE_GDT_H_</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p><code>__attribute__((packed))</code></p>
+<p> 是一个由GCC提供的特殊属性，用于指示编译器如何在内存中布局结构体或联合体的成员。使用这个属性可以<strong>确保编译器生成的数据结构不进行任何自动的内存对齐</strong>，而是严格按照成员声明的顺序将它们紧密地打包在一起。</p>
+</blockquote>
+<p><strong>函数实现</strong></p>
+<blockquote>
+<p>gdt&#x2F;gdt.c</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;gdt.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;string.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 全局描述符表长度</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GDT_LENGTH 5</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 全局描述符表定义</span></span><br><span class="line"><span class="type">gdt_entry_t</span> gdt_entries[GDT_LENGTH];</span><br><span class="line"></span><br><span class="line"><span class="comment">// GDTR</span></span><br><span class="line"><span class="type">gdt_ptr_t</span> gdt_ptr;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 全局描述符表构造函数，根据下标构造  参数 GDT表中索引， 段基地址， 段的大小限制， 段的类型 特权级等，段的颗粒度。 </span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">gdt_set_gate</span><span class="params">(<span class="type">int32_t</span> num, <span class="type">uint32_t</span> base, <span class="type">uint32_t</span> limit, <span class="type">uint8_t</span> access, <span class="type">uint8_t</span> gran)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 声明内核栈地址</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">uint32_t</span> <span class="built_in">stack</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化全局描述符表</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">init_gdt</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">// 全局描述符表界限 e.g. 从 0 开始，所以总长要 - 1</span></span><br><span class="line">	gdt_ptr.limit = <span class="keyword">sizeof</span>(<span class="type">gdt_entry_t</span>) * GDT_LENGTH - <span class="number">1</span>;</span><br><span class="line">	gdt_ptr.base = (<span class="type">uint32_t</span>)&amp;gdt_entries;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 采用 Intel 平坦模型   5个 gdt</span></span><br><span class="line">	gdt_set_gate(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);             	<span class="comment">// 按照 Intel 文档要求，第一个描述符必须全 0</span></span><br><span class="line">	gdt_set_gate(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0xFFFFFFFF</span>, <span class="number">0x9A</span>, <span class="number">0xCF</span>); 	<span class="comment">// 指令段</span></span><br><span class="line">	gdt_set_gate(<span class="number">2</span>, <span class="number">0</span>, <span class="number">0xFFFFFFFF</span>, <span class="number">0x92</span>, <span class="number">0xCF</span>); 	<span class="comment">// 数据段</span></span><br><span class="line">	gdt_set_gate(<span class="number">3</span>, <span class="number">0</span>, <span class="number">0xFFFFFFFF</span>, <span class="number">0xFA</span>, <span class="number">0xCF</span>); 	<span class="comment">// 用户模式代码段</span></span><br><span class="line">	gdt_set_gate(<span class="number">4</span>, <span class="number">0</span>, <span class="number">0xFFFFFFFF</span>, <span class="number">0xF2</span>, <span class="number">0xCF</span>); 	<span class="comment">// 用户模式数据段</span></span><br><span class="line"></span><br><span class="line">	<span class="comment">// 加载全局描述符表地址到 GPTR 寄存器</span></span><br><span class="line">	gdt_flush((<span class="type">uint32_t</span>)&amp;gdt_ptr);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 全局描述符表构造函数，根据下标构造</span></span><br><span class="line"><span class="comment">// 参数分别是 数组下标、基地址、限长、访问标志，其它访问标志</span></span><br><span class="line"><span class="comment">/* 结构体定义如下：</span></span><br><span class="line"><span class="comment">typedef struct</span></span><br><span class="line"><span class="comment">&#123;</span></span><br><span class="line"><span class="comment">	uint16_t limit_low;     // 段界限   15～0</span></span><br><span class="line"><span class="comment">	uint16_t base_low;      // 段基地址 15～0</span></span><br><span class="line"><span class="comment">	uint8_t  base_middle;   // 段基地址 23～16</span></span><br><span class="line"><span class="comment">	uint8_t  access;        // 段存在位、描述符特权级、描述符类型、描述符子类别</span></span><br><span class="line"><span class="comment">	uint8_t  granularity; 	// 其他标志、段界限 19～16</span></span><br><span class="line"><span class="comment">	uint8_t  base_high;     // 段基地址 31～24</span></span><br><span class="line"><span class="comment">&#125; __attribute__((packed)) gdt_entry_t;</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">gdt_set_gate</span><span class="params">(<span class="type">int32_t</span> num, <span class="type">uint32_t</span> base, <span class="type">uint32_t</span> limit, <span class="type">uint8_t</span> access, <span class="type">uint8_t</span> gran)</span></span><br><span class="line">&#123;</span><br><span class="line">	gdt_entries[num].base_low     = (base &amp; <span class="number">0xFFFF</span>);</span><br><span class="line">	gdt_entries[num].base_middle  = (base &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0xFF</span>;</span><br><span class="line">	gdt_entries[num].base_high    = (base &gt;&gt; <span class="number">24</span>) &amp; <span class="number">0xFF</span>;</span><br><span class="line"></span><br><span class="line">	gdt_entries[num].limit_low    = (limit &amp; <span class="number">0xFFFF</span>);</span><br><span class="line">	gdt_entries[num].granularity  = (limit &gt;&gt; <span class="number">16</span>) &amp; <span class="number">0x0F</span>;</span><br><span class="line"></span><br><span class="line">	gdt_entries[num].granularity |= gran &amp; <span class="number">0xF0</span>;</span><br><span class="line">	gdt_entries[num].access       = access;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>GDT_LENGTH 5</strong>  — 为什么是5</p>
+<p>在典型的x86保护模式操作系统中，这些段通常包括：</p>
+<ol>
+<li><strong>空描述符（Null Descriptor）</strong>:<ul>
+<li>按照Intel的规定，GDT的第一个条目必须是一个空描述符。这不是用于实际的内存段，但它有助于捕捉到无效的段选择器访问，因为任何尝试访问索引为0的描述符的操作都会导致异常。</li>
+</ul>
+</li>
+<li><strong>内核代码段（Kernel Code Segment）</strong>:<ul>
+<li>用于操作系统内核代码的执行。这通常是特权级0的代码段，只能由内核访问。</li>
+</ul>
+</li>
+<li><strong>内核数据段（Kernel Data Segment）</strong>:<ul>
+<li>用于操作系统内核数据。这也是特权级0的数据段。</li>
+</ul>
+</li>
+<li><strong>用户代码段（User Code Segment）</strong>:<ul>
+<li>用于用户模式程序的代码执行。这是特权级3的代码段，允许用户级应用程序执行。</li>
+</ul>
+</li>
+<li><strong>用户数据段（User Data Segment）</strong>:<ul>
+<li>用于用户模式程序的数据。这同样是特权级3的数据段。</li>
+</ul>
+</li>
+</ol>
+<p>定义这5个条目是为了确保操作系统能够正确区分内核模式和用户模式，同时处理用户程序和内核之间的权限切换。这种分隔是现代操作系统安全性和稳定性的关键，因为它防止了用户程序直接访问内核资源和其他敏感数据。</p>
+<blockquote>
+<p>gdt&#x2F;gdt_s.s</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">[GLOBAL gdt_flush]</span><br><span class="line"></span><br><span class="line">gdt_flush:</span><br><span class="line">	mov eax, [esp+4]  ; 参数存入 eax 寄存器</span><br><span class="line">	lgdt [eax]        ; 加载到 GDTR [修改原先GRUB设置]</span><br><span class="line"></span><br><span class="line">	mov ax, 0x10      ; 加载我们的数据段描述符</span><br><span class="line">	mov ds, ax        ; 更新所有可以更新的段寄存器</span><br><span class="line">	mov es, ax</span><br><span class="line">	mov fs, ax</span><br><span class="line">	mov gs, ax</span><br><span class="line">	mov ss, ax</span><br><span class="line">	jmp 0x08:.flush   ; 远跳转，0x08是我们的代码段描述符</span><br><span class="line">			  ; 远跳目的是清空流水线并串行化处理器</span><br><span class="line">.flush:</span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><strong>获取参数并加载GDT</strong><ul>
+<li><code>mov eax, [esp+4]</code>: 这条指令从栈中获取函数参数。在C语言调用汇编时，参数通常通过栈传递。<code>[esp+4]</code> 表示取栈指针 <code>esp</code> 向上偏移4个字节的位置的值（因为 <code>esp</code> 指向的是返回地址），这里保存的是传递给 <code>gdt_flush</code> 函数的参数，即新GDT的地址。</li>
+<li><code>lgdt [eax]</code>: <code>lgdt</code> 是加载全局描述符表寄存器（GDTR）的指令。<code>[eax]</code> 表示使用 <code>eax</code> 寄存器中的地址来加载GDTR。这里的地址指向一个 <code>gdt_ptr</code> 结构，其中包含了GDT的长度和基址。</li>
+</ul>
+</li>
+<li><strong>更新段寄存器</strong><ul>
+<li><code>mov ax, 0x10</code>: 将16进制值 <code>0x10</code> 移动到 <code>ax</code> 寄存器。这个值是数据段的选择子（selector），在GDT中的偏移量。这通常指向GDT中的第二个条目（首个条目是空描述符），这里定义为内核数据段。</li>
+<li><code>mov ds, ax</code>、<code>mov es, ax</code>、<code>mov fs, ax</code>、<code>mov gs, ax</code>、<code>mov ss, ax</code>: 这些指令将数据段选择子加载到所有数据段寄存器（<code>ds</code>, <code>es</code>, <code>fs</code>, <code>gs</code>, <code>ss</code>）。这样确保所有的段寄存器都指向正确的段描述符，对应新的GDT设置。</li>
+</ul>
+</li>
+<li><strong>远跳转以更新代码段寄存器和清空流水线</strong><ul>
+<li><code>jmp 0x08:.flush</code>: 执行一个远跳转到同一代码段中的<code>.flush</code>标签。<code>0x08</code> 是代码段的选择子（在GDT中的位置），这里通常指向GDT的第一个代码段描述符。<strong>远跳转不仅跳转到指定的代码段，还强制CPU清空预取队列和流水线，并且实际上更新了CPU的内部结构，使代码段寄存器（<code>cs</code>）与新的GDT同步。</strong></li>
+<li><code>.flush:</code>: 这是远跳转的目标位置，紧跟着的 <code>ret</code> 指令会返回到调用 <code>gdt_flush</code> 的代码中。</li>
+</ul>
+</li>
+</ol>
+<figure class="highlight diff"><table><tr><td class="code"><pre><span class="line">// 在调用 gdt_flush 函数之前，调用者（可能是C语言的初始化代码）将参数（gdt_ptr 的地址）压入栈中，并调用 gdt_flush 函数。栈的结构大致如下：</span><br><span class="line"><span class="addition">+-----------------+   &lt;- ESP (栈指针)</span></span><br><span class="line">|   参数：&amp;gdt_ptr   |</span><br><span class="line"><span class="addition">+-----------------+</span></span><br><span class="line">|   返回地址       |</span><br><span class="line"><span class="addition">+-----------------+</span></span><br><span class="line">|   调用者的局部变量  |</span><br><span class="line"><span class="addition">+-----------------+</span></span><br><span class="line">|   ...            |</span><br><span class="line"></span><br><span class="line">// 当 gdt_flush 函数被调用时，CPU自动将返回地址（即调用 gdt_flush 之后的下一条指令的地址）压入栈中。此时，ESP 指向栈中的返回地址。</span><br><span class="line"><span class="addition">+-----------------+   &lt;- ESP (新的栈指针位置)</span></span><br><span class="line">|   返回地址       |</span><br><span class="line"><span class="addition">+-----------------+</span></span><br><span class="line">|   参数：&amp;gdt_ptr   |</span><br><span class="line"><span class="addition">+-----------------+</span></span><br><span class="line">|   调用者的局部变量  |</span><br><span class="line"><span class="addition">+-----------------+</span></span><br><span class="line">|   ...            |</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>修改 entry.c</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;types.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;console.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;debug.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;gdt.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">kern_entry</span><span class="params">()</span>&#123;</span><br><span class="line">    init_debug();</span><br><span class="line">    init_gdt();</span><br><span class="line">    </span><br><span class="line">    console_clear();</span><br><span class="line">	<span class="comment">//console_write_color(&quot;Hello, OS kernel!\n&quot;, rc_black, rc_green);</span></span><br><span class="line">    <span class="comment">//panic(&quot;test&quot;);</span></span><br><span class="line">    </span><br><span class="line">    printk_color(rc_blue, rc_red, <span class="string">&quot;Hello OS!!!\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="/2024/05/10/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0-3-%E5%85%A8%E5%B1%80%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%A1%A8/image-20240510212154383.png" alt="image-20240510212154383"></p>
+]]></content>
+      <categories>
+        <category>x86内核实现</category>
+      </categories>
+      <tags>
+        <tag>x86</tag>
+        <tag>linxu</tag>
+        <tag>内核</tag>
+      </tags>
+  </entry>
 </search>
