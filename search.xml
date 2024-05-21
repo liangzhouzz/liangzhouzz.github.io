@@ -2902,10 +2902,12 @@ fa 18 40 00 00 00 00 00
 </blockquote>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;sched.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;task.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> flag = <span class="number">0</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">thread</span><span class="params">(<span class="type">void</span> *arg)</span> &#123;</span><br><span class="line">	<span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span> (flag == <span class="number">1</span>) &#123;</span><br><span class="line">			printk_color(rc_black, rc_green, <span class="string">&quot;B&quot;</span>);</span><br><span class="line">			flag = <span class="number">0</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">test_heap();</span><br><span class="line"></span><br><span class="line">	init_sched();</span><br><span class="line"></span><br><span class="line">	kernel_thread(thread, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 开启中断</span></span><br><span class="line">	<span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(<span class="string">&quot;sti&quot;</span>)</span>;</span><br><span class="line">	<span class="comment">//enable_intr();</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span> (flag == <span class="number">0</span>) &#123;</span><br><span class="line">			printk_color(rc_black, rc_red, <span class="string">&quot;A&quot;</span>);</span><br><span class="line">			flag = <span class="number">1</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">		<span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(<span class="string">&quot;hlt&quot;</span>)</span>;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
 
-
-
-
-
+<p>通过中断实现线程切换的流程逻辑： 通过中断和简单的线程调度机制实现交替打印</p>
+<ol>
+<li>首先创建了一个内存线程thread函数，并且，初始化线程</li>
+<li><code>init_timer(200)</code> 每200ms出发中断，，中断中进行系统调用</li>
+<li><code>init_timer(200)</code>  —- <code>timecallback()</code> — <code>schedule()</code> — <code>change_task_to()更换线程</code> — <code>swicth_to()</code>进行上下文切换</li>
+</ol>
 <p><img src="/2024/05/21/x86-8-thread/image-20240521164433586.png" alt="image-20240521164433586"></p>
 ]]></content>
       <categories>
