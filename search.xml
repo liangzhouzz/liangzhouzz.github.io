@@ -1737,7 +1737,7 @@ fa 18 40 00 00 00 00 00
       </tags>
   </entry>
   <entry>
-    <title>基于qemu-riscv构件嵌入式系统</title>
+    <title>基于qemu-riscv构建嵌入式系统</title>
     <url>/2024/03/25/%E5%9F%BA%E4%BA%8Eqemu-riscv%E6%9E%84%E4%BB%B6%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/</url>
     <content><![CDATA[<h1 id="1-基础"><a href="#1-基础" class="headerlink" title="1.基础"></a>1.基础</h1><h2 id="1-1-qemu-环境搭建"><a href="#1-1-qemu-环境搭建" class="headerlink" title="1.1 qemu 环境搭建"></a>1.1 qemu 环境搭建</h2><h3 id="主要参考文章："><a href="#主要参考文章：" class="headerlink" title="主要参考文章："></a>主要参考文章：</h3><ol>
 <li><a href="https://quard-star-tutorial.readthedocs.io/zh-cn/latest/ch2.html">基于qemu-riscv从0开始构建嵌入式linux系统ch2. 添加qemu仿真板——Quard-Star板 — 主页 (quard-star-tutorial.readthedocs.io)</a></li>
@@ -1752,14 +1752,16 @@ fa 18 40 00 00 00 00 00
 <h3 id="qemu-环境配置："><a href="#qemu-环境配置：" class="headerlink" title="qemu 环境配置："></a>qemu 环境配置：</h3><p>新建 build.sh 文件，用于qemu的编译，</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd qemu-8.0.0</span><br><span class="line">if [ ! -d &quot;$SHELL_FOLDER/output/qemu&quot; ]; then  </span><br><span class="line">./configure --prefix=$SHELL_FOLDER/output/qemu  --target-list=riscv64-softmmu --enable-gtk  --enable-virtfs --disable-gio</span><br><span class="line">fi  </span><br><span class="line">make -j16</span><br><span class="line">make install</span><br><span class="line">cd ..</span><br></pre></td></tr></table></figure>
 
+<blockquote>
 <ul>
 <li>注意：这种的环境变量并没有添加到终端中，终端并不能直接执行shell命令，需要去到<code>qemu/bin</code>下面才能执行，所以需要将路径添加到<code>zshrc</code>中</li>
 </ul>
+</blockquote>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">export PATH=$PATH:/home/liangzhou/桌面/riscv code/output/qemu/bin</span><br></pre></td></tr></table></figure>
 
 <p><img src="/2024/03/25/%E5%9F%BA%E4%BA%8Eqemu-riscv%E6%9E%84%E4%BB%B6%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/image-20240326112910836.png" alt="image-20240326112910836"></p>
 <ul>
-<li>然后在终端输入：<code>qemu-system-riscv --version</code></li>
+<li>然后在终端输入：<code>qemu-system-riscv64 --version</code></li>
 </ul>
 <h2 id="1-2-新建板卡"><a href="#1-2-新建板卡" class="headerlink" title="1.2 新建板卡"></a>1.2 新建板卡</h2><p>需要增加两个文件以及并修改四个文件</p>
 <ol>
@@ -1784,13 +1786,23 @@ fa 18 40 00 00 00 00 00
 
 
 
-<p>注意：</p>
+<blockquote>
+<p>注意： 格式是 基址， 长度</p>
+<p>MenMapEntry 结构体定义如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">MemMapEntry</span> &#123;</span></span><br><span class="line">    hwaddr base; <span class="comment">//基址</span></span><br><span class="line">    hwaddr size; <span class="comment">//长度</span></span><br><span class="line">&#125; MemMapEntry;</span><br></pre></td></tr></table></figure>
+</blockquote>
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">const</span> MemMapEntry quard_star_memmap[] = &#123;</span><br><span class="line">    [QUARD_STAR_MROM]  = &#123;        <span class="number">0x0</span>,        <span class="number">0x8000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_SRAM]  = &#123;     <span class="number">0x8000</span>,        <span class="number">0x8000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_UART0] = &#123; <span class="number">0x10000000</span>,         <span class="number">0x100</span> &#125;,</span><br><span class="line">    [QUARD_STAR_DRAM]  = &#123; <span class="number">0x80000000</span>,          <span class="number">0x80</span> &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
 <ol>
-<li>maskrom 用于cpu启动时固定执行其内部的代码</li>
-<li>sran 为早期启动代码时数据存放的空间</li>
+<li><code>MRON</code>（maskrom） 用于cpu启动时固定执行其内部的代码。</li>
+<li><code>SRAM</code> 为早期启动代码时数据存放的空间。</li>
 </ol>
+<blockquote>
+<p><code>riscv_setup_rom_reset_vec</code> 在boot.c中 函数的各个参数的定义如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">riscv_setup_rom_reset_vec</span><span class="params">(MachineState *machine, RISCVHartArrayState *harts,</span></span><br><span class="line"><span class="params">                               hwaddr start_addr,</span></span><br><span class="line"><span class="params">                               hwaddr rom_base, </span></span><br><span class="line"><span class="params">                               hwaddr rom_size,</span></span><br><span class="line"><span class="params">                               <span class="type">uint64_t</span> kernel_entry, <span class="type">uint64_t</span> fdt_load_addr)</span></span><br></pre></td></tr></table></figure>
+
+
+</blockquote>
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">riscv_setup_rom_reset_vec</span>(machine, &amp;s-&gt;soc[<span class="number">0</span>], </span><br><span class="line">                              quard_star_memmap[QUARD_STAR_MROM].base,</span><br><span class="line">                              quard_star_memmap[QUARD_STAR_MROM].base,</span><br><span class="line">                              quard_star_memmap[QUARD_STAR_MROM].size,</span><br><span class="line">                              <span class="number">0x0</span>, <span class="number">0x0</span>);</span><br></pre></td></tr></table></figure>
 
 <ol>
@@ -1802,7 +1814,9 @@ fa 18 40 00 00 00 00 00
 <ol>
 <li>初始化machine，将machine中的各个字段进行更新</li>
 </ol>
-<h3 id="1-2-3-文件执行"><a href="#1-2-3-文件执行" class="headerlink" title="1.2.3 文件执行"></a>1.2.3 文件执行</h3><p>run.sh文件</p>
+<h3 id="1-2-3-文件执行"><a href="#1-2-3-文件执行" class="headerlink" title="1.2.3 文件执行"></a>1.2.3 文件执行</h3><blockquote>
+<p>run.sh文件</p>
+</blockquote>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SHELL_FOLDER=$(cd &quot;$(dirname &quot;$0&quot;)&quot;;pwd)</span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">SHELL_FOLDER/output/qemu/bin/qemu-system-riscv64 \</span></span><br><span class="line"><span class="language-bash">-M quard-star \</span></span><br><span class="line"><span class="language-bash">-m 1G \</span></span><br><span class="line"><span class="language-bash">-smp 8 \</span></span><br></pre></td></tr></table></figure>
 
 <ol>
@@ -1811,6 +1825,8 @@ fa 18 40 00 00 00 00 00
 <li><code>-m 1G</code>: 为虚拟机分配1GB的内存。</li>
 <li><code>-smp 8</code>: 配置虚拟机使用的处理器核心数为8，即虚拟机将模拟一个8核心的处理器。</li>
 </ol>
+<p>在qemu中输入 info qtree</p>
+<p><img src="/2024/03/25/%E5%9F%BA%E4%BA%8Eqemu-riscv%E6%9E%84%E4%BB%B6%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/image-20240602213630396.png" alt="image-20240602213630396"></p>
 ]]></content>
       <categories>
         <category>riscv</category>
