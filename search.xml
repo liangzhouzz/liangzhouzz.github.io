@@ -1739,7 +1739,7 @@ fa 18 40 00 00 00 00 00
   <entry>
     <title>基于qemu-riscv构建嵌入式系统</title>
     <url>/2024/03/25/%E5%9F%BA%E4%BA%8Eqemu-riscv%E6%9E%84%E4%BB%B6%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/</url>
-    <content><![CDATA[<h1 id="1-基础"><a href="#1-基础" class="headerlink" title="1.基础"></a>1.基础</h1><h2 id="1-1-qemu-环境搭建"><a href="#1-1-qemu-环境搭建" class="headerlink" title="1.1 qemu 环境搭建"></a>1.1 qemu 环境搭建</h2><h3 id="主要参考文章："><a href="#主要参考文章：" class="headerlink" title="主要参考文章："></a>主要参考文章：</h3><ol>
+    <content><![CDATA[<h1 id="1-引言-板卡环境搭建"><a href="#1-引言-板卡环境搭建" class="headerlink" title="1.引言-板卡环境搭建"></a>1.引言-板卡环境搭建</h1><h2 id="1-1-qemu-环境搭建"><a href="#1-1-qemu-环境搭建" class="headerlink" title="1.1 qemu 环境搭建"></a>1.1 qemu 环境搭建</h2><h3 id="主要参考文章："><a href="#主要参考文章：" class="headerlink" title="主要参考文章："></a>主要参考文章：</h3><ol>
 <li><a href="https://quard-star-tutorial.readthedocs.io/zh-cn/latest/ch2.html">基于qemu-riscv从0开始构建嵌入式linux系统ch2. 添加qemu仿真板——Quard-Star板 — 主页 (quard-star-tutorial.readthedocs.io)</a></li>
 <li><a href="https://yanglianoo.github.io/2023/06/12/QEMU%E4%B8%AD%E8%87%AA%E5%AE%9A%E4%B9%89%E5%BC%80%E5%8F%91%E6%9D%BF/">1.新建quard-star开发板 | TimerのBlog (yanglianoo.github.io)</a></li>
 <li><a href="https://blog.csdn.net/qq_42878531/article/details/124755865">【RISC-V】risc-v架构学习笔记（架构初学）_riscv mtvec-CSDN博客</a></li>
@@ -2933,6 +2933,181 @@ fa 18 40 00 00 00 00 00
         <tag>x86</tag>
         <tag>linxu</tag>
         <tag>内核</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>qemu-riscv-add-flash-itr-gpio</title>
+    <url>/2024/06/02/qemu-riscv-add-flash-itr-gpio/</url>
+    <content><![CDATA[<h1 id="1-添加flash"><a href="#1-添加flash" class="headerlink" title="1.添加flash"></a>1.添加flash</h1><blockquote>
+<p>这里加的是pflash意为并行flash。</p>
+</blockquote>
+<blockquote>
+<p>include&#x2F;quard_star.h</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">QuardStarState</span> &#123;</span></span><br><span class="line">    <span class="comment">/*&lt; private &gt;*/</span></span><br><span class="line">    MachineState parent;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*&lt; public &gt;*/</span></span><br><span class="line">    RISCVHartArrayState soc[QUARD_STAR_SOCKETS_MAX];</span><br><span class="line">    PFlashCFI01 *flash;   <span class="comment">// FLASH</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">enum</span> &#123;</span></span><br><span class="line">    QUARD_STAR_MROM,</span><br><span class="line">    QUARD_STAR_SRAM,</span><br><span class="line">    QUARD_STAR_UART0,</span><br><span class="line">    QUARD_STAR_FLASH,  <span class="comment">// FLASH</span></span><br><span class="line">    QUARD_STAR_DRAM,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<blockquote>
+<p>quard_star.c</p>
+<p>定义flash的起始地址和大小 32M</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">const</span> MemMapEntry quard_star_memmap[] = &#123;</span><br><span class="line">    [QUARD_STAR_MROM]  = &#123;        <span class="number">0x0</span>,        <span class="number">0x8000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_SRAM]  = &#123;     <span class="number">0x8000</span>,        <span class="number">0x8000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_UART0] = &#123; <span class="number">0x10000000</span>,         <span class="number">0x100</span> &#125;,</span><br><span class="line">    [QUARD_STAR_FLASH] = &#123; <span class="number">0x20000000</span>,     <span class="number">0x2000000</span> &#125;, <span class="comment">// 定义flash的起始地址和大小 32M</span></span><br><span class="line">    [QUARD_STAR_DRAM]  = &#123; <span class="number">0x80000000</span>,          <span class="number">0x80</span> &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>创建pflash，并且映射到系统总线对应的地址上，最后将其关联 到qemu参数 <code>-drive if=pflash, bus = 0, uint  = 0</code></li>
+<li>这样启动的时候就可以将固件文件加载到这 这篇flash上</li>
+</ul>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">static</span> <span class="type">void</span> <span class="title">quard_star_flash_create</span><span class="params">(MchineState *machine)</span> </span>&#123;</span><br><span class="line">    <span class="meta">#<span class="keyword">define</span> QUARD_STAR_FLASH_SECTOR_SIZE (256 * KiB)</span></span><br><span class="line">    QuardStarState *s = <span class="built_in">RISCV_VIRT_MACHINE</span>(machine);</span><br><span class="line">    MemoryRegion *system_memory = <span class="built_in">get_system_memory</span>();</span><br><span class="line">    DeviceState *dev = <span class="built_in">qdev_new</span>(TYPE_PFLASH_CFI01);</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// 一些参数的 配置</span></span><br><span class="line">    <span class="built_in">qdev_prop_set_uint64</span>(dev, <span class="string">&quot;sector-length&quot;</span>, QUARD_STAR_FLASH_SECTOR_SIZE);</span><br><span class="line">    <span class="built_in">qdev_prop_set_uint8</span>(dev, <span class="string">&quot;width&quot;</span>, <span class="number">4</span>);</span><br><span class="line">    <span class="built_in">qdev_prop_set_uint8</span>(dev, <span class="string">&quot;device-width&quot;</span>, <span class="number">2</span>);</span><br><span class="line">    <span class="built_in">qdev_prop_set_bit</span>(dev, <span class="string">&quot;big-endian&quot;</span>, <span class="literal">false</span>);</span><br><span class="line">    <span class="built_in">qdev_prop_set_uint16</span>(dev, <span class="string">&quot;id0&quot;</span>, <span class="number">0x89</span>);</span><br><span class="line">    <span class="built_in">qdev_prop_set_uint16</span>(dev, <span class="string">&quot;id1&quot;</span>, <span class="number">0x18</span>);</span><br><span class="line">    <span class="built_in">qdev_prop_set_uint16</span>(dev, <span class="string">&quot;id2&quot;</span>, <span class="number">0x00</span>);</span><br><span class="line">    <span class="built_in">qdev_prop_set_uint16</span>(dev, <span class="string">&quot;id3&quot;</span>, <span class="number">0x00</span>);</span><br><span class="line">    <span class="built_in">qdev_prop_set_string</span>(dev, <span class="string">&quot;name&quot;</span>,<span class="string">&quot;quard-star.flash0&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">object_property_add_child</span>(<span class="built_in">OBJECT</span>(s), <span class="string">&quot;quard-star.flash0&quot;</span>, <span class="built_in">OBJECT</span>(dev));</span><br><span class="line">    <span class="built_in">object_property_add_alias</span>(<span class="built_in">OBJECT</span>(s), <span class="string">&quot;pflash0&quot;</span>,</span><br><span class="line">                              <span class="built_in">OBJECT</span>(dev), <span class="string">&quot;drive&quot;</span>);</span><br><span class="line"></span><br><span class="line">    s-&gt;flash = <span class="built_in">PFLASH_CFI01</span>(dev);</span><br><span class="line">    <span class="built_in">pflash_cfi01_legacy_drive</span>(s-&gt;flash,<span class="built_in">drive_get</span>(IF_PFLASH, <span class="number">0</span>, <span class="number">0</span>));</span><br><span class="line"></span><br><span class="line">    hwaddr flashsize = quard_star_memmap[QUARD_STAR_FLASH].size;</span><br><span class="line">    hwaddr flashbase = quard_star_memmap[QUARD_STAR_FLASH].base;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">assert</span>(<span class="built_in">QEMU_IS_ALIGNED</span>(flashsize, QUARD_STAR_FLASH_SECTOR_SIZE));   <span class="comment">// 断言</span></span><br><span class="line">    <span class="built_in">assert</span>(flashsize / QUARD_STAR_FLASH_SECTOR_SIZE &lt;= UINT32_MAX);</span><br><span class="line">    <span class="built_in">qdev_prop_set_uint32</span>(dev, <span class="string">&quot;num-blocks&quot;</span>, flashsize / QUARD_STAR_FLASH_SECTOR_SIZE);</span><br><span class="line">    <span class="built_in">sysbus_realize_and_unref</span>(<span class="built_in">SYS_BUS_DEVICE</span>(dev), &amp;error_fatal);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memory_region_add_subregion</span>(system_memory, flashbase,</span><br><span class="line">                                <span class="built_in">sysbus_mmio_get_region</span>(<span class="built_in">SYS_BUS_DEVICE</span>(dev),</span><br><span class="line">                                                       <span class="number">0</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>初始化</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">quard_star_machine_init</span><span class="params">(MachineState *machine)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="comment">//创建CPU</span></span><br><span class="line">   quard_star_cpu_create(machine);</span><br><span class="line">   <span class="comment">// 创建主存</span></span><br><span class="line">   quard_star_memory_create(machine);</span><br><span class="line">   <span class="comment">// flash</span></span><br><span class="line">   quard_star_flash_create(machine);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>修改quard_star_setup_rom_reset_vec函数中bootrom的跳转地址为pflash上的地址。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">riscv_setup_rom_reset_vec(machine, &amp;s-&gt;soc[<span class="number">0</span>], </span><br><span class="line">                              quard_star_memmap[QUARD_STAR_FLASH].base,</span><br><span class="line">                              quard_star_memmap[QUARD_STAR_MROM].base,</span><br><span class="line">                              quard_star_memmap[QUARD_STAR_MROM].size,</span><br><span class="line">                              <span class="number">0x0</span>, <span class="number">0x0</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>Kconfig 新增flash 设备</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">config QUARD_STAR</span><br><span class="line">    <span class="type">bool</span></span><br><span class="line">    select SERIAL</span><br><span class="line">    select PFLASH_CFI01 <span class="comment">// flash</span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>测试</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">./build.sh</span><br><span class="line">./run.sh</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2024/06/02/qemu-riscv-add-flash-itr-gpio/image-20240602224916448.png" alt="image-20240602224916448"></p>
+<h1 id="2-中断控制器"><a href="#2-中断控制器" class="headerlink" title="2.中断控制器"></a>2.中断控制器</h1><p>串口使用需要使用到中断，后续的一些外设也有需求 这里使用 <code>sifive</code></p>
+<blockquote>
+<p>quard_star.c 增加基址</p>
+<p>riscv的中断分为两个部分，<strong>为内核中断CLINT(Core Local Interrupt)和外设中断控制器Platform-Level Interrupt Controller(PLIC)</strong></p>
+</blockquote>
+<p>plic 和 clint 基址的增加 以及相应发分配大小</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">const</span> MemMapEntry quard_star_memmap[] = &#123;</span><br><span class="line">    [QUARD_STAR_MROM]  = &#123;        <span class="number">0x0</span>,        <span class="number">0x8000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_SRAM]  = &#123;     <span class="number">0x8000</span>,        <span class="number">0x8000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_CLINT] = &#123; <span class="number">0x02000000</span>,       <span class="number">0x10000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_PLIC]  = &#123; <span class="number">0x0C000000</span>,     <span class="number">0x4000000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_UART0] = &#123; <span class="number">0x10000000</span>,         <span class="number">0x100</span> &#125;,</span><br><span class="line">    [QUARD_STAR_FLASH] = &#123; <span class="number">0x20000000</span>,     <span class="number">0x2000000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_DRAM]  = &#123; <span class="number">0x80000000</span>,          <span class="number">0x80</span> &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>分别新建CLINT 和 PLIC 创建函数， plic 在循环中遍历所有的socket ， 每个socket需要配置独立的PLIC来管理中断请求</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// plic</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">quard_star_plic_create</span><span class="params">(MachineState *machine)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> socket_count = riscv_socket_count(machine);</span><br><span class="line">    QuardStarState *s = RISCV_VIRT_MACHINE(machine);</span><br><span class="line">    <span class="type">int</span> i,hart_count,base_hartid;</span><br><span class="line">    <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; socket_count; i++) &#123;</span><br><span class="line">    </span><br><span class="line">        hart_count = riscv_socket_hart_count(machine, i);</span><br><span class="line">        base_hartid = riscv_socket_first_hartid(machine, i);</span><br><span class="line">        <span class="type">char</span> *plic_hart_config;</span><br><span class="line">        <span class="comment">/* Per-socket PLIC hart topology configuration string */</span></span><br><span class="line">        plic_hart_config = riscv_plic_hart_config_string(machine-&gt;smp.cpus);</span><br><span class="line">        </span><br><span class="line">        s-&gt;plic[i] = sifive_plic_create(</span><br><span class="line">            quard_star_memmap[QUARD_STAR_PLIC].base + i *quard_star_memmap[QUARD_STAR_PLIC].size ,</span><br><span class="line">            plic_hart_config, hart_count , base_hartid,</span><br><span class="line">            QUARD_STAR_PLIC_NUM_SOURCES,</span><br><span class="line">            QUARD_STAR_PLIC_NUM_PRIORITIES,</span><br><span class="line">            QUARD_STAR_PLIC_PRIORITY_BASE,</span><br><span class="line">            QUARD_STAR_PLIC_PENDING_BASE,</span><br><span class="line">            QUARD_STAR_PLIC_ENABLE_BASE,</span><br><span class="line">            QUARD_STAR_PLIC_ENABLE_STRIDE,</span><br><span class="line">            QUARD_STAR_PLIC_CONTEXT_BASE,</span><br><span class="line">            QUARD_STAR_PLIC_CONTEXT_STRIDE,</span><br><span class="line">            quard_star_memmap[QUARD_STAR_PLIC].size);</span><br><span class="line">        g_free(plic_hart_config);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>这也同理 每个CPU 都需要独立的clint来处理中断请求</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">quard_star_aclint_create</span><span class="params">(MachineState *machine)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i , hart_count,base_hartid;</span><br><span class="line">    <span class="type">int</span> socket_count = riscv_socket_count(machine);</span><br><span class="line">    <span class="comment">//每个CPU都需要创建 aclint</span></span><br><span class="line">    <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; socket_count; i++) &#123;</span><br><span class="line"></span><br><span class="line">        base_hartid = riscv_socket_first_hartid(machine, i);</span><br><span class="line">        hart_count = riscv_socket_hart_count(machine, i);</span><br><span class="line"></span><br><span class="line">        riscv_aclint_swi_create(</span><br><span class="line">        quard_star_memmap[QUARD_STAR_CLINT].base + i 			*quard_star_memmap[QUARD_STAR_CLINT].size,</span><br><span class="line">        base_hartid, hart_count, <span class="literal">false</span>);</span><br><span class="line">        riscv_aclint_mtimer_create(quard_star_memmap[QUARD_STAR_CLINT].base +</span><br><span class="line">             + i *quard_star_memmap[QUARD_STAR_CLINT].size+ RISCV_ACLINT_SWI_SIZE,</span><br><span class="line">            RISCV_ACLINT_DEFAULT_MTIMER_SIZE, base_hartid, hart_count,</span><br><span class="line">            RISCV_ACLINT_DEFAULT_MTIMECMP, RISCV_ACLINT_DEFAULT_MTIME,</span><br><span class="line">            RISCV_ACLINT_DEFAULT_TIMEBASE_FREQ, <span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>函数初始化加上两个函数</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">quard_star_machine_init</span><span class="params">(MachineState *machine)</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="comment">//创建CPU</span></span><br><span class="line">   quard_star_cpu_create(machine);</span><br><span class="line">   <span class="comment">// 创建主存</span></span><br><span class="line">   quard_star_memory_create(machine);</span><br><span class="line">   <span class="comment">// flash</span></span><br><span class="line">   quard_star_flash_create(machine);</span><br><span class="line">   <span class="comment">// PLIC</span></span><br><span class="line">   quard_star_plic_create(machine);</span><br><span class="line">   <span class="comment">// clint</span></span><br><span class="line">   quard_star_aclint_create(machine);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>include&#x2F;quard_star.h</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">QuardStarState</span> &#123;</span></span><br><span class="line">    <span class="comment">/*&lt; private &gt;*/</span></span><br><span class="line">    MachineState parent;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*&lt; public &gt;*/</span></span><br><span class="line">    RISCVHartArrayState soc[QUARD_STAR_SOCKETS_MAX];</span><br><span class="line">    PFlashCFI01 *flash;</span><br><span class="line">    DeviceState *plic[QUARD_STAR_SOCKETS_MAX];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">enum</span> &#123;</span></span><br><span class="line">    QUARD_STAR_MROM,</span><br><span class="line">    QUARD_STAR_SRAM,</span><br><span class="line">    QUARD_STAR_CLINT,</span><br><span class="line">    QUARD_STAR_PLIC,</span><br><span class="line">    QUARD_STAR_UART0,</span><br><span class="line">    QUARD_STAR_FLASH,</span><br><span class="line">    QUARD_STAR_DRAM,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QUARD_STAR_PLIC_NUM_SOURCES     127      <span class="comment">// 中断的最大数量</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QUARD_STAR_PLIC_NUM_PRIORITIES  7        <span class="comment">// 支持中断优先级的数量</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QUARD_STAR_PLIC_PRIORITY_BASE   0x04     <span class="comment">// 中断优先级寄存器的基址  用于访问中断优先级信息</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QUARD_STAR_PLIC_PENDING_BASE    0x1000   <span class="comment">// 挂起寄存器的基址     用于访问挂起状态</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QUARD_STAR_PLIC_ENABLE_BASE     0x2000   <span class="comment">// 使能   用于访问使能状态</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QUARD_STAR_PLIC_ENABLE_STRIDE   0x80     <span class="comment">// 中断使能寄存器中间的地址间隔</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QUARD_STAR_PLIC_CONTEXT_BASE    0x200000 <span class="comment">// 上下文保存寄存器 基址  用于保存中断处理程序的上下文信息</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> QUARD_STAR_PLIC_CONTEXT_STRIDE  0x1000   <span class="comment">// 地址间隔</span></span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<blockquote>
+<p>Kconfig</p>
+<h3 id="select-RISCV-APLIC"><a href="#select-RISCV-APLIC" class="headerlink" title="select RISCV_APLIC"></a><code>select RISCV_APLIC</code></h3><ul>
+<li><strong>RISCV_APLIC</strong>：通常表示支持 RISC-V 规范中定义的高级平台级中断控制器（Advanced Platform-Level Interrupt Controller）。APLIC 是 RISC-V 的一种更通用或高级的中断控制器实现，可能包含一些标准功能，用于在多个 RISC-V 实现中使用。</li>
+</ul>
+<h3 id="select-SIFIVE-PLIC"><a href="#select-SIFIVE-PLIC" class="headerlink" title="select SIFIVE_PLIC"></a><code>select SIFIVE_PLIC</code></h3><ul>
+<li><strong>SIFIVE_PLIC</strong>：特指 SiFive 公司的 PLIC 实现。SiFive 是一家专注于 RISC-V 处理器设计的公司，他们的 PLIC 可能有一些特定于他们硬件的功能或优化。选择这个配置选项表示启用 SiFive PLIC 的支持。</li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">config QUARD_STAR</span><br><span class="line">    <span class="type">bool</span></span><br><span class="line">    select SERIAL</span><br><span class="line">    select PFLASH_CFI01</span><br><span class="line">    select RISCV_ACLINT</span><br><span class="line">    select RISCV_APLIC</span><br><span class="line">    select SIFIVE_PLIC </span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>测试</li>
+</ul>
+<blockquote>
+<p>.&#x2F;build.sh</p>
+<p>.&#x2F;run.sh</p>
+</blockquote>
+<p><img src="/2024/06/02/qemu-riscv-add-flash-itr-gpio/image-20240603204507210.png" alt="image-20240603204507210"></p>
+<h1 id="3-添加串口支持"><a href="#3-添加串口支持" class="headerlink" title="3.添加串口支持"></a>3.添加串口支持</h1><p>需要一些串口打印 进行调试</p>
+<blockquote>
+<p>include&#x2F;quard_star.h</p>
+<p>枚举类型加上 串口信息 和 RTC</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> &#123;</span></span><br><span class="line">    QUARD_STAR_MROM,</span><br><span class="line">    QUARD_STAR_SRAM,</span><br><span class="line">    QUARD_STAR_CLINT,</span><br><span class="line">    QUARD_STAR_PLIC,</span><br><span class="line">    QUARD_STAR_UART0,</span><br><span class="line">    QUARD_STAR_UART1,</span><br><span class="line">    QUARD_STAR_UART2,</span><br><span class="line">    QUARD_STAR_RTC,</span><br><span class="line">    QUARD_STAR_FLASH,</span><br><span class="line">    QUARD_STAR_DRAM,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">enum</span> &#123;</span></span><br><span class="line">    QUARD_STAR_UART0_IRQ = <span class="number">10</span>,  <span class="comment">//定义了串口中断号为10</span></span><br><span class="line">    QUARD_STAR_UART1_IRQ = <span class="number">11</span>,</span><br><span class="line">    QUARD_STAR_UART2_IRQ = <span class="number">12</span>,</span><br><span class="line">    QUARD_STAR_RTC_IRQ   = <span class="number">13</span>,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>hw&#x2F;quard_star.c</p>
+<p>配置基址以及大小</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// BASE SIZE</span></span><br><span class="line"><span class="type">static</span> <span class="type">const</span> MemMapEntry quard_star_memmap[] = &#123;</span><br><span class="line">    [QUARD_STAR_MROM]  = &#123;        <span class="number">0x0</span>,        <span class="number">0x8000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_SRAM]  = &#123;     <span class="number">0x8000</span>,        <span class="number">0x8000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_CLINT] = &#123; <span class="number">0x02000000</span>,       <span class="number">0x10000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_PLIC]  = &#123; <span class="number">0x0C000000</span>,     <span class="number">0x4000000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_UART0] = &#123; <span class="number">0x10000000</span>,         <span class="number">0x100</span> &#125;,</span><br><span class="line">    [QUARD_STAR_UART1] = &#123; <span class="number">0x10001000</span>,         <span class="number">0x100</span> &#125;,</span><br><span class="line">    [QUARD_STAR_UART2] = &#123; <span class="number">0x10002000</span>,         <span class="number">0x100</span> &#125;,</span><br><span class="line">    [QUARD_STAR_RTC]   = &#123; <span class="number">0x10003000</span>,        <span class="number">0x1000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_FLASH] = &#123; <span class="number">0x20000000</span>,     <span class="number">0x2000000</span> &#125;,</span><br><span class="line">    [QUARD_STAR_DRAM]  = &#123; <span class="number">0x80000000</span>,          <span class="number">0x80</span> &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>配置RTC 以及 UART</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">quard_star_rtc_create</span><span class="params">(MachineState *machine)</span></span><br><span class="line">&#123;    </span><br><span class="line">    QuardStarState *s = RISCV_VIRT_MACHINE(machine);</span><br><span class="line">    sysbus_create_simple(<span class="string">&quot;goldfish_rtc&quot;</span>, quard_star_memmap[QUARD_STAR_RTC].base,</span><br><span class="line">        qdev_get_gpio_in(DEVICE(s-&gt;plic[<span class="number">0</span>]), QUARD_STAR_RTC_IRQ));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*UART*/</span></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">quard_star_serial_create</span><span class="params">(MachineState *machine)</span></span><br><span class="line">&#123;</span><br><span class="line">    MemoryRegion *system_memory = get_system_memory();</span><br><span class="line">    QuardStarState *s = RISCV_VIRT_MACHINE(machine);</span><br><span class="line">    </span><br><span class="line">    serial_mm_init(system_memory, quard_star_memmap[QUARD_STAR_UART0].base,</span><br><span class="line">        <span class="number">0</span>, qdev_get_gpio_in(DEVICE(s-&gt;plic[<span class="number">0</span>]), QUARD_STAR_UART0_IRQ), <span class="number">399193</span>,</span><br><span class="line">        serial_hd(<span class="number">0</span>), DEVICE_LITTLE_ENDIAN);</span><br><span class="line">    serial_mm_init(system_memory, quard_star_memmap[QUARD_STAR_UART1].base,</span><br><span class="line">        <span class="number">0</span>, qdev_get_gpio_in(DEVICE(s-&gt;plic[<span class="number">0</span>]), QUARD_STAR_UART1_IRQ), <span class="number">399193</span>,</span><br><span class="line">        serial_hd(<span class="number">1</span>), DEVICE_LITTLE_ENDIAN);</span><br><span class="line">    serial_mm_init(system_memory, quard_star_memmap[QUARD_STAR_UART2].base,</span><br><span class="line">        <span class="number">0</span>, qdev_get_gpio_in(DEVICE(s-&gt;plic[<span class="number">0</span>]), QUARD_STAR_UART2_IRQ), <span class="number">399193</span>,</span><br><span class="line">        serial_hd(<span class="number">2</span>), DEVICE_LITTLE_ENDIAN);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>初始化各种配置 init</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">quard_star_rtc_create(machine);</span><br><span class="line">quard_star_serial_create(machine);</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>Kconfig</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">config QUARD_STAR</span><br><span class="line">    <span class="type">bool</span></span><br><span class="line">    select SERIAL</span><br><span class="line">    select PFLASH_CFI01</span><br><span class="line">    select RISCV_ACLINT</span><br><span class="line">    select RISCV_APLIC</span><br><span class="line">    select SIFIVE_PLIC </span><br><span class="line">    select GOLDFISH_RTC</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>测试</li>
+<li>修改run.sh 映射monitor到控制台</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SHELL_FOLDER=$(cd &quot;$(dirname &quot;$0&quot;)&quot;;pwd)</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">SHELL_FOLDER/output/qemu/bin/qemu-system-riscv64 \</span></span><br><span class="line"><span class="language-bash">-M quard-star \</span></span><br><span class="line"><span class="language-bash">-m 1G \</span></span><br><span class="line"><span class="language-bash">-smp 8 \</span></span><br><span class="line"><span class="language-bash">-bios none \</span></span><br><span class="line"><span class="language-bash">-monitor stdio \   <span class="comment">#映射monitor</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">./build.sh</span><br><span class="line">./run.sh</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="/2024/06/02/qemu-riscv-add-flash-itr-gpio/image-20240603224800293.png" alt="image-20240603224800293"></p>
+]]></content>
+      <categories>
+        <category>riscv</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+        <tag>riscv，qemu</tag>
       </tags>
   </entry>
 </search>
