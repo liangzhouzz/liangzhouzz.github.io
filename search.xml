@@ -2936,7 +2936,7 @@ fa 18 40 00 00 00 00 00
       </tags>
   </entry>
   <entry>
-    <title>qemu-riscv-add-flash-itr-gpio</title>
+    <title>riscv-2-flash-itr-gpio</title>
     <url>/2024/06/02/qemu-riscv-add-flash-itr-gpio/</url>
     <content><![CDATA[<h1 id="1-添加flash"><a href="#1-添加flash" class="headerlink" title="1.添加flash"></a>1.添加flash</h1><blockquote>
 <p>这里加的是pflash意为并行flash。</p>
@@ -3101,6 +3101,114 @@ fa 18 40 00 00 00 00 00
 
 
 <p><img src="/2024/06/02/qemu-riscv-add-flash-itr-gpio/image-20240603224800293.png" alt="image-20240603224800293"></p>
+]]></content>
+      <categories>
+        <category>riscv</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+        <tag>riscv，qemu</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>git-操作基础</title>
+    <url>/2024/06/05/git-%E6%93%8D%E4%BD%9C%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<h1 id="1-git"><a href="#1-git" class="headerlink" title="1.git"></a>1.git</h1><p>因为 riscv项目在分别在两台电脑上操作完成，特此记录一下使用操作</p>
+<p>在另一台电脑上（wsl2 Ubuntu20.04）</p>
+<ul>
+<li>配置ssh key</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">ssh-keygen -t rsa -b 4096 -C &quot;your_email@example.com&quot;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">添加到ssh代理</span></span><br><span class="line">eval &quot;$(ssh-agent -s)&quot;</span><br><span class="line">ssh-add ~/.ssh/id_rsa</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">复制密匙 并添加到github</span></span><br><span class="line">cat ~/.ssh/id_rsa.pub</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>在wsl2 将项目与 git仓库关联</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git remote add github git@github.com:liangzhouzz/riscv_project.git</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">然后就是 git add git commit等</span></span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>合并分支</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">#</span><span class="language-bash">切换到main</span></span><br><span class="line">git checkout main</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">拉取最新更改</span></span><br><span class="line">git pull origin main</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">合并新分支</span></span><br><span class="line">git merge new-branch-name</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">如果有冲突 提示处理冲突文件</span></span><br><span class="line">git add .</span><br><span class="line">git commit -m &quot;Resolved merge conflicts&quot;</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">#</span><span class="language-bash">推送合并后的分支</span></span><br><span class="line">git push origin main</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>git</category>
+      </categories>
+      <tags>
+        <tag>git</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>riscv-3-测试串口打印</title>
+    <url>/2024/06/04/riscv-3-%E6%B5%8B%E8%AF%95%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/</url>
+    <content><![CDATA[<h1 id="1-start-s-位于flash的第一条代码"><a href="#1-start-s-位于flash的第一条代码" class="headerlink" title="1.start.s 位于flash的第一条代码"></a>1.start.s 位于flash的第一条代码</h1><p>maskrom中 的代码会引导程序到pflash的零地址  即 <code>0x20000000</code>，所以程序从这个地址开始。</p>
+<ol>
+<li>读取hard id </li>
+<li>如果为0 就跳转_core0 执行打印</li>
+<li>_core0 函数 往flash 0x20000000 一个一个写字母</li>
+</ol>
+<blockquote>
+<p>start.c</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">	.section .text             //定义数据段名为.text</span><br><span class="line">	.globl _start              //定义全局符号_start</span><br><span class="line">	.type _start,@function     //_start为函数</span><br><span class="line"></span><br><span class="line">_start:                        //函数入口</span><br><span class="line">    csrr    a0, mhartid        //csr是riscv专有的内核私有寄存器，独立在12位地址</span><br><span class="line">                               //mhartid寄存是定义了内核的hart id，这里读取到a0寄存器里</span><br><span class="line">    li		t0,	0x0            //li是伪指令，加载立即数0到t0</span><br><span class="line">	beq		a0, t0, _core0     //比较a0和t0,相等则跳转到_core0地址处，否则向下执行</span><br><span class="line">_loop:                         //定义一个_loop符号</span><br><span class="line">	j		_loop              //跳转到_loop，此处形成循环，用意为如果当前cpu core不为</span><br><span class="line">                               //hart 0则循环等待，为hart 0则继续向下执行</span><br><span class="line">_core0:                        //定义一个core0才能执行到此处</span><br><span class="line">	li		t0,	0x100          //t0 = 0x100</span><br><span class="line">	slli	t0,	t0, 20         //t0 左移20位 t0 = 0x10000000</span><br><span class="line">	li		t1,	&#x27;H&#x27;            //t1 = &#x27;H&#x27; 字符的ASCII码值写入t1</span><br><span class="line">	sb		t1, 0(t0)          //s是store写入的意思，b是byte，这里指的是写入t1</span><br><span class="line">                               //的值到t0指向的地址，即为写入0x10000000这个寄存器</span><br><span class="line">                               //这个寄存器正是uart0的发送data寄存器，此时串口会输出&quot;H&quot;</span><br><span class="line">	li		t1,	&#x27;e&#x27;            //接下来都是重复内容</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;l&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;l&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;o&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27; &#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;Q&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;u&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;a&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;r&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;d&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27; &#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;S&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;t&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;a&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;r&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27; &#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;b&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;o&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;a&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;r&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;d&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;!&#x27;</span><br><span class="line">	sb		t1, 0(t0)</span><br><span class="line">	li		t1,	&#x27;\n&#x27;</span><br><span class="line">	sb		t1, 0(t0)          //到这里就会输出&quot;Hello Quard Star board!&quot;  </span><br><span class="line">	j		_loop              //完成后进入loop</span><br><span class="line"></span><br><span class="line">    .end                       //汇编文件结束符号</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h1 id="2-lds-链接文件"><a href="#2-lds-链接文件" class="headerlink" title="2.lds 链接文件"></a>2.lds 链接文件</h1><p>lds 将.s的代码 链接到flash处</p>
+<blockquote>
+<p>boot.lds</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">OUTPUT_ARCH( &quot;riscv&quot; )  /*输出可执行文件平台*/</span><br><span class="line"></span><br><span class="line">ENTRY( _start )         /*程序入口函数*/</span><br><span class="line"></span><br><span class="line">MEMORY                  /*定义内存域*/</span><br><span class="line">&#123; </span><br><span class="line">    /*定义名为flash的内存域属性以及起始地址，大小等*/</span><br><span class="line">	flash (rxai!w) : ORIGIN = 0x20000000, LENGTH = 512k </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">SECTIONS                /*定义段域*/</span><br><span class="line">&#123;</span><br><span class="line">  .text :               /*.text段域*/</span><br><span class="line">  &#123;</span><br><span class="line">    KEEP(*(.text))      /*将所有.text段链接在此域内，keep是保持防止优化，即无论如何都保留此段*/</span><br><span class="line">  &#125; &gt;flash              /*段域的地址(LMA和VMA相同)位于名为flash内存域*/</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>build.sh</p>
+<p>这里交叉编译器使用<code>riscv64-unknown-elf-gcc</code> 用于编译面向RISC-V 64位架构的ELF（可执行和可链接格式）目标文件。这个前缀表示，你正在使用的是针对RISC-V架构未知操作系统（ELF）的GCC编译器。</p>
+<ul>
+<li>制作固件，我们的pflash为32M，因此flash固件比较为32M，我们生成一个32文件，空余位置暂时先填充0，这样就得到了fw.bin固件</li>
+</ul>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">CROSS_PREFIX=riscv64-unknown-elf</span><br><span class="line">if [ ! -d &quot;$SHELL_FOLDER/output/lowlevelboot&quot; ]; then  </span><br><span class="line">mkdir $SHELL_FOLDER/output/lowlevelboot</span><br><span class="line">fi  </span><br><span class="line">cd boot</span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">CROSS_PREFIX-gcc -x assembler-with-cpp -c start.s -o <span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/start.o</span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">CROSS_PREFIX-gcc -nostartfiles -T./boot.lds -Wl,-Map=<span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/lowlevel_fw.map -Wl,--gc-sections <span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/start.o -o <span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/lowlevel_fw.elf</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">使用gnu工具生成原始的程序bin文件</span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">CROSS_PREFIX-objcopy -O binary -S <span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/lowlevel_fw.elf <span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/lowlevel_fw.bin</span></span><br><span class="line"><span class="meta prompt_"># </span><span class="language-bash">使用gnu工具生成反汇编文件，方便调试分析（当然我们这个代码太简单，不是很需要）</span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">CROSS_PREFIX-objdump --<span class="built_in">source</span> --demangle --disassemble --reloc --wide <span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/lowlevel_fw.elf &gt; <span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/lowlevel_fw.lst</span></span><br><span class="line"></span><br><span class="line">cd $SHELL_FOLDER/output/lowlevelboot</span><br><span class="line">rm -rf fw.bin</span><br><span class="line">dd of=fw.bin bs=1k count=32k if=/dev/zero</span><br><span class="line">dd of=fw.bin bs=1k conv=notrunc seek=0 if=lowlevel_fw.bin</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<blockquote>
+<p>run.sh</p>
+<ul>
+<li>加载固件运行qemu仿真，向之前run.sh脚本添加-drive if&#x3D;pflash的参数就可以将固件配置到模拟器的固件加载位置，根据之前qemu内的路径就可以加载执行固件内的代码。</li>
+</ul>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SHELL_FOLDER=$(cd &quot;$(dirname &quot;$0&quot;)&quot;;pwd)</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">SHELL_FOLDER/output/qemu/bin/qemu-system-riscv64 \</span></span><br><span class="line"><span class="language-bash">-M quard-star \</span></span><br><span class="line"><span class="language-bash">-m 1G \</span></span><br><span class="line"><span class="language-bash">-smp 8 \</span></span><br><span class="line"><span class="language-bash">-bios none \</span></span><br><span class="line"><span class="language-bash"><span class="comment">#-monitor stdio \</span></span></span><br><span class="line"><span class="language-bash">-drive <span class="keyword">if</span>=pflash,bus=0,unit=0,format=raw,file=<span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/fw.bin \</span></span><br><span class="line"><span class="language-bash">-nographic --parallel none</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>sudo .&#x2F;build.sh</p>
+<p>sudo .&#x2F;run.sh</p>
+</blockquote>
+<p><img src="/2024/06/04/riscv-3-%E6%B5%8B%E8%AF%95%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/image-20240605202837030.png" alt="image-20240605202837030"></p>
+<h1 id="3-问题"><a href="#3-问题" class="headerlink" title="3.问题"></a>3.问题</h1><blockquote>
+<p>注意安装riscv64交叉编译环境的时候汇报这个错误，可能要指明使用的lib路径</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">$</span><span class="language-bash">CROSS_PREFIX-gcc -L/opt/riscv/riscv64-unknown-elf/lib -L/opt/riscv/lib -x assembler-with-cpp -c start.s -o <span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/start.o</span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">CROSS_PREFIX-gcc -L/opt/riscv/riscv64-unknown-elf/lib -L/opt/riscv/lib</span></span><br></pre></td></tr></table></figure>
+
+
+</blockquote>
+<p><img src="/2024/06/04/riscv-3-%E6%B5%8B%E8%AF%95%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/image-20240604194042617.png" alt="image-20240604194042617"></p>
+<blockquote>
+<p>报错</p>
+<p>.&#x2F;run.sh: 9: -drive: not found</p>
+<p>原因是上面命令有注释然后命令断开了</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SHELL_FOLDER=$(cd &quot;$(dirname &quot;$0&quot;)&quot;;pwd)</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">SHELL_FOLDER/output/qemu/bin/qemu-system-riscv64 \</span></span><br><span class="line"><span class="language-bash">-M quard-star \</span></span><br><span class="line"><span class="language-bash">-m 1G \</span></span><br><span class="line"><span class="language-bash">-smp 8 \</span></span><br><span class="line"><span class="language-bash">-bios none \</span></span><br><span class="line"><span class="language-bash">-drive <span class="keyword">if</span>=pflash,bus=0,unit=0,format=raw,file=<span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/fw.bin \</span></span><br><span class="line"><span class="language-bash">-nographic --parallel none</span></span><br></pre></td></tr></table></figure>
+</blockquote>
 ]]></content>
       <categories>
         <category>riscv</category>
