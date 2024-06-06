@@ -3251,7 +3251,7 @@ fa 18 40 00 00 00 00 00
 </ol>
 <p><img src="/2024/06/06/riscv-4-opensbi/image-20240606114347807.png" alt="image-20240606114347807"></p>
 <p><strong>多级启动流程</strong></p>
-<p><img src="/2024/06/06/riscv-4-opensbi/ZL\source_posts\riscv-4-opensbi\image-20240606115629524.png" alt="image-20240606115629524"></p>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606115629524.png" alt="image-20240606115629524"></p>
 <ul>
 <li>实线箭头代表加载的操作</li>
 <li>虚线箭头代表跳转操作</li>
