@@ -3145,7 +3145,7 @@ fa 18 40 00 00 00 00 00
   <entry>
     <title>riscv-3-测试串口打印</title>
     <url>/2024/06/04/riscv-3-%E6%B5%8B%E8%AF%95%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/</url>
-    <content><![CDATA[<h1 id="1-start-s-位于flash的第一条代码"><a href="#1-start-s-位于flash的第一条代码" class="headerlink" title="1.start.s 位于flash的第一条代码"></a>1.start.s 位于flash的第一条代码</h1><p>maskrom中 的代码会引导程序到pflash的零地址  即 <code>0x20000000</code>，所以程序从这个地址开始。</p>
+    <content><![CDATA[<h1 id="1-start-s-位于flash的第一段代码"><a href="#1-start-s-位于flash的第一段代码" class="headerlink" title="1.start.s 位于flash的第一段代码"></a>1.start.s 位于flash的第一段代码</h1><p>maskrom中 的代码会引导程序到pflash的零地址  即 <code>0x20000000</code>，所以程序从这个地址开始。</p>
 <ol>
 <li>读取hard id </li>
 <li>如果为0 就跳转_core0 执行打印</li>
@@ -3209,6 +3209,190 @@ fa 18 40 00 00 00 00 00
 <p>原因是上面命令有注释然后命令断开了</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">SHELL_FOLDER=$(cd &quot;$(dirname &quot;$0&quot;)&quot;;pwd)</span><br><span class="line"><span class="meta prompt_"></span></span><br><span class="line"><span class="meta prompt_">$</span><span class="language-bash">SHELL_FOLDER/output/qemu/bin/qemu-system-riscv64 \</span></span><br><span class="line"><span class="language-bash">-M quard-star \</span></span><br><span class="line"><span class="language-bash">-m 1G \</span></span><br><span class="line"><span class="language-bash">-smp 8 \</span></span><br><span class="line"><span class="language-bash">-bios none \</span></span><br><span class="line"><span class="language-bash">-drive <span class="keyword">if</span>=pflash,bus=0,unit=0,format=raw,file=<span class="variable">$SHELL_FOLDER</span>/output/lowlevelboot/fw.bin \</span></span><br><span class="line"><span class="language-bash">-nographic --parallel none</span></span><br></pre></td></tr></table></figure>
 </blockquote>
+]]></content>
+      <categories>
+        <category>riscv</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+        <tag>riscv，qemu</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>riscv-4-opensbi</title>
+    <url>/2024/06/06/riscv-4-opensbi/</url>
+    <content><![CDATA[<h1 id="1-riscv的多级启动引导流程介绍"><a href="#1-riscv的多级启动引导流程介绍" class="headerlink" title="1.riscv的多级启动引导流程介绍"></a>1.riscv的多级启动引导流程介绍</h1><p>之前的步骤都是板子的一些外设添加以及，上一节写了个简单的固件程序，目前已经实现了板子的cpu，MROM，SRAM，FLASH，DDR，UART和RTC</p>
+<img src="/2024/06/06/riscv-4-opensbi/image-20240606105450786.png" alt="image-20240606105450786" style="zoom: 67%;">
+
+
+
+<blockquote>
+<p>参考：</p>
+<ol>
+<li><a href="https://blog.csdn.net/flyfish1986/article/details/131043405">RISC-V体系结构的U-Boot引导过程_riscv uboot-CSDN博客</a></li>
+<li><a href="https://www.cnblogs.com/cfas/p/16880724.html">RISC-V启动引导流程 spec - 方东信 - 博客园 (cnblogs.com)</a></li>
+<li><a href="https://github.com/wangzhou/notes/blob/master/%E5%A4%9A%E6%A0%B8%E5%90%AF%E5%8A%A8%E5%9F%BA%E6%9C%AC%E9%80%BB%E8%BE%91">notes&#x2F;多核启动基本逻辑 at master · wangzhou&#x2F;notes (github.com)</a></li>
+</ol>
+</blockquote>
+<p><strong>三种主要的操作模式</strong>，riscv 规范定义了三种主要的操作模式</p>
+<ol>
+<li>U模式（用户模式），运行用户程序的模式，权限级别最低。不能直接访问I&#x2F;O或特权指令或内核内存或其他进程。</li>
+<li>S模式（管理模式），大多数Linux内核或其他O&#x2F;S运行的模式。通过I&#x2F;O remap函数访问最特权的指令和I&#x2F;O控制。内存管理单元可能打开或关闭。</li>
+<li>M模式（机器模式），机器模式:裸机程序&#x2F;第一阶段引导加载程序和FSBL（First Stage Bootloader ）在此模式下运行。FSBL以固件的形式存在</li>
+</ol>
+<blockquote>
+<p>固件：固件（Firmware）是一种嵌入在硬件设备中的软件，用于控制硬件的功能和操作。<strong>它介于硬件和高级软件（如操作系统和应用程序）之间，提供基本的硬件抽象和控制。</strong> 通常存在ROM或者EEPROM，例如BIOS 或者 UEFI等，</p>
+</blockquote>
+<p><strong>uboot</strong> 可以运行在M模式或者 S模式下， 取决于它是否在SBI的固件初始化之前运行。</p>
+<ol>
+<li><code>SBI</code>Supervisor Binary Interface 是 S模式 和SEE之间的<strong>调用约定&#x2F;接口。</strong>SEE&#96;Supervisor Execution Environment  S执行环境 ，其<strong>调用风格就像System call</strong>一样。OpenSBI是一个SBI实现，可以在不同的模式下与U-Boot一起使用。</li>
+<li><code>opensbi</code> RISC-V Open Source Supervisor Binary Interface</li>
+<li>如下图，ABI 是 应用与 S模式之间的接口约定， SBI 是 S模式与 M模式之间的接口约定</li>
+</ol>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606114347807.png" alt="image-20240606114347807"></p>
+<p><strong>多级启动流程</strong></p>
+<p><img src="/2024/06/06/riscv-4-opensbi/ZL\source_posts\riscv-4-opensbi\image-20240606115629524.png" alt="image-20240606115629524"></p>
+<ul>
+<li>实线箭头代表加载的操作</li>
+<li>虚线箭头代表跳转操作</li>
+</ul>
+<p><strong>流程</strong>：</p>
+<ol>
+<li>ROM上的代码负责对电源，时钟进行初始化设置，并且将loader的代码加载到SRAM上并跳转执行LOADER    —- 对应到<code>riscv_setup_rom_reset_vec</code></li>
+<li>LOADER 初始化DDR（其实也是一种ram），然后加载opensbi 固件到ddr，也可以直接跳转到bootloader执行</li>
+<li>最后bootloader会加载os 并执行</li>
+</ol>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606143633584.png" alt="流程引导的每个模式"></p>
+<ol>
+<li>每个步骤运行在哪个模式下，</li>
+<li>zsbl<code>Zero Stage Boot Loader</code>，运行在M模式下，事实上我们在qemu中是通过drive 将固件直接加载到了flash的地方，所以rom上不需要执行加载的操作</li>
+<li>fsbl，运行在M模式下，这里需要加载 opensbi固件，加载设备树，然后跳转opensbi执行</li>
+<li>opensbi，执行在M模式下</li>
+<li>跳转执行uboot执行在S模式下</li>
+<li>os 运行在 S模式下</li>
+</ol>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606152715952.png" alt="image-20240606152715952"></p>
+<p><strong>内存布局</strong></p>
+<blockquote>
+<p>qemu模拟的riscv中，多核启动的流程都是先多个核竞争一个主核，由主核对共享资源进行初始化，然后其余从核进行自身的初始化</p>
+<p><code>riscv_setup_rom_reset_vec</code> 用于设置 RISC-V 处理器的复位向量地址。复位向量是处理器在复位（重启）后执行的第一条指令的地址。该函数通常用于配置处理器的启动过程，确保处理器在复位后从正确的地址开始执行代码。</p>
+<p><strong>fw_dynamic_info</strong> 结构体，这个结构体 包含了下一个阶段程序启动的地址，魔数，下一阶段CPU位于 S模式，初始化完毕后又调用<code>rom_add_blob_fixed_as</code>函数将<code>fw_dynamic_info</code>拷贝到rom的<code>reset_vec</code>之后，用于下一阶段的启动</p>
+</blockquote>
+<p>此时内存的布局是这样的：</p>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606151519375.png" alt="image-20240606151519375"></p>
+<p> 上一章节，将启动固件加载在<strong>flash</strong>后的内存布局：</p>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606152341573.png" alt="image-20240606152341573"></p>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606153011137.png" alt="image-20240606153011137"></p>
+<h1 id="2-Opensbi介绍"><a href="#2-Opensbi介绍" class="headerlink" title="2.Opensbi介绍"></a>2.Opensbi介绍</h1><p><code>SBI</code>指的是 Supervisor Binary Interface，<strong>运行在 M模式下的程序，操作系统（S模式）通过SBI 来调用M模式的硬件资源 相当于上层系统运行时的系统调用</strong> opensbi是一种开源sbi的实现 </p>
+<ul>
+<li><code>FW_PAYLOAD</code> ：下一引导阶段被作为 payload 打包进来，通常是 U-Boot 或 Linux。这是兼容 Linux 的 RISC-V 硬件所使用的默认 firmware 。</li>
+<li><code>FW_JUMP</code> ：不直接包含下一个阶段的代码，跳转到一个固定地址，该地址上需存有下一个加载器。QEMU 的早期版本曾经使用过它。</li>
+<li><code>FW_DYNAMIC</code> ：带有动态信息的固件，根据前一个阶段传入的信息加载下一个阶段。通常是 U-Boot SPL 使用它。现在 QEMU 默认使用 FW_DYNAMIC。</li>
+</ul>
+<blockquote>
+<p>opensbi源码下载：<a href="https://github.com/riscv-software-src/opensbi/releases">Releases · riscv-software-src&#x2F;opensbi (github.com)</a></p>
+<p>下载1.2版本。</p>
+<p>当前版本opensbi开发者倾向于不要让ic设计尚加入太多的板级支持代码，因此opensbi本身也需要加载一份设备树文件，<strong>opensbi通过解析设备树文件了解soc内部的硬件结构</strong>，进而使用标准的驱动代码对其进行配置使用。</p>
+</blockquote>
+<p>因此我们目前可以确认：</p>
+<ol>
+<li>首先系统从MROM 启动– BL0</li>
+<li>然后跳转到 flash 的首地址 执行上一节编写的 lowlevelboot 程序 – BL1</li>
+<li>然后将 flash 上的 opensbi程序和 所需要的设备树资源文件加载到ddr上并跳转执行 – BL2</li>
+</ol>
+<blockquote>
+<p><a href="https://quard-star-tutorial.readthedocs.io/zh-cn/latest/ch5-2.html">基于qemu-riscv从0开始构建嵌入式linux系统ch5-2. 什么是多级BootLoader与opensbi(下) — 主页 (quard-star-tutorial.readthedocs.io)</a></p>
+<p>设备树：设备树是从linux内核中广泛使用的一种设备描述文件，可以简化驱动代码的编写并提高驱动代码的复用率移植性，因此逐渐扩展到各个嵌入式平台级代码项目中</p>
+</blockquote>
+<p>opensbi中<code>fw_base.S</code>汇编文件正是opensbi的启动所在</p>
+<ol>
+<li>.<code>entry</code>段<code>_start</code>符号即为链接脚本中第一个代码段，上级loader程序加载完成后自然跳转到该地址指令执行。</li>
+<li>首先启动代码进行判断非boot核心跳转<code>_wait_for_boot_hart</code>等待，boot核心先进行一次代码<code>_relocate</code>，可以发现如果<code>opensbi</code>如果不在自己的链接地址内运行，则会实现自身代码的拷贝到目标<code>ram</code>上运行，因此可以以类似<code>spl</code>的方式从<code>flash</code>中启动。当然我们因为已经使用了自己编写的loader程序，这段<code>_relocate</code>不会执行，</li>
+<li>之后的流程是<code>.bss</code>段的清零和<code>SP</code>指针的初始化。接下来就是调用<code>fw_platform_init</code>函数，注意此时传入参数<code>a0——hart id</code>，<code>a1——fdt</code>地址，a2，a3，a4均为上级loader程序的传入参数，这个函数由platform来实现如果不使用则该函数由弱定义空函数来代替，platform函数具体内容我们后面实现时再来看，此处暂时跳过。</li>
+<li>接下来就是<code>_scratch_init</code>函数，<code>scratch</code>你可以认为就是另一个<code>sp</code>指针的东西，定义了一片内存用来存放一些数据，同栈一样，先进后出。<code>_scratch_init</code>其实是按顺序写入了<code>sbi</code>下一级程序的地址参数等信息，由工程内的预定于宏指定，其实这里对我们作用不大，因为<strong>我们使用设备树文件提供给opensbi来解析得到下一级启动地址等信息</strong>。</li>
+<li>在向下就是<code>_fdt_reloc</code>，和代码<code>reloc</code>类似，对<code>fdt</code>进行，我们的设计不会执行到这个，最后来到了<code>_start_warm</code>，此时boot核心将标志释放，其余等待在<code>_wait_for_boot_hart</code>的核心也将要跳转到<code>_start_warm</code>。_<code>start_warm</code>针对每一个核心复位寄存器建立自己的栈空间，配置<code>trap</code>异常等完成后调用<code>sbi_init</code>离开汇编代码的世界。</li>
+</ol>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606210704400.png" alt="image-20240606210704400"></p>
+<h2 id="2-1-opensbi的移植"><a href="#2-1-opensbi的移植" class="headerlink" title="2.1 opensbi的移植"></a>2.1 opensbi的移植</h2><p>需要明确的：</p>
+<ul>
+<li>采用<code>opensbi</code>的固件是<code>FW_JUMP</code>，会被加载到<code>DRAM0x80000000</code> 处执行</li>
+<li>需要编写设备树编译将设备树的地址传递给<code>Opensbi</code>，<code>rom</code>上的<code>fw_dynamic_info</code>用不到</li>
+<li>需要编写在<code>flash</code>上运行代码将<code>opensbi</code>的固件加载到<code>DRAM</code>处 然后跳转执行</li>
+</ul>
+<p>使用<code>tree -d -L 2</code> 查看源码目录的层次</p>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606212336666.png" alt="image-20240606212336666"></p>
+<p> 要为我们的<code>quard_star</code> 板卡 新增<code>opensbi</code>的支持，如下进行操作：</p>
+<ol>
+<li>在 platform 文件下新建一个 名为 <code>quard_star</code>  的文件夹</li>
+<li>在quard_star文件夹下新增三个文件<code>Kconfig</code>，<code>objects.mk</code>，<code>platform.c</code></li>
+<li>在quard_satr文件夹下新增一个文件夹<code>configs</code>，在<code>configs</code>目录下新建一个名为<code>defconfig</code>的文件</li>
+</ol>
+<p>新增完的目录如下：</p>
+<p><img src="/2024/06/06/riscv-4-opensbi/image-20240606213048514.png" alt="image-20240606213048514"></p>
+<blockquote>
+<p>quard_star&#x2F;Kconfig</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># SPDX-License-Identifier: BSD-2-Clause</span><br><span class="line"></span><br><span class="line">config PLATFORM_QUARD_STAR</span><br><span class="line">	bool</span><br><span class="line">	select FDT  </span><br><span class="line">	select FDT_DOMAIN </span><br><span class="line">	select FDT_PMU</span><br><span class="line">	default y</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>quard_star&#x2F;objects.mk</p>
+<p>配置固件为 jump 已经jump跳转地址</p>
+</blockquote>
+<figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># SPDX-License-Identifier: BSD-2-Clause</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Compiler flags</span></span><br><span class="line">platform-cppflags-y =</span><br><span class="line">platform-cflags-y =</span><br><span class="line">platform-asflags-y =</span><br><span class="line">platform-ldflags-y =</span><br><span class="line"></span><br><span class="line"><span class="comment"># Objects to build</span></span><br><span class="line">platform-objs-y += platform.o</span><br><span class="line"></span><br><span class="line"><span class="comment"># Blobs to build</span></span><br><span class="line">FW_JUMP=y</span><br><span class="line">FW_TEXT_START=0x80000000</span><br><span class="line">FW_JUMP_ADDR=0x0</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>quard_star&#x2F;configs&#x2F;defconfig</p>
+<p>指定配置需要哪些硬件</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">CONFIG_PLATFORM_ALLWINNER_D1=y</span><br><span class="line">CONFIG_PLATFORM_ANDES_AE350=y</span><br><span class="line">CONFIG_PLATFORM_RENESAS_RZFIVE=y</span><br><span class="line">CONFIG_PLATFORM_SIFIVE_FU540=y</span><br><span class="line">CONFIG_PLATFORM_SIFIVE_FU740=y</span><br><span class="line">CONFIG_FDT_GPIO=y</span><br><span class="line">CONFIG_FDT_GPIO_SIFIVE=y</span><br><span class="line">CONFIG_FDT_I2C=y</span><br><span class="line">CONFIG_FDT_I2C_SIFIVE=y</span><br><span class="line">CONFIG_FDT_IPI=y</span><br><span class="line">CONFIG_FDT_IPI_MSWI=y</span><br><span class="line">CONFIG_FDT_IPI_PLICSW=y</span><br><span class="line">CONFIG_FDT_IRQCHIP=y</span><br><span class="line">CONFIG_FDT_IRQCHIP_APLIC=y</span><br><span class="line">CONFIG_FDT_IRQCHIP_IMSIC=y</span><br><span class="line">CONFIG_FDT_IRQCHIP_PLIC=y</span><br><span class="line">CONFIG_FDT_RESET=y</span><br><span class="line">CONFIG_FDT_RESET_ATCWDT200=y</span><br><span class="line">CONFIG_FDT_RESET_GPIO=y</span><br><span class="line">CONFIG_FDT_RESET_HTIF=y</span><br><span class="line">CONFIG_FDT_RESET_SIFIVE_TEST=y</span><br><span class="line">CONFIG_FDT_RESET_SUNXI_WDT=y</span><br><span class="line">CONFIG_FDT_RESET_THEAD=y</span><br><span class="line">CONFIG_FDT_SERIAL=y</span><br><span class="line">CONFIG_FDT_SERIAL_CADENCE=y</span><br><span class="line">CONFIG_FDT_SERIAL_GAISLER=y</span><br><span class="line">CONFIG_FDT_SERIAL_HTIF=y</span><br><span class="line">CONFIG_FDT_SERIAL_RENESAS_SCIF=y</span><br><span class="line">CONFIG_FDT_SERIAL_SHAKTI=y</span><br><span class="line">CONFIG_FDT_SERIAL_SIFIVE=y</span><br><span class="line">CONFIG_FDT_SERIAL_LITEX=y</span><br><span class="line">CONFIG_FDT_SERIAL_UART8250=y</span><br><span class="line">CONFIG_FDT_SERIAL_XILINX_UARTLITE=y</span><br><span class="line">CONFIG_FDT_TIMER=y</span><br><span class="line">CONFIG_FDT_TIMER_MTIMER=y</span><br><span class="line">CONFIG_FDT_TIMER_PLMT=y</span><br><span class="line">CONFIG_SERIAL_SEMIHOSTING=y</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>quard_star&#x2F;platform.c</p>
+<p>设备树的理解：<a href="https://zhuanlan.zhihu.com/p/644652123">【Linux内核|驱动模型】设备树的展开unflatten_device_tree - 知乎 (zhihu.com)</a></p>
+<p><code>fw_platform_init</code> 函数，注意此时传入参数<code>a0——hart id</code>，<code>a1——fdt</code>地址，a2，a3，a4均为上级loader程序的传入参数。</p>
+</blockquote>
+<p>函数逻辑：</p>
+<ol>
+<li>首先，通过解析设备树来获取平台的模型名称（”model” 属性），并将其存储在 <code>platform.name</code> 变量中。</li>
+<li>接下来，在设备树的 “&#x2F;<code>cpus</code>” 路径下遍历处理器节点，获取每个处理器的 <code>hartid</code>（处理器标识符）。</li>
+<li>根据获取的 <code>hartid</code>，将其存储在 <code>quard_star_hart_index2id</code> 数组中，并增加 <code>hart_count</code> 变量的计数。</li>
+<li>最后，设置 <code>platform.hart_count</code> 变量为 <code>hart_count</code>，表示平台上处理器的数量。</li>
+<li>函数返回 arg1，即原始的设备树指针。</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> <span class="type">long</span> <span class="title function_">fw_platform_init</span><span class="params">(<span class="type">unsigned</span> <span class="type">long</span> arg0, <span class="type">unsigned</span> <span class="type">long</span> arg1,</span></span><br><span class="line"><span class="params">				<span class="type">unsigned</span> <span class="type">long</span> arg2, <span class="type">unsigned</span> <span class="type">long</span> arg3,</span></span><br><span class="line"><span class="params">				<span class="type">unsigned</span> <span class="type">long</span> arg4)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">const</span> <span class="type">char</span> *model;</span><br><span class="line">	<span class="type">void</span> *fdt = (<span class="type">void</span> *)arg1;</span><br><span class="line">	u32 hartid, hart_count = <span class="number">0</span>;</span><br><span class="line">	<span class="type">int</span> rc, root_offset, cpus_offset, cpu_offset, len;</span><br><span class="line"></span><br><span class="line">	root_offset = fdt_path_offset(fdt, <span class="string">&quot;/&quot;</span>);</span><br><span class="line">	<span class="keyword">if</span> (root_offset &lt; <span class="number">0</span>)</span><br><span class="line">		<span class="keyword">goto</span> fail;</span><br><span class="line">	<span class="comment">// 获取平台模型名称</span></span><br><span class="line">	model = fdt_getprop(fdt, root_offset, <span class="string">&quot;model&quot;</span>, &amp;len);</span><br><span class="line">	<span class="keyword">if</span> (model)</span><br><span class="line">		sbi_strncpy(platform.name, model, <span class="keyword">sizeof</span>(platform.name));</span><br><span class="line"></span><br><span class="line">	cpus_offset = fdt_path_offset(fdt, <span class="string">&quot;/cpus&quot;</span>);</span><br><span class="line">	<span class="keyword">if</span> (cpus_offset &lt; <span class="number">0</span>)</span><br><span class="line">		<span class="keyword">goto</span> fail;</span><br><span class="line"></span><br><span class="line">	fdt_for_each_subnode(cpu_offset, fdt, cpus_offset) &#123;</span><br><span class="line">		rc = fdt_parse_hart_id(fdt, cpu_offset, &amp;hartid);</span><br><span class="line">		<span class="keyword">if</span> (rc)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">		<span class="keyword">if</span> (SBI_HARTMASK_MAX_BITS &lt;= hartid)</span><br><span class="line">			<span class="keyword">continue</span>;</span><br><span class="line"></span><br><span class="line">		quard_star_hart_index2id[hart_count++] = hartid;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	platform.hart_count = hart_count;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* Return original FDT pointer */</span></span><br><span class="line">	<span class="keyword">return</span> arg1;</span><br><span class="line"></span><br><span class="line">fail:</span><br><span class="line">	<span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">		wfi();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<blockquote>
+<p>platform_ops 结构体 其结构体类型为<code>const struct sbi_platform_operations</code>，用于指定平台的相关的操作函数</p>
+<p>每个成员对应一个平台相关的操作函数，<strong>用于在opensbi初始化过程中进行特定的操作和配置，每个函数在相应的阶段被调用，以完成平台相关的初始化，配置和资源管理等工作</strong></p>
+<p>拓展：</p>
+<p><code>.early_init</code> 使用点号（<code>.</code>）在结构体初始化时指定成员变量的名称是一种称为“<strong>指定初始化器”（Designated Initializers）的语法</strong>。<strong>这种语法允许你在初始化结构体时明确地指出要初始化的成员变量，从而提高代码的可读性和可维护性。</strong></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">sbi_platform_operations</span> <span class="title">platform_ops</span> =</span> &#123;</span><br><span class="line">	.early_init		= quard_star_early_init,             	<span class="comment">//早期初始化，不需要</span></span><br><span class="line">	.final_init		= quard_star_final_init,            	<span class="comment">//最终初始化，需要</span></span><br><span class="line">	.early_exit		= quard_star_early_exit,            	<span class="comment">//早期退出，不需要</span></span><br><span class="line">	.final_exit		= quard_star_final_exit,            	<span class="comment">//最终退出，不需要</span></span><br><span class="line">	.domains_init	= quard_star_domains_init,      		<span class="comment">//从设备树填充域，需要</span></span><br><span class="line">	.console_init	= fdt_serial_init,              		<span class="comment">//初始化控制台</span></span><br><span class="line">	.irqchip_init	= fdt_irqchip_init,             		<span class="comment">//初始化中断</span></span><br><span class="line">	.irqchip_exit	= fdt_irqchip_exit,             		<span class="comment">//中断退出</span></span><br><span class="line">	.ipi_init		= fdt_ipi_init,                     	<span class="comment">//中断通信</span></span><br><span class="line">	.ipi_exit		= fdt_ipi_exit,</span><br><span class="line">	.pmu_init		= quard_star_pmu_init,              	<span class="comment">//电源配置</span></span><br><span class="line">	.pmu_xlate_to_mhpmevent = quard_star_pmu_xlate_to_mhpmevent,</span><br><span class="line">	.get_tlbr_flush_limit	= quard_star_tlbr_flush_limit, 	<span class="comment">//需要</span></span><br><span class="line">	.timer_init		= fdt_timer_init,					</span><br><span class="line">	.timer_exit		= fdt_timer_exit,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>每个函数的定义如下：</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">quard_star_early_init</span><span class="params">(<span class="type">bool</span> cold_boot)</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">quard_star_final_init</span><span class="params">(<span class="type">bool</span> cold_boot)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">void</span> *fdt;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (cold_boot)</span><br><span class="line">		fdt_reset_init();</span><br><span class="line">	<span class="keyword">if</span> (!cold_boot)</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	fdt = sbi_scratch_thishart_arg1_ptr();</span><br><span class="line"></span><br><span class="line">	fdt_cpu_fixup(fdt);</span><br><span class="line">	fdt_fixups(fdt);</span><br><span class="line">	fdt_domain_fixup(fdt);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">quard_star_early_exit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">quard_star_final_exit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">quard_star_domains_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> fdt_domains_populate(fdt_get_address());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> <span class="title function_">quard_star_pmu_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> fdt_pmu_setup(fdt_get_address());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">uint64_t</span> <span class="title function_">quard_star_pmu_xlate_to_mhpmevent</span><span class="params">(<span class="type">uint32_t</span> event_idx,</span></span><br><span class="line"><span class="params">					       <span class="type">uint64_t</span> data)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">uint64_t</span> evt_val = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="comment">/* data is valid only for raw events and is equal to event selector */</span></span><br><span class="line">	<span class="keyword">if</span> (event_idx == SBI_PMU_EVENT_RAW_IDX)</span><br><span class="line">		evt_val = data;</span><br><span class="line">	<span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * Generic platform follows the SBI specification recommendation</span></span><br><span class="line"><span class="comment">		 * i.e. zero extended event_idx is used as mhpmevent value for</span></span><br><span class="line"><span class="comment">		 * hardware general/cache events if platform does&#x27;t define one.</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		evt_val = fdt_pmu_get_select_value(event_idx);</span><br><span class="line">		<span class="keyword">if</span> (!evt_val)</span><br><span class="line">			evt_val = (<span class="type">uint64_t</span>)event_idx;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> evt_val;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">static</span> u64 <span class="title function_">quard_star_tlbr_flush_limit</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> SBI_PLATFORM_TLB_RANGE_FLUSH_LIMIT_DEFAULT;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>platform结构体</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">sbi_platform</span> <span class="title">platform</span> =</span> &#123;</span><br><span class="line">	.opensbi_version	= OPENSBI_VERSION,                      <span class="comment">// 版本号</span></span><br><span class="line">	.platform_version	= SBI_PLATFORM_VERSION(<span class="number">0x0</span>, <span class="number">0x01</span>),      <span class="comment">// 平台的版本号</span></span><br><span class="line">	.name				= <span class="string">&quot;Quard-Star&quot;</span>,  						<span class="comment">// 平台名称</span></span><br><span class="line">	.features			= SBI_PLATFORM_DEFAULT_FEATURES,		<span class="comment">// 平台默认特征</span></span><br><span class="line">	.hart_count			= SBI_HARTMASK_MAX_BITS,  				<span class="comment">// 平台的处理器（hart，riscv叫做hart）数量</span></span><br><span class="line">	.hart_index2id		= quard_star_hart_index2id,				<span class="comment">// 指向处理器标识符数组的指针，用于索引到唯一的处理器标识符</span></span><br><span class="line">	.hart_stack_size	= SBI_PLATFORM_DEFAULT_HART_STACK_SIZE, <span class="comment">// 指定了每个 hart的默认堆栈大小</span></span><br><span class="line">	.platform_ops_addr	= (<span class="type">unsigned</span> <span class="type">long</span>)&amp;platform_ops			<span class="comment">// 平台操作函数的指针，用于指定平台操作函数的地址</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
 ]]></content>
       <categories>
         <category>riscv</category>
