@@ -2325,6 +2325,117 @@ fa 18 40 00 00 00 00 00
       </tags>
   </entry>
   <entry>
+    <title>基于x86架构的简单内核实现-2</title>
+    <url>/2024/05/07/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0-2/</url>
+    <content><![CDATA[<h1 id="5-库函数-和-调试打印函数"><a href="#5-库函数-和-调试打印函数" class="headerlink" title="5.库函数 和 调试打印函数"></a>5.库函数 和 调试打印函数</h1><p>基础部分在前四章已经介绍完了。</p>
+<h2 id="5-1-c语言字符串处理函数"><a href="#5-1-c语言字符串处理函数" class="headerlink" title="5.1 c语言字符串处理函数"></a>5.1 c语言字符串处理函数</h2><p>在内核中无法使用 处于用户态的c语言库函数  所以需要自己实现相关函数</p>
+<blockquote>
+<p>include&#x2F;string.h</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> INCLUDE_STRING_H_</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> INCLUDE_STRING_H_</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;typers.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 函数声明</span></span><br><span class="line"><span class="comment">// 将 src 指向的内存区域的前 len 个字节复制到 dest 指向的内存区域。</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">memcpy</span><span class="params">(<span class="type">uint8_t</span> *dest, <span class="type">const</span> <span class="type">uint8_t</span> *src, <span class="type">uint32_t</span> len)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将 dest 指向的内存区域的前 len 个字节设置为 val 指定的值。</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">memset</span><span class="params">(<span class="type">void</span> *dest, <span class="type">uint8_t</span> val, <span class="type">uint32_t</span> len)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将 dest 指向的内存区域的前 len 个字节清零（等同于调用 memset(dest, 0, len)）</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">bzero</span><span class="params">(<span class="type">void</span> *dest, <span class="type">uint32_t</span> len)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 比较两个字符串 str1 和 str2。</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">strcmp</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *str1, <span class="type">const</span> <span class="type">char</span> *str2)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将字符串 src（包括终止 null 字符）复制到 dest。</span></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strcpy</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 将字符串 src 连接到字符串 dest 的末尾，覆盖 dest 最后的 null 终止符，并在最后添加一个新的 null 终止符。</span></span><br><span class="line"><span class="type">char</span> *<span class="title function_">strcat</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 计算字符串 src 的长度，不包括终止的 null 字符。</span></span><br><span class="line"><span class="type">int</span> <span class="title function_">strlen</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *src)</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">// INCLUDE</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>函数实现</p>
+<blockquote>
+<p>libs&#x2F;string.c </p>
+<p>memcpy()  </p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">memcpy</span><span class="params">(<span class="type">uint8_t</span> *dest, <span class="type">const</span> <span class="type">uint8_t</span> *src, <span class="type">uint32_t</span> len)</span>&#123;</span><br><span class="line">    <span class="comment">// 异常处理</span></span><br><span class="line">    <span class="keyword">if</span> (dest == <span class="literal">NULL</span> || src == <span class="literal">NULL</span> || len ==<span class="number">0</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(; len != <span class="number">0</span>; len--) &#123;</span><br><span class="line">        *dest++ = *src++;  <span class="comment">// ++ 优先级高于 * 先右边结合 d++ 然后再 *d  最后在++进行自增 指向下一个内存地址</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用内联函数 减少函数调用的开销</p>
+<p><code>++ 优先级高于 * 先右边结合 d++ 然后再 *d  最后在++进行自增 指向下一个内存地址</code></p>
+<ul>
+<li>解引用 <code>dest</code> 当前指向的内存位置，用于读取或写入值。</li>
+<li>将 <code>dest</code> 指针移动到下一个 <code>uint8_t</code> 类型的内存地址。</li>
+</ul>
+<blockquote>
+<p>memset（）</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">memset</span><span class="params">(<span class="type">void</span> *dest, <span class="type">uint8_t</span> val, <span class="type">uint32_t</span> len)</span> &#123;</span><br><span class="line">    <span class="comment">//if (dest == NULL || len == 0) return;</span></span><br><span class="line"></span><br><span class="line">    <span class="type">uint8_t</span> *dst = (<span class="type">uint8_t</span> *) dest;  </span><br><span class="line">    <span class="keyword">for</span> (; len != <span class="number">0</span>; len--) &#123;</span><br><span class="line">        *dst++ = val;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><pre><code class="c">uint8_t *dst = (uint8_t *) dest;
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">  - 这行代码中的类型转换是必要的，因为 `void*` 类型的指针是一个通用指针，无法直接进行算术运算。将 `void*` 转换为 `uint8_t*` 使得可以按字节操作内存（即每次操作一个字节）。</span><br><span class="line">  - `uint8_t` 是一个确保只操作一个字节大小的类型，适用于按字节设置内存值。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&gt; bzero() 将 dest 指向的内存区域的前 len 个字节清零（等同于调用 memset(dest, 0, len)）</span><br><span class="line"></span><br><span class="line">```c</span><br><span class="line">inline void bzero(void *dest, uint32_t len)&#123;</span><br><span class="line">    memset(dest, 0, len);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</code></pre>
+</li>
+</ul>
+<blockquote>
+<p>strcmp()</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">strcmp</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *str1, <span class="type">const</span> <span class="type">char</span> *str2)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">while</span> (*str1 &amp;&amp; *str2 &amp;&amp; *str1 == *str2) &#123;</span><br><span class="line">        str1++;</span><br><span class="line">        str2++;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> *str1 - *str2;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>*str1 &amp;&amp; *str2</code> 确保当前指针指向的字符串不是终止字符 \0</p>
+<p><code>*str1 == *str2</code> 确保相等</p>
+<p>返回值：<code>return *str1 - *str2;</code> 返回ASCII之差</p>
+<ol>
+<li>如果 <code>*str1 - *str2</code> 为零（即 <code>*str1 == *str2</code>），这意味着两个字符串相等或在某一点同步到了字符串的终止字符。</li>
+<li>如果 <code>*str1 - *str2</code> 为正值，则 <code>str1</code> 在首个不同点处的字符在字典顺序中位于 <code>str2</code> 的对应字符之后。</li>
+<li>如果 <code>*str1 - *str2</code> 为负值，则 <code>str1</code> 在首个不同点处的字符在字典顺序中位于 <code>str2</code> 的对应字符之前。</li>
+</ol>
+<blockquote>
+<p>strcpy()</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">char</span> *<span class="title function_">strcpy</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">char</span> *tmp = dest;</span><br><span class="line">	<span class="comment">// 当src 不为终止符的时候继续</span></span><br><span class="line">	<span class="keyword">while</span> (*src) &#123;</span><br><span class="line">	      *dest++ = *src++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	*dest = <span class="string">&#x27;\0&#x27;</span>; <span class="comment">// 终止符</span></span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> tmp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>strcat()</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">char</span> *<span class="title function_">strcat</span><span class="params">(<span class="type">char</span> *dest, <span class="type">const</span> <span class="type">char</span> *src)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">char</span> *cp = dest;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">while</span> (*cp) &#123;</span><br><span class="line">	      cp++;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span> ((*cp++ = *src++))</span><br><span class="line">	      ;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> dest;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> <code>cp++;</code> 找到字符串末尾 </p>
+<p><code>*cp++ = *src++</code> 进行赋值</p>
+<blockquote>
+<p>strlen()</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">int</span> <span class="title function_">strlen</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *src)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="type">const</span> <span class="type">char</span> *eos = src;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (*eos++)</span><br><span class="line">	      ;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> (eos - src - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>(eos - src - 1)</code> 因为地址是连续的，所以直接进行地址相减</p>
+<h2 id="5-2-内核级打印函数-printk"><a href="#5-2-内核级打印函数-printk" class="headerlink" title="5.2 内核级打印函数 printk"></a>5.2 内核级打印函数 printk</h2><p>参照printf 函数：首先是一个待显示的字符 串，里面分别用%加相关字母的方式一一指明了后面的参数数量和类型。只要我们传递正确 的带有格式描述的字符串和相关参数，printf函数就能正确的打印出来结果。</p>
+<h2 id="5-3-利用qemu-联合-gdb-进行c语言-源代码级别调试"><a href="#5-3-利用qemu-联合-gdb-进行c语言-源代码级别调试" class="headerlink" title="5.3 利用qemu 联合 gdb 进行c语言 源代码级别调试"></a>5.3 利用qemu 联合 gdb 进行c语言 源代码级别调试</h2><p><strong>通讯机制：</strong></p>
+<blockquote>
+<p><code>qemu -S -s -fda floppy.img -boot a</code></p>
+</blockquote>
+<ol>
+<li>注意这里的qemu 要替换成 qemu-system-i386 </li>
+<li>因为qemu和gdb运行的时候毕竟是两个进程，数据交换必然涉及到进 程间通信机制。</li>
+<li>-fda floppy.img 和 -boot a 是指定启动的镜像，-s 这个参数指的 是启动时开启1234端口等待gdb连接（这个参数从字面上看比较隐晦），-S 是指是启动时 不自动开始运行，等待调试器的执行命令。</li>
+</ol>
+<p>启动gdb后执行下面命令： — <strong>后续直接封装在gdbinit这个文件中</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">file hx_kernel</span><br><span class="line">target remote :1234</span><br><span class="line">break kern_entry</span><br><span class="line">c</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>执行命令</strong></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">make</span><br><span class="line">make debug</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="5-4-打印函数调用的栈信息-—-multiboot"><a href="#5-4-打印函数调用的栈信息-—-multiboot" class="headerlink" title="5.4 打印函数调用的栈信息 — multiboot"></a>5.4 打印函数调用的栈信息 — multiboot</h2><img src="/2024/05/07/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0-2/image-20240510170440547.png" alt="image-20240510170440547" style="zoom:67%;">
+
+<p>在示意图中我们假设从start函数-&gt;kern_entry函数-&gt;console_clear函数的调用过 程，最终暂停在console_clear函数里面。我们可以清楚的看到，<strong>只要拿到此时的ebp寄存 器的值，就可以沿着这个调用链找到每一个调用的函数的返回地址</strong>，之前的问题就这样解 决了。需要注意的是C语言里对指针做算数运算时，改变的地址长度是和当前指针变量的类 型相关的。</p>
+<h2 id="5-4-修改entry-c函数"><a href="#5-4-修改entry-c函数" class="headerlink" title="5.4 修改entry.c函数"></a>5.4 修改entry.c函数</h2><blockquote>
+<p>entry.c</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;types.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;console.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;debug.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">kern_entry</span><span class="params">()</span>&#123;</span><br><span class="line">    init_debug();</span><br><span class="line">    console_clear();</span><br><span class="line">	console_write_color(<span class="string">&quot;Hello, OS kernel!\n&quot;</span>, rc_black, rc_green);</span><br><span class="line">    panic(<span class="string">&quot;test&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>运行结果：</p>
+<p><img src="/2024/05/07/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0-2/image-20240510170638484.png" alt="image-20240510170638484"></p>
+]]></content>
+      <categories>
+        <category>x86内核实现</category>
+      </categories>
+      <tags>
+        <tag>x86</tag>
+        <tag>linxu</tag>
+        <tag>内核</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>基于x86架构的简单内核实现-3-全局段描述符表</title>
     <url>/2024/05/10/%E5%9F%BA%E4%BA%8Ex86%E6%9E%B6%E6%9E%84%E7%9A%84%E7%AE%80%E5%8D%95%E5%86%85%E6%A0%B8%E5%AE%9E%E7%8E%B0-3-%E5%85%A8%E5%B1%80%E6%AE%B5%E6%8F%8F%E8%BF%B0%E7%AC%A6%E8%A1%A8/</url>
     <content><![CDATA[<h1 id="6-添加全局段描述符表"><a href="#6-添加全局段描述符表" class="headerlink" title="6.添加全局段描述符表"></a>6.添加全局段描述符表</h1><h2 id="6-1保护模式"><a href="#6-1保护模式" class="headerlink" title="6.1保护模式"></a>6.1保护模式</h2><p>保护模式需要对内存段的性质和允许的操作给出定义，以实 现对特定内存段的访问检测和数据保护</p>
