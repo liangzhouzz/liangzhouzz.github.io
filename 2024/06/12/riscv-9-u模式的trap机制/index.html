@@ -1,0 +1,673 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>riscv-9-u模式的trap机制 | Sifanのblog</title><meta name="author" content="liangzhou"><meta name="copyright" content="liangzhou"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1.用户态的syscall   级别 编码 名称    0 00 用户&#x2F;应用模式 (U, User&#x2F;Application)   1 01 监督模式 (S, Supervisor)   2 10 虚拟监督模式 (H, Hypervisor)   3 11 机器模式 (M, Machine)    riscv的特权级如上，一共四个特权级，特权级越高，对硬件的控制能力越强。 ope">
+<meta property="og:type" content="article">
+<meta property="og:title" content="riscv-9-u模式的trap机制">
+<meta property="og:url" content="http://liangzhouzz.github.io/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="Sifanのblog">
+<meta property="og:description" content="1.用户态的syscall   级别 编码 名称    0 00 用户&#x2F;应用模式 (U, User&#x2F;Application)   1 01 监督模式 (S, Supervisor)   2 10 虚拟监督模式 (H, Hypervisor)   3 11 机器模式 (M, Machine)    riscv的特权级如上，一共四个特权级，特权级越高，对硬件的控制能力越强。 ope">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://liangzhouzz.github.io/img/duck.jpg">
+<meta property="article:published_time" content="2024-06-12T03:01:49.000Z">
+<meta property="article:modified_time" content="2024-06-14T08:20:16.892Z">
+<meta property="article:author" content="liangzhou">
+<meta property="article:tag" content="操作系统">
+<meta property="article:tag" content="riscv，qemu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liangzhouzz.github.io/img/duck.jpg"><link rel="shortcut icon" href="/img/duck.jpg"><link rel="canonical" href="http://liangzhouzz.github.io/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: liangzhou","link":"链接: ","source":"来源: Sifanのblog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'riscv-9-u模式的trap机制',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-06-14 16:20:16'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load',() => { preloader.endLoading() })
+
+  if (false) {
+    document.addEventListener('pjax:send', () => { preloader.initLoading() })
+    document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/duck.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">29</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 链接</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/cloud.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Sifanのblog"><span class="site-name">Sifanのblog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 链接</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">riscv-9-u模式的trap机制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-06-12T03:01:49.000Z" title="发表于 2024-06-12 11:01:49">2024-06-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-06-14T08:20:16.892Z" title="更新于 2024-06-14 16:20:16">2024-06-14</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/riscv/">riscv</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="riscv-9-u模式的trap机制"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="1-用户态的syscall"><a href="#1-用户态的syscall" class="headerlink" title="1.用户态的syscall"></a>1.用户态的syscall</h1><table>
+<thead>
+<tr>
+<th align="center">级别</th>
+<th align="center">编码</th>
+<th align="center">名称</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">0</td>
+<td align="center">00</td>
+<td align="center">用户&#x2F;应用模式 (U, User&#x2F;Application)</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">01</td>
+<td align="center">监督模式 (S, Supervisor)</td>
+</tr>
+<tr>
+<td align="center">2</td>
+<td align="center">10</td>
+<td align="center">虚拟监督模式 (H, Hypervisor)</td>
+</tr>
+<tr>
+<td align="center">3</td>
+<td align="center">11</td>
+<td align="center">机器模式 (M, Machine)</td>
+</tr>
+</tbody></table>
+<ul>
+<li><code>riscv</code>的特权级如上，一共四个特权级，特权级越高，对硬件的控制能力越强。</li>
+<li><code>opensbi</code>运行在<code>M</code>模式下，从而<code>S</code>模式下可以通过<code>SBI</code>接口控制硬件</li>
+<li><code>U</code>模式下可以通过<code>ABI</code>调用<code>S</code>模式的服务</li>
+</ul>
+<p><img src="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/image-20240612151148719.png" alt="image-20240612151148719"></p>
+<p>从<code>U</code>模式通过<code>ecall</code>调用<code>S</code>模式，并且<code>S</code>模式通过<code>SBI</code>调用<code>M</code>模式硬件的流程如下：</p>
+<p><img src="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/image-20240612151523660.png" alt="image-20240612151523660"></p>
+<h2 id="riscv-系统调用简介"><a href="#riscv-系统调用简介" class="headerlink" title="riscv 系统调用简介"></a>riscv 系统调用简介</h2><p><code>syscall</code> 的调用参数和返回值传递通过遵循如下约定实现：</p>
+<ul>
+<li>调用参数<ul>
+<li><code>a7</code> 寄存器存放系统调用号，区分是哪个<code> Syscall</code></li>
+<li><code>a0-a5</code> 寄存器依次用来表示 <code>Syscall </code>编程接口中定义的参数</li>
+</ul>
+</li>
+<li>返回值<ul>
+<li><code>a0</code> 寄存器存放 <code>Syscall </code>的返回值</li>
+</ul>
+</li>
+</ul>
+<p><code>ecall </code>指令会根据当前所处模式触发不同的执行环境切换异常：</p>
+<ul>
+<li>in U-mode: environment-call-from-U-mode exception</li>
+<li>in S-mode: environment-call-from-S-mode exception</li>
+<li>in M-mode: environment-call-from-M-mode exception</li>
+</ul>
+<p><code>Syscall</code> 场景下是在 U-mode（用户模式）下执行 <code>ecall</code> 指令，主要会触发如下变更：</p>
+<ul>
+<li>处理器特权级别由 User-mode（用户模式）提升为 Supervisor-mode（内核模式）</li>
+<li>当前指令地址保存到 <code>sepc</code> 特权寄存器</li>
+<li>设置 <code>scause</code> 特权寄存器</li>
+<li>跳转到 <code>stvec</code> 特权寄存器指向的指令地址</li>
+</ul>
+<blockquote>
+<p>具体的测试过程见：<a target="_blank" rel="noopener" href="https://yanglianoo.github.io/2023/08/04/%E5%AE%9E%E7%8E%B0U%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/">实现U模式的trap机制 | TimerのBlog (yanglianoo.github.io)</a></p>
+</blockquote>
+<h1 id="2-trap机制"><a href="#2-trap机制" class="headerlink" title="2.trap机制"></a>2.trap机制</h1><p>**<code>trap机制</code>**：</p>
+<p>在<code>riscv</code> 架构中，<strong>异常，系统调用和中断的过程都被统称为<code>trap</code></strong></p>
+<blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_53479532/article/details/136611555">RISC-V 32架构实践专题九（从零开始写操作系统-trap机制）_trap riscv 指令-CSDN博客</a></p>
+</blockquote>
+<blockquote>
+<p>什么是ecall</p>
+<p><code>ecall</code> 指令是 RISC-V 指令集架构（ISA）中的一个指令，用于触发环境调用（environment call）。这在不同的特权级别下有不同的用途，但最常见的是用于从用户模式（U-mode）触发系统调用（system call），以请求操作系统内核提供服务。</p>
+<p>工作流程：</p>
+<ol>
+<li>**用户模式（U-mode）程序执行 <code>ecall</code>**：当用户模式的程序执行 <code>ecall</code> 指令时，CPU 会产生一个陷阱（trap），跳转到内核模式（S-mode）进行处理。</li>
+<li><strong>保存上下文</strong>：CPU 保存当前的执行上下文（如程序计数器、寄存器等），以便在处理完系统调用后能够恢复。</li>
+<li><strong>陷入内核</strong>：CPU 跳转到内核中预定义的陷阱处理程序（trap handler）。</li>
+<li><strong>处理系统调用</strong>：内核根据系统调用号和参数，执行相应的服务，如读写文件、分配内存等。</li>
+<li><strong>恢复上下文</strong>：系统调用处理完成后，恢复之前保存的上下文。</li>
+<li><strong>返回用户模式</strong>：CPU 返回用户模式，继续执行用户程序。</li>
+</ol>
+</blockquote>
+<p><strong>目标：</strong></p>
+<ul>
+<li>U模式下 通过ecall指令 调用S模式下 OS</li>
+<li>OS 对 调用进行处理</li>
+<li>处理完毕 返回U模式，并恢复调用时候的上下文继续执行U模式下的程序</li>
+</ul>
+<p><strong>注意：</strong></p>
+<ul>
+<li>切换前后需要保证程序的上下文不变</li>
+<li>通常包含通用寄存器和栈空间</li>
+</ul>
+<h2 id="与S模式相关的异常寄存器"><a href="#与S模式相关的异常寄存器" class="headerlink" title="与S模式相关的异常寄存器"></a>与S模式相关的异常寄存器</h2><h3 id="Supervisor-Status-Register-sstatus"><a href="#Supervisor-Status-Register-sstatus" class="headerlink" title="Supervisor Status Register (sstatus)"></a>Supervisor Status Register (sstatus)</h3><p><img src="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/image-20240612155021153.png" alt="image-20240612155021153"></p>
+<p><code>bit[8]:SPP</code>：表示在进入s模式之前正在执行的特权级别，</p>
+<ul>
+<li>当接收到<code>trap</code>时，如果该<code>trap</code>来自用户模式，则<code>SPP</code>设置为<code>0</code>，否则设置为<code>1</code>。</li>
+<li>当执行一条<code>SRET</code>指令从<code>trap</code>处理程序返回时，如果<code>SPP</code>位为<code>0</code>，则特权级别被设置为<code>U</code>模式，如果<code>SPP</code>位为<code>1</code>，则特权级别被设置为<code>S</code>模式</li>
+</ul>
+<h3 id="Supervisor-Trap-Vector-Base-Address-Register-stvec"><a href="#Supervisor-Trap-Vector-Base-Address-Register-stvec" class="headerlink" title="Supervisor Trap Vector Base Address Register (stvec)"></a>Supervisor Trap Vector Base Address Register (<code>stvec</code>)</h3><p><img src="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/image-20240612155330823.png" alt="image-20240612155330823"></p>
+<p><code>stvec</code>寄存器用于设置发生<code>trap</code>时，异常处理程序的地址。</p>
+<ul>
+<li>MODE 位于 [1:0]，长度为 2 bits；<ul>
+<li>当mode 字段为0时，<code>stvec</code> 被设置为 Direct 模式，此时进入 S 模式的 Trap 无论原因如何，处理 Trap 的入口地址都是 <code>BASE&lt;&lt;2</code> ，CPU 会跳转到这个地方进行异常处理。</li>
+<li>当字段为1时，异常触发后会跳转到以<code>BASE</code>字段对应的异常向量表，每个向量占4个字节。</li>
+</ul>
+</li>
+<li>BASE 位于 [63:2]，长度为 62 bits。</li>
+</ul>
+<h3 id="Supervisor-Scratch-Register-sscratch"><a href="#Supervisor-Scratch-Register-sscratch" class="headerlink" title="Supervisor Scratch Register (sscratch)"></a>Supervisor Scratch Register (sscratch)</h3><p><img src="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/image-20240612155754188.png" alt="image-20240612155754188"></p>
+<p>sscratch寄存器是一个可读&#x2F;写的辅助寄存器，通常，在hart执行用户代码时，<strong>sscratch用于切换上下文的栈。</strong></p>
+<h3 id="Supervisor-Exception-Program-Counter-sepc"><a href="#Supervisor-Exception-Program-Counter-sepc" class="headerlink" title="Supervisor Exception Program Counter (sepc)"></a>Supervisor Exception Program Counter (<code>sepc</code>)</h3><p><img src="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/image-20240612160219204.png" alt="image-20240612160219204"></p>
+<p><strong>sepc记录了 Trap 发生之前执行的最后一条指令的地址</strong></p>
+<h3 id="Supervisor-Cause-Register-scause-star"><a href="#Supervisor-Cause-Register-scause-star" class="headerlink" title="Supervisor Cause Register (scause):star:"></a>Supervisor Cause Register (<code>scause</code>):star:</h3><p> <img src="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/image-20240612160323835.png" alt="image-20240612160323835"></p>
+<p>这个寄存器记录了S模式下异常发生的原因。</p>
+<ul>
+<li>最高位<code>interrupt</code>为<code>1</code>的时候表示触发的类型为中断，为<code>0</code>的时候表示异常</li>
+<li>其余位表示具体的trap原因Exception Code</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Interrupt</th>
+<th>Exception Code</th>
+<th>Description</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>0</td>
+<td><em>Reserved</em></td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>Supervisor software interrupt</td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td>2–4</td>
+<td><em>Reserved</em></td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td>5</td>
+<td>Supervisor timer interrupt</td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td>6–8</td>
+<td><em>Reserved</em></td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td>9</td>
+<td>Supervisor external interrupt</td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td>10–15</td>
+<td><em>Reserved</em></td>
+<td></td>
+</tr>
+<tr>
+<td>1</td>
+<td>≥16</td>
+<td><em>Designated for platform use</em></td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>Instruction address misaligned</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>Instruction access fault</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>2</td>
+<td>Illegal instruction</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>3</td>
+<td>Breakpoint</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>4</td>
+<td>Load address misaligned</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>5</td>
+<td>Load access fault</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>6</td>
+<td>Store&#x2F;AMO address misaligned</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>7</td>
+<td>Store&#x2F;AMO access fault</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>8</td>
+<td>Environment call from U-mode</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>9</td>
+<td>Environment call from S-mode</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>10–11</td>
+<td><em>Reserved</em></td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>12</td>
+<td>Instruction page fault</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>13</td>
+<td>Load page fault</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>14</td>
+<td><em>Reserved</em></td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>15</td>
+<td>Store&#x2F;AMO page fault</td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>16–23</td>
+<td><em>Reserved</em></td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>24–31</td>
+<td><em>Designated for custom use</em></td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>32–47</td>
+<td><em>Reserved</em></td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>48–63</td>
+<td><em>Designated for custom use</em></td>
+<td></td>
+</tr>
+<tr>
+<td>0</td>
+<td>≥64</td>
+<td><em>Reserved</em></td>
+<td></td>
+</tr>
+</tbody></table>
+<h2 id="特权级切换流程机制"><a href="#特权级切换流程机制" class="headerlink" title="特权级切换流程机制"></a>特权级切换流程机制</h2><p>当cpu准备从 U特权级 trap 到 S特权级的时候，会执行如下流程：</p>
+<ol>
+<li><code>sstatus</code> 的 <code>SPP</code> 字段会被修改为 <code>CPU</code> 当前的特权级<code>（U/S）</code>。</li>
+<li><code>sepc</code> 会被修改为 <code>Trap</code> 处理完成后默认会执行的下一条指令的地址。</li>
+<li><code>scause/stval</code> 分别会被修改成这次 <code>Trap</code> 的原因以及相关的附加信息。</li>
+<li><code>CPU</code> 会跳转到 <code>stvec</code> 所设置的 <code>Trap</code> 处理入口地址，并将当前特权级设置为 <code>S</code> ，然后从<code>Trap</code> 处理入口地址处开始执行。这里会根据<code>scause</code>中保存的异常原因进行分发处理</li>
+</ol>
+<p>当CPU完成trap 准备返回到 U特权级的时候，需要通过 一条S特权级的指令 <code>sret</code>来完成：</p>
+<ol>
+<li>CPU 会将当前的特权级按照 <code>sstatus</code> 的 <code>SPP</code> 字段设置为 U 或者 S ；</li>
+<li>CPU 会跳转到 <code>sepc</code> 寄存器指向的那条指令，然后继续执行。  <code>sepc</code>保存了trap之前待执行的下一条指令</li>
+</ol>
+<p>上下文的保存和恢复需要用到栈空间</p>
+<ul>
+<li>应用程序通过 <code>ecall</code> 进入到内核状态时，操作系统保存被打断的应用程序的 <code>Trap</code> 上下文；</li>
+<li>操作系统根据<code>Trap</code>相关的<code>CSR</code>寄存器内容，完成系统调用服务的分发与处理；</li>
+<li>操作系统完成系统调用服务后，需要恢复被打断的应用程序的<code>Trap</code> 上下文，并通 <code>sret</code> 让应用程序继续执行。</li>
+</ul>
+<h1 id="3-trap机制实现"><a href="#3-trap机制实现" class="headerlink" title="3.trap机制实现"></a>3.trap机制实现</h1><blockquote>
+<p>OS&#x2F;types.h</p>
+<p>实现一个数据类型的定义，用<code>typedef</code>定义了一个<code>reg_t</code>的类型用于定义使用的寄存器</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> __TYPES_H__</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __TYPES_H__</span></span><br><span class="line"><span class="comment">// 定义无符号整型</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">char</span> <span class="type">uint8_t</span>;</span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">short</span> <span class="type">uint16_t</span>;</span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">int</span>  <span class="type">uint32_t</span>;</span><br><span class="line"><span class="keyword">typedef</span> <span class="type">unsigned</span> <span class="type">long</span> <span class="type">long</span> <span class="type">uint64_t</span>;</span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment"> * RISCV64: 寄存器的大小是64位的</span></span><br><span class="line"><span class="comment"> */</span> </span><br><span class="line"><span class="keyword">typedef</span> <span class="type">uint64_t</span> <span class="type">reg_t</span>;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;riscv.h</p>
+<p>定义了一些获取寄存器值的函数</p>
+<p>需要在os.h 中 加入 types.h的头文件</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> __RISCV_H__</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __RISCV_H__</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="comment">/* 读取 sepc 寄存器的值 */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_sepc</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, sepc&quot;</span> : <span class="string">&quot;=r&quot;</span> (x) )</span>;</span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* scause 记录了异常原因 */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_scause</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, scause&quot;</span> : <span class="string">&quot;=r&quot;</span> (x) )</span>;</span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// stval 记录了trap发生时的地址</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_stval</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, stval&quot;</span> : <span class="string">&quot;=r&quot;</span> (x) )</span>;</span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* sstatus记录S模式下处理器内核的运行状态*/</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_sstatus</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, sstatus&quot;</span> : <span class="string">&quot;=r&quot;</span> (x) )</span>;</span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span>  <span class="title function_">w_sstatus</span><span class="params">(<span class="type">reg_t</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrw sstatus, %0&quot;</span> : : <span class="string">&quot;r&quot;</span> (x))</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* stvec寄存器 */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span>  <span class="title function_">w_stvec</span><span class="params">(<span class="type">reg_t</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrw stvec, %0&quot;</span> : : <span class="string">&quot;r&quot;</span> (x))</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_stvec</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, stvec&quot;</span> : <span class="string">&quot;=r&quot;</span> (x) )</span>;</span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;batch.c</p>
+<p>在这个文件中 定义内核栈和用户栈，内核栈可以用来保存 trap情况下的用户程序上下文</p>
+<p><code>KernelStack</code>和<code>UserStack</code>的大小被定义为8kb。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stddef.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USER_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERNEL_STACK_SIZE (4096 * 2)</span></span><br><span class="line"></span><br><span class="line"><span class="type">uint8_t</span> KernelStack[KERNEL_STACK_SIZE];</span><br><span class="line"><span class="type">uint8_t</span> UserStack[USER_STACK_SIZE];</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;context.h</p>
+<p>用来保存上下文寄存器信息，Trap上下文执行流的数据就是寄存器中的数据，有<code>x0~x31</code>总共<code>32</code>个通用寄存器以及<code>sstatus</code>和<code>sepc</code>等控制寄存器需要保存。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> __CONTEXT_H__</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __CONTEXT_H__</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="comment">/*S模式的trap上下文*/</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">pt_regs</span> &#123;</span></span><br><span class="line">	<span class="type">reg_t</span> x0;</span><br><span class="line">	<span class="type">reg_t</span> ra;</span><br><span class="line">	<span class="type">reg_t</span> sp;</span><br><span class="line">	<span class="type">reg_t</span> gp;</span><br><span class="line">	<span class="type">reg_t</span> tp;</span><br><span class="line">	<span class="type">reg_t</span> t0;</span><br><span class="line">	<span class="type">reg_t</span> t1;</span><br><span class="line">	<span class="type">reg_t</span> t2;</span><br><span class="line">	<span class="type">reg_t</span> s0;</span><br><span class="line">	<span class="type">reg_t</span> s1;</span><br><span class="line">	<span class="type">reg_t</span> a0;</span><br><span class="line">	<span class="type">reg_t</span> a1;</span><br><span class="line">	<span class="type">reg_t</span> a2;</span><br><span class="line">	<span class="type">reg_t</span> a3;</span><br><span class="line">	<span class="type">reg_t</span> a4;</span><br><span class="line">	<span class="type">reg_t</span> a5;</span><br><span class="line">	<span class="type">reg_t</span> a6;</span><br><span class="line">	<span class="type">reg_t</span> a7;</span><br><span class="line">	<span class="type">reg_t</span> s2;</span><br><span class="line">	<span class="type">reg_t</span> s3;</span><br><span class="line">	<span class="type">reg_t</span> s4;</span><br><span class="line">	<span class="type">reg_t</span> s5;</span><br><span class="line">	<span class="type">reg_t</span> s6;</span><br><span class="line">	<span class="type">reg_t</span> s7;</span><br><span class="line">	<span class="type">reg_t</span> s8;</span><br><span class="line">	<span class="type">reg_t</span> s9;</span><br><span class="line">	<span class="type">reg_t</span> s10;</span><br><span class="line">	<span class="type">reg_t</span> s11;</span><br><span class="line">	<span class="type">reg_t</span> t3;</span><br><span class="line">	<span class="type">reg_t</span> t4;</span><br><span class="line">	<span class="type">reg_t</span> t5;</span><br><span class="line">	<span class="type">reg_t</span> t6;</span><br><span class="line">	<span class="comment">/* S模式下的寄存器 */</span></span><br><span class="line">	<span class="type">reg_t</span> sstatus;</span><br><span class="line">	<span class="type">reg_t</span> sepc;</span><br><span class="line">&#125;pt_regs;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;kerneltrap.S</p>
+<p>汇编文件中定义了两个函数：：<code>__alltraps 、__restore</code></p>
+<p><strong>用于对trap的上下文进行保存和恢复</strong></p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"># __alltraps 函数：</span><br><span class="line">.globl __alltraps</span><br><span class="line">.align 4   #4*4 = 16字节对齐</span><br><span class="line">__alltraps:</span><br><span class="line">    # 从sscratch获取S模式下的SP，把U模式下的SP保存到sscratch寄存器中</span><br><span class="line">    csrrw sp, sscratch, sp</span><br><span class="line">    # now sp-&gt;kernel stack, sscratch-&gt;user stack</span><br><span class="line">    # allocate a TrapContext on kernel stack</span><br><span class="line">    addi sp, sp, -34*8</span><br><span class="line">    # save general-purpose registers</span><br><span class="line">    sd x1, 1*8(sp)</span><br><span class="line">    # skip sp(x2), we will save it later</span><br><span class="line">    sd x3, 3*8(sp)</span><br><span class="line">    # skip tp(x4), application does not use it</span><br><span class="line">    # save x5~x31</span><br><span class="line">    sd x4, 4*8(sp)   #sd xN, N*8(sp)：将通用寄存器 xN 的值存储到堆栈上 sp + N*8 的位置。</span><br><span class="line">    sd x5, 5*8(sp)</span><br><span class="line">    sd x6, 6*8(sp)</span><br><span class="line">    sd x7, 7*8(sp)</span><br><span class="line">    sd x8, 8*8(sp)</span><br><span class="line">    sd x9, 9*8(sp)</span><br><span class="line">    sd x10,10*8(sp)</span><br><span class="line">    sd x11, 11*8(sp)</span><br><span class="line">    sd x12, 12*8(sp)</span><br><span class="line">    sd x13, 13*8(sp)</span><br><span class="line">    sd x14, 14*8(sp)</span><br><span class="line">    sd x15, 15*8(sp)</span><br><span class="line">    sd x16, 16*8(sp)</span><br><span class="line">    sd x17, 17*8(sp)</span><br><span class="line">    sd x18, 18*8(sp)</span><br><span class="line">    sd x19, 19*8(sp)</span><br><span class="line">    sd x20, 20*8(sp)</span><br><span class="line">    sd x21, 21*8(sp)</span><br><span class="line">    sd x22, 22*8(sp)</span><br><span class="line">    sd x23, 23*8(sp)</span><br><span class="line">    sd x24, 24*8(sp)</span><br><span class="line">    sd x25, 25*8(sp)</span><br><span class="line">    sd x26, 26*8(sp)</span><br><span class="line">    sd x27, 27*8(sp)</span><br><span class="line">    sd x28, 28*8(sp)</span><br><span class="line">    sd x29, 29*8(sp)</span><br><span class="line">    sd x30, 30*8(sp)</span><br><span class="line">    sd x31, 31*8(sp)</span><br><span class="line"></span><br><span class="line">    # we can use t0/t1/t2 freely, because they were saved on kernel stack</span><br><span class="line">    csrr t0, sstatus</span><br><span class="line">    csrr t1, sepc</span><br><span class="line">    sd t0, 32*8(sp)</span><br><span class="line">    sd t1, 33*8(sp)</span><br><span class="line">    # read user stack from sscratch and save it on the kernel stack</span><br><span class="line">    csrr t2, sscratch</span><br><span class="line">    sd t2, 2*8(sp)</span><br><span class="line">    # set input argument of trap_handler(TrapContext)</span><br><span class="line">    mv a0, sp</span><br><span class="line">    call trap_handler</span><br></pre></td></tr></table></figure>
+
+<p><code>__alltraps </code>函数就是发生异常时的处理函数，在此函数中：</p>
+<ul>
+<li><code>csrrw sp, sscratch, sp</code>中将<code>sscratch</code>和<code>sp</code>的值进行了交换，<ul>
+<li>在进入此函数之前<code>sp</code>指向的是用户栈，<code>sscratch</code>中的值保存的是内核栈的栈顶。</li>
+<li>进行交换后，由于此时进入了<code>S</code>态，所以需要切换栈，<strong>由此就切换到了内核栈。</strong></li>
+</ul>
+</li>
+<li>然后就是将寄存器的值保存进内核栈中，在<code>context.h</code>上下文的定义可以看见<code>pt_regs</code>中定义了<code>34</code>个寄存器，所以通过<code>addi sp, sp, -34*8</code>指令来压栈，然后依次保存寄存器的值</li>
+<li>最后两行将内核栈的<code>sp</code>保存进<code>a0</code>寄存器用于传参，所以将用户态寄存器保存进内核栈后，调用了<code>trap_handler</code>函数，在此函数中可通过<code>a0</code>传入的参数访问内核栈中储存的寄存器的值。</li>
+</ul>
+<p><code>__restore</code>函数：将内核栈中的存储的寄存器的值恢复，然后通过<code>sret</code>指令返回从S态到用户态继续执行。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line">.globl __restore</span><br><span class="line">.align 4</span><br><span class="line">__restore:</span><br><span class="line">    # case1: start running app by __restore</span><br><span class="line">    # case2: back to U after handling trap</span><br><span class="line">    mv sp, a0</span><br><span class="line">    # now sp-&gt;kernel stack(after allocated), sscratch-&gt;user stack</span><br><span class="line">    # restore sstatus/sepc</span><br><span class="line">    ld t0, 32*8(sp)</span><br><span class="line">    ld t1, 33*8(sp)</span><br><span class="line">    ld t2, 2*8(sp)</span><br><span class="line">    csrw sstatus, t0</span><br><span class="line">    csrw sepc, t1</span><br><span class="line">    csrw sscratch, t2</span><br><span class="line">    # restore general-purpuse registers except sp/tp</span><br><span class="line">    ld x1, 1*8(sp)</span><br><span class="line">    ld x3, 3*8(sp)</span><br><span class="line">    ld x4, 4*8(sp)</span><br><span class="line">    ld x5, 5*8(sp)</span><br><span class="line">    ld x6, 6*8(sp)</span><br><span class="line">    ld x7, 7*8(sp)</span><br><span class="line">    ld x8, 8*8(sp)</span><br><span class="line">    ld x9, 9*8(sp)</span><br><span class="line">    ld x10,10*8(sp)</span><br><span class="line">    ld x11, 11*8(sp)</span><br><span class="line">    ld x12, 12*8(sp)</span><br><span class="line">    ld x13, 13*8(sp)</span><br><span class="line">    ld x14, 14*8(sp)</span><br><span class="line">    ld x15, 15*8(sp)</span><br><span class="line">    ld x16, 16*8(sp)</span><br><span class="line">    ld x17, 17*8(sp)</span><br><span class="line">    ld x18, 18*8(sp)</span><br><span class="line">    ld x19, 19*8(sp)</span><br><span class="line">    ld x20, 20*8(sp)</span><br><span class="line">    ld x21, 21*8(sp)</span><br><span class="line">    ld x22, 22*8(sp)</span><br><span class="line">    ld x23, 23*8(sp)</span><br><span class="line">    ld x24, 24*8(sp)</span><br><span class="line">    ld x25, 25*8(sp)</span><br><span class="line">    ld x26, 26*8(sp)</span><br><span class="line">    ld x27, 27*8(sp)</span><br><span class="line">    ld x28, 28*8(sp)</span><br><span class="line">    ld x29, 29*8(sp)</span><br><span class="line">    ld x30, 30*8(sp)</span><br><span class="line">    ld x31, 31*8(sp)</span><br><span class="line"></span><br><span class="line">    # release TrapContext on kernel stack</span><br><span class="line">    addi sp, sp, 34*8</span><br><span class="line">    # now sp-&gt;kernel stack, sscratch-&gt;user stack  交换内核态和用户态的指针</span><br><span class="line">    csrrw sp, sscratch, sp</span><br><span class="line">    # now sp-&gt;user stack, sscratch-&gt;kernel stack  返回</span><br><span class="line">    sret</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>__restore</code>函数的定义为<code>__restore(pt_regs *next)</code>，所以在第一行传入内核栈地址，然后将内核栈中存放的寄存器的值恢复，然后切换<code>sp</code>，最后通过<code>sret</code>返回用户态继续执行</li>
+<li>在最后两行会将<code>sp</code>指向用户栈，<code>sscratch</code>指向内核栈</li>
+</ul>
+<h1 id="4-测试"><a href="#4-测试" class="headerlink" title="4.测试"></a>4.测试</h1><blockquote>
+<p>OS&#x2F;trap.c</p>
+<p>在汇编文件中的<code>__alltraps</code>中调用了中断处理函数<code>trap_handler</code>对异常进行处理，下面时对这个函数的简单实现</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;context.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;riscv.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> __alltraps(<span class="type">void</span>);</span><br><span class="line"></span><br><span class="line">pt_regs* <span class="title function_">trap_handler</span><span class="params">(pt_regs* cx)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">reg_t</span> scause = r_scause() ;  </span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;cause:%x\n&quot;</span>,scause);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;a0:%x\n&quot;</span>,cx-&gt;a0);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;a1:%x\n&quot;</span>,cx-&gt;a1);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;a2:%x\n&quot;</span>,cx-&gt;a2);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;a7:%x\n&quot;</span>,cx-&gt;a7);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;sepc:%x\n&quot;</span>,cx-&gt;sepc);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;sstatus:%x\n&quot;</span>,cx-&gt;sstatus);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;sp:%x\n&quot;</span>,cx-&gt;sp);</span><br><span class="line">	<span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">	&#123;</span><br><span class="line">	&#125;</span><br><span class="line">    <span class="keyword">return</span> cx;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">trap_init</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="comment">/*</span></span><br><span class="line"><span class="comment">	 * 设置 trap 时调用函数的基地址</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	w_stvec((<span class="type">reg_t</span>)__alltraps);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>pt_regs* cx</code> 是一个指向 <code>pt_regs</code> 结构体的指针，<strong>包含了所有保存的寄存器值（上下文）</strong></li>
+<li><code>r_scause()</code> 函数读取 <code>scause</code> 寄存器，获取 Trap 的原因。</li>
+<li><code>trap_init</code> 函数用于初始化 Trap 机制，设置 Trap 向量基地址为 <code>__alltraps</code></li>
+</ul>
+<blockquote>
+<p>OS&#x2F;batch.c</p>
+<p>完整代码</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stddef.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;context.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USER_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERNEL_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> APP_BASE_ADDRESS 0x80600000</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">syscall</span><span class="params">(<span class="type">size_t</span> id, <span class="type">reg_t</span> arg1, <span class="type">reg_t</span> arg2, <span class="type">reg_t</span> arg3)</span> &#123;</span><br><span class="line">    <span class="type">long</span> ret;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(</span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a7, %1\n\t&quot;</span>   <span class="comment">// Move syscall id to a0 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a0, %2\n\t&quot;</span>   <span class="comment">// Move args[0] to a1 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a1, %3\n\t&quot;</span>   <span class="comment">// Move args[1] to a2 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a2, %4\n\t&quot;</span>   <span class="comment">// Move args[2] to a3 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;ecall\n\t&quot;</span>       <span class="comment">// Perform syscall</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv %0, a0&quot;</span>       <span class="comment">// Move return value to &#x27;ret&#x27; variable</span></span></span><br><span class="line"><span class="params">        : <span class="string">&quot;=r&quot;</span> (ret)</span></span><br><span class="line"><span class="params">        : <span class="string">&quot;r&quot;</span> (id), <span class="string">&quot;r&quot;</span> (arg1), <span class="string">&quot;r&quot;</span> (arg2), <span class="string">&quot;r&quot;</span> (arg3)</span></span><br><span class="line"><span class="params">        : <span class="string">&quot;a7&quot;</span>, <span class="string">&quot;a0&quot;</span>, <span class="string">&quot;a1&quot;</span>, <span class="string">&quot;a2&quot;</span>, <span class="string">&quot;memory&quot;</span></span></span><br><span class="line"><span class="params">    )</span>;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">testsys</span><span class="params">()</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// //int len = strlen(message);</span></span><br><span class="line">    <span class="comment">//reg_t sstatus = r_sstatus();</span></span><br><span class="line">    <span class="comment">//printf(&quot;sstatus:%x\n&quot;, sstatus);</span></span><br><span class="line">    <span class="type">int</span> ret = syscall(<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>);</span><br><span class="line">    <span class="comment">// while (1)</span></span><br><span class="line">    <span class="comment">// &#123;</span></span><br><span class="line">    <span class="comment">//     /* code */</span></span><br><span class="line">    <span class="comment">// &#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//printf(&quot;ret:%d\n&quot;,ret);</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">uint8_t</span> KernelStack[KERNEL_STACK_SIZE];</span><br><span class="line"><span class="type">uint8_t</span> UserStack[USER_STACK_SIZE]=&#123;<span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> __restore(pt_regs *next);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pt_regs</span> <span class="title">tasks</span>;</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">app_init_context</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">reg_t</span> user_sp = &amp;UserStack + USER_STACK_SIZE;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;user_sp:%p\n&quot;</span>, user_sp);</span><br><span class="line"></span><br><span class="line">    <span class="type">reg_t</span> stvec = r_stvec();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;stvec:%x\n&quot;</span>, stvec);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    trap_init();</span><br><span class="line"></span><br><span class="line">    <span class="type">reg_t</span> sstatus = r_sstatus();</span><br><span class="line">    <span class="comment">// 设置 sstatus 寄存器第8位即SPP位为0 表示为U模式</span></span><br><span class="line">    sstatus &amp;= (<span class="number">0U</span> &lt;&lt; <span class="number">8</span>);</span><br><span class="line">    w_sstatus(sstatus);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;sstatus:%x\n&quot;</span>, sstatus);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    tasks.sepc = (<span class="type">reg_t</span>)testsys;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;tasks sepc:%x\n&quot;</span>, tasks.sepc);</span><br><span class="line"></span><br><span class="line">    tasks.sstatus = sstatus;</span><br><span class="line"></span><br><span class="line">    tasks.sp = user_sp;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    pt_regs* cx_ptr = &amp;KernelStack[<span class="number">0</span>] + KERNEL_STACK_SIZE - <span class="keyword">sizeof</span>(pt_regs);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;pt_regs: %d\n&quot;</span>,<span class="keyword">sizeof</span>(pt_regs));</span><br><span class="line">    cx_ptr-&gt;sepc = tasks.sepc;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;cx_ptr sepc :%x\n&quot;</span>, cx_ptr-&gt;sepc);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;cx_ptr sepc adress:%x\n&quot;</span>, &amp;(cx_ptr-&gt;sepc));</span><br><span class="line">    cx_ptr-&gt;sstatus = tasks.sstatus;</span><br><span class="line">    cx_ptr-&gt;sp = tasks.sp;</span><br><span class="line">    <span class="comment">// *cx_ptr = tasks[0];</span></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;cx_ptr adress:%x\n&quot;</span>, cx_ptr);</span><br><span class="line"></span><br><span class="line">    __restore(cx_ptr); </span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>解释：</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stddef.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;context.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USER_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERNEL_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> APP_BASE_ADDRESS 0x80600000</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>包含了必要的头文件</li>
+<li>定义了用户堆栈和内核堆栈的大小 4k * 2 &#x3D; 8k</li>
+<li>定义了应用程序的起始地址 <code>0x80600000</code></li>
+</ul>
+<p><strong>系统调用</strong></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> <span class="title function_">syscall</span><span class="params">(<span class="type">size_t</span> id, <span class="type">reg_t</span> arg1, <span class="type">reg_t</span> arg2, <span class="type">reg_t</span> arg3)</span> &#123;</span><br><span class="line">    <span class="type">long</span> ret;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(</span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a7, %1\n\t&quot;</span>   <span class="comment">// 将系统调用号移动到 a7 寄存器</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a0, %2\n\t&quot;</span>   <span class="comment">// 将第一个参数移动到 a0 寄存器</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a1, %3\n\t&quot;</span>   <span class="comment">// 将第二个参数移动到 a1 寄存器</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a2, %4\n\t&quot;</span>   <span class="comment">// 将第三个参数移动到 a2 寄存器</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;ecall\n\t&quot;</span>       <span class="comment">// 执行系统调用  </span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv %0, a0&quot;</span>       <span class="comment">// 将返回值移动到 &#x27;ret&#x27; 变量</span></span></span><br><span class="line"><span class="params">        : <span class="string">&quot;=r&quot;</span> (ret)</span></span><br><span class="line"><span class="params">        : <span class="string">&quot;r&quot;</span> (id), <span class="string">&quot;r&quot;</span> (arg1), <span class="string">&quot;r&quot;</span> (arg2), <span class="string">&quot;r&quot;</span> (arg3)</span></span><br><span class="line"><span class="params">        : <span class="string">&quot;a7&quot;</span>, <span class="string">&quot;a0&quot;</span>, <span class="string">&quot;a1&quot;</span>, <span class="string">&quot;a2&quot;</span>, <span class="string">&quot;memory&quot;</span></span></span><br><span class="line"><span class="params">    )</span>;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>该函数执行一个系统调用，传递系统调用号和三个参数。</li>
+<li>使用内联汇编将参数传递给适当的寄存器，并执行 <code>ecall</code> 指令。 — 执行<code>__alltrap</code>保存上下文 ，然后调用<code>handler</code> 函数处理<code>ecall </code>，最后恢复</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">testsys</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">int</span> ret = syscall(<span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>);</span><br><span class="line">    <span class="comment">// printf(&quot;ret:%d\n&quot;, ret);</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>定义了测试函数</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">uint8_t</span> KernelStack[KERNEL_STACK_SIZE];</span><br><span class="line"><span class="type">uint8_t</span> UserStack[USER_STACK_SIZE] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> __restore(pt_regs *next);</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">pt_regs</span> <span class="title">tasks</span>;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>定义了用户和内核堆栈</li>
+<li>声明了外部的汇编函数<code>restore</code>，用于恢复上下文</li>
+<li>定义一个 <code>pt_regs</code> 结构体实例 <code>tasks</code>，用于保存任务上下文。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">app_init_context</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">reg_t</span> user_sp = (<span class="type">reg_t</span>)(&amp;UserStack) + USER_STACK_SIZE;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;user_sp:%p\n&quot;</span>, user_sp);</span><br><span class="line"></span><br><span class="line">    <span class="type">reg_t</span> stvec = r_stvec();</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;stvec:%x\n&quot;</span>, stvec);</span><br><span class="line"></span><br><span class="line">    trap_init();</span><br><span class="line"></span><br><span class="line">    <span class="type">reg_t</span> sstatus = r_sstatus();</span><br><span class="line">    <span class="comment">// 设置 sstatus 寄存器第 8 位（SPP 位）为 0，表示 U 模式</span></span><br><span class="line">    sstatus &amp;= ~(<span class="number">1U</span> &lt;&lt; <span class="number">8</span>);</span><br><span class="line">    w_sstatus(sstatus);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;sstatus:%x\n&quot;</span>, sstatus);</span><br><span class="line"></span><br><span class="line">    tasks.sepc = (<span class="type">reg_t</span>)testsys;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;tasks sepc:%x\n&quot;</span>, tasks.sepc);</span><br><span class="line"></span><br><span class="line">    tasks.sstatus = sstatus;</span><br><span class="line">    tasks.sp = user_sp;</span><br><span class="line"></span><br><span class="line">    pt_regs* cx_ptr = (pt_regs*)((<span class="type">uint8_t</span>*)&amp;KernelStack[<span class="number">0</span>] + KERNEL_STACK_SIZE - <span class="keyword">sizeof</span>(pt_regs));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;pt_regs: %d\n&quot;</span>, <span class="keyword">sizeof</span>(pt_regs));</span><br><span class="line">    cx_ptr-&gt;sepc = tasks.sepc;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;cx_ptr sepc: %x\n&quot;</span>, cx_ptr-&gt;sepc);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;cx_ptr sepc address: %p\n&quot;</span>, &amp;(cx_ptr-&gt;sepc));</span><br><span class="line">    cx_ptr-&gt;sstatus = tasks.sstatus;</span><br><span class="line">    cx_ptr-&gt;sp = tasks.sp;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;cx_ptr address: %p\n&quot;</span>, cx_ptr);</span><br><span class="line"></span><br><span class="line">    __restore(cx_ptr);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>目的：</strong>通过<code>app_init...</code>初始化用户态程序的上下文，并最后通过调用 <code>__restore(cx_ptr)</code> 将控制权移交给用户态程序， 最后在用户态程序中才是真的<code>ecall</code></p>
+<ul>
+<li><code>reg_t user_sp</code>初始化用户堆栈指针，并打印出来<ul>
+<li>因为栈是从高地址往低地址向下增长的，所以用户栈的地址为<code>&amp;UserStack + USER_STACK_SIZE</code></li>
+</ul>
+</li>
+<li>然后调用<code>trap_init</code>函数来设置<code>stvec</code>寄存器的值为<code>__alltraps</code>，这里告诉cpu发生trap时去哪里执行<ul>
+<li><code>stvec</code>寄存器用于设置发生<code>trap</code>时，异常处理程序的地址。</li>
+</ul>
+</li>
+<li>然后设置sstatus寄存器的SPP位为0。这是为啥呢？在上面对寄存器的介绍中提到“当执行一条SRET指令从trap处理程序返回时，如果SPP位为0，则特权级别被设置为U模式，如果SPP位为1，则特权级别被设置为S模式;”<strong>所以我们为了从S模式返回用户模式去执行testsys()中的代码，我们需要将SPP位设置为0。</strong></li>
+<li>然后就是构造一段内核栈，设置<code>sstatus</code>、<code>sepc</code>、<code>sp</code>的值，这里由于下一阶段为用户模式，所以<code>sepc</code>会设置成用户态程序的地址（<code>testsys</code>），<code>sp</code>设置为用户栈的地址。</li>
+<li>最后恢复上下文，返回用户态执行</li>
+</ul>
+<blockquote>
+<p>OS&#x2F;os.h</p>
+<p>还需要添加头文件以及函数声明</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> __OS_H__</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __OS_H__</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stddef.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdarg.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;types.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;context.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;riscv.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* printk */</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">int</span>  <span class="title function_">printk</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* s, ...)</span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">panic</span><span class="params">(<span class="type">char</span> *s)</span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">sbi_console_putchar</span><span class="params">(<span class="type">int</span> ch)</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* batch.c */</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">app_init_context</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* trap.c */</span></span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">trap_init</span><span class="params">()</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span> <span class="comment">/* __OS_H__ */</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;main.c</p>
+<p>添加打印测试的U模式下函数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//extern sbi_console_putchar(int ch);</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">os_main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    printk(<span class="string">&quot;hello!!!\n&quot;</span>);</span><br><span class="line">    app_init_context();</span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<blockquote>
+<p>OS&#x2F;Makefle</p>
+</blockquote>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">CROSS_COMPILE = riscv64-unknown-elf-</span><br><span class="line">CFLAGS = -nostdlib -fno-builtin -I/opt/riscv/riscv64-unknown-elf/<span class="keyword">include</span> -mcmodel=medany</span><br><span class="line"></span><br><span class="line"><span class="comment"># riscv64-unknown-elf-gcc 工具链可以同时编译汇编和 C 代码</span></span><br><span class="line">CC = $&#123;CROSS_COMPILE&#125;gcc </span><br><span class="line">OBJCOPY = $&#123;CROSS_COMPILE&#125;objcopy</span><br><span class="line">OBJDUMP = $&#123;CROSS_COMPILE&#125;objdump</span><br><span class="line"></span><br><span class="line">SRCS_ASM = \</span><br><span class="line">	entry.S \</span><br><span class="line">	kerneltrap \</span><br><span class="line"></span><br><span class="line">SRCS_C = \</span><br><span class="line">	sbi.c \</span><br><span class="line">	main.c \</span><br><span class="line">	printk.c \</span><br><span class="line">	batch.c \</span><br><span class="line">	trap.c \</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将源文件替换为 .o 文件</span></span><br><span class="line">OBJS = $(SRCS_ASM:.S=.o)</span><br><span class="line">OBJS += $(SRCS_C:.c=.o)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="section">os.elf: $&#123;OBJS&#125;</span></span><br><span class="line">	$&#123;CC&#125; $&#123;CFLAGS&#125; -T os.ld -Wl,-Map=os.map -o os.elf <span class="variable">$^</span></span><br><span class="line">	$&#123;OBJCOPY&#125; -O binary os.elf os.bin</span><br><span class="line"></span><br><span class="line">%.o : %.c</span><br><span class="line">	$&#123;CC&#125; $&#123;CFLAGS&#125; -c -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"></span><br><span class="line">%.o : %.S</span><br><span class="line">	$&#123;CC&#125; $&#123;CFLAGS&#125; -c -o <span class="variable">$@</span> <span class="variable">$&lt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">.PHONY : clean</span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	rm -rf *.o *.bin *.elf</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="测试结果"><a href="#测试结果" class="headerlink" title="测试结果"></a>测试结果</h2><p><img src="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/image-20240613211217244.png" alt="image-20240613211217244"></p>
+<p>可以看到 cause的值为8，查看<code>scause</code> 8表示 U模式的下的ecall</p>
+<h2 id="trap-处理的总体流程"><a href="#trap-处理的总体流程" class="headerlink" title="trap 处理的总体流程"></a><code>trap</code> 处理的总体流程</h2><ol>
+<li>首先通过 <code>__alltraps</code> 将 Trap 上下文保存在内核栈上，</li>
+<li>然后跳转到编写的 <code>trap_handler</code> 函数完成 Trap 处理。</li>
+<li>当 <code>trap_handler</code> 返回之后，使用 <code>__restore</code> 从保存在内核栈上的 Trap 上下文恢复寄存器。</li>
+<li>最后通过一条 <code>sret</code> 指令回到应用程序执行。</li>
+</ol>
+<h2 id="本节添加函数逻辑-star"><a href="#本节添加函数逻辑-star" class="headerlink" title="本节添加函数逻辑:star:"></a>本节添加函数逻辑:star:</h2><ul>
+<li><p><code>S模式：</code>首先在<code>app_init_context()</code>这个函数中，初始化用户态栈指针，初始化<code>trap</code>处理程序，初始化内核栈，最后通过<code>__restore(cx_ptr);</code>恢复到用户态（<code>testsys</code>）执行</p>
+<ul>
+<li>在<code>trap_init</code>中 初始化了 <code>__alltrap</code>汇编函数 这个函数用于保存上下文信息 以及调用 <code>trap_handler</code>对trap进行处理</li>
+</ul>
+</li>
+<li><p><code>U模式：</code>用户态程序 <code>testsys</code>执行，函数调用了<code>syscall</code>函数</p>
+</li>
+<li><p><code>U模式：</code>在<code>syscall</code>函数，对寄存器进行操作，并且通过内联汇编的方式调用<code>ecall</code>，使得操作系统陷入了<code>trap</code></p>
+</li>
+<li><p><code>S模式：</code>在<code>trap</code>中，首先调用了<code>__alltrap</code>对上下文进行了保存，并调用<code>trap_handler</code>对trap进行处理（也是打印相关的寄存器信息）</p>
+</li>
+<li><p><code>S模式：</code>最后处理完 会调用<code>__restore</code>函数</p>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://liangzhouzz.github.io">liangzhou</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://liangzhouzz.github.io/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/">http://liangzhouzz.github.io/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://liangzhouzz.github.io" target="_blank">Sifanのblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><a class="post-meta__tags" href="/tags/riscv%EF%BC%8Cqemu/">riscv，qemu</a></div><div class="post_share"><div class="social-share" data-image="/img/duck.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/06/11/riscv-9-prink%E5%86%85%E6%A0%B8%E7%BA%A7%E6%89%93%E5%8D%B0%E5%87%BD%E6%95%B0/" title="riscv-8-printk内核级打印函数"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">riscv-8-printk内核级打印函数</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/03/25/%E5%9F%BA%E4%BA%8Eqemu-riscv%E6%9E%84%E4%BB%B6%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="基于qemu-riscv构建嵌入式系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-25</div><div class="title">基于qemu-riscv构建嵌入式系统</div></div></a></div><div><a href="/2024/06/02/qemu-riscv-add-flash-itr-gpio/" title="riscv-2-flash-itr-gpio"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-02</div><div class="title">riscv-2-flash-itr-gpio</div></div></a></div><div><a href="/2024/06/04/riscv-3-%E6%B5%8B%E8%AF%95%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="riscv-3-测试串口打印"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-04</div><div class="title">riscv-3-测试串口打印</div></div></a></div><div><a href="/2024/06/06/riscv-4-opensbi/" title="riscv-4-opensbi"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-06</div><div class="title">riscv-4-opensbi</div></div></a></div><div><a href="/2024/06/08/riscv-5-%E8%AE%BE%E5%A4%87%E6%A0%91/" title="riscv-5-设备树"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-08</div><div class="title">riscv-5-设备树</div></div></a></div><div><a href="/2024/06/09/riscv-6-domain%E6%9C%BA%E5%88%B6/" title="riscv-6-domain"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-09</div><div class="title">riscv-6-domain</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/duck.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liangzhou</div><div class="author-info__description">要努力，不要急！</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">29</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/liangzhouzz/"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E7%94%A8%E6%88%B7%E6%80%81%E7%9A%84syscall"><span class="toc-number">1.</span> <span class="toc-text">1.用户态的syscall</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#riscv-%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8%E7%AE%80%E4%BB%8B"><span class="toc-number">1.1.</span> <span class="toc-text">riscv 系统调用简介</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-trap%E6%9C%BA%E5%88%B6"><span class="toc-number">2.</span> <span class="toc-text">2.trap机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8ES%E6%A8%A1%E5%BC%8F%E7%9B%B8%E5%85%B3%E7%9A%84%E5%BC%82%E5%B8%B8%E5%AF%84%E5%AD%98%E5%99%A8"><span class="toc-number">2.1.</span> <span class="toc-text">与S模式相关的异常寄存器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Supervisor-Status-Register-sstatus"><span class="toc-number">2.1.1.</span> <span class="toc-text">Supervisor Status Register (sstatus)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Supervisor-Trap-Vector-Base-Address-Register-stvec"><span class="toc-number">2.1.2.</span> <span class="toc-text">Supervisor Trap Vector Base Address Register (stvec)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Supervisor-Scratch-Register-sscratch"><span class="toc-number">2.1.3.</span> <span class="toc-text">Supervisor Scratch Register (sscratch)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Supervisor-Exception-Program-Counter-sepc"><span class="toc-number">2.1.4.</span> <span class="toc-text">Supervisor Exception Program Counter (sepc)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Supervisor-Cause-Register-scause-star"><span class="toc-number">2.1.5.</span> <span class="toc-text">Supervisor Cause Register (scause):star:</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%89%B9%E6%9D%83%E7%BA%A7%E5%88%87%E6%8D%A2%E6%B5%81%E7%A8%8B%E6%9C%BA%E5%88%B6"><span class="toc-number">2.2.</span> <span class="toc-text">特权级切换流程机制</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-trap%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">3.trap机制实现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%B5%8B%E8%AF%95"><span class="toc-number">4.</span> <span class="toc-text">4.测试</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C"><span class="toc-number">4.1.</span> <span class="toc-text">测试结果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#trap-%E5%A4%84%E7%90%86%E7%9A%84%E6%80%BB%E4%BD%93%E6%B5%81%E7%A8%8B"><span class="toc-number">4.2.</span> <span class="toc-text">trap 处理的总体流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E8%8A%82%E6%B7%BB%E5%8A%A0%E5%87%BD%E6%95%B0%E9%80%BB%E8%BE%91-star"><span class="toc-number">4.3.</span> <span class="toc-text">本节添加函数逻辑:star:</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/" title="riscv-9-u模式的trap机制">riscv-9-u模式的trap机制</a><time datetime="2024-06-12T03:01:49.000Z" title="发表于 2024-06-12 11:01:49">2024-06-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/11/riscv-9-prink%E5%86%85%E6%A0%B8%E7%BA%A7%E6%89%93%E5%8D%B0%E5%87%BD%E6%95%B0/" title="riscv-8-printk内核级打印函数">riscv-8-printk内核级打印函数</a><time datetime="2024-06-11T13:20:59.000Z" title="发表于 2024-06-11 21:20:59">2024-06-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/10/riscv-7-opensbi%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA%E4%BB%A5%E5%8F%8A%E6%89%8B%E5%86%99%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" title="riscv-7-opensbi控制台输出以及手写操作系统">riscv-7-opensbi控制台输出以及手写操作系统</a><time datetime="2024-06-10T09:07:48.000Z" title="发表于 2024-06-10 17:07:48">2024-06-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/09/riscv-6-domain%E6%9C%BA%E5%88%B6/" title="riscv-6-domain">riscv-6-domain</a><time datetime="2024-06-09T08:13:59.000Z" title="发表于 2024-06-09 16:13:59">2024-06-09</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/08/riscv-5-%E8%AE%BE%E5%A4%87%E6%A0%91/" title="riscv-5-设备树">riscv-5-设备树</a><time datetime="2024-06-08T08:13:59.000Z" title="发表于 2024-06-08 16:13:59">2024-06-08</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/footer.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 - 2024 By liangzhou</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Hi!!!!!!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
