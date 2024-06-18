@@ -4688,4 +4688,278 @@ fa 18 40 00 00 00 00 00
         <tag>riscv，qemu</tag>
       </tags>
   </entry>
+  <entry>
+    <title>riscv-10-多任务调度</title>
+    <url>/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/</url>
+    <content><![CDATA[<h1 id="1-实现sys-write函数"><a href="#1-实现sys-write函数" class="headerlink" title="1.实现sys_write函数"></a>1.实现sys_write函数</h1><p><strong>本小节目标：</strong>实现通过<code>sys_write</code>函数在 用户态的程序调用串口输出打印</p>
+<blockquote>
+<p>OS&#x2F;app.c</p>
+<p>删掉之前的<code>batch.c</code>，在<code>app.c</code>函数中实现用户态函数 <code>sys_write</code></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">syscall</span><span class="params">(<span class="type">size_t</span> id, <span class="type">reg_t</span> arg1, <span class="type">reg_t</span> arg2, <span class="type">reg_t</span> arg3)</span> &#123;</span><br><span class="line">    <span class="type">long</span> ret;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(</span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a7, %1\n\t&quot;</span>   <span class="comment">// Move syscall id to a7 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a0, %2\n\t&quot;</span>   <span class="comment">// Move args[0] to a1 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a1, %3\n\t&quot;</span>   <span class="comment">// Move args[1] to a2 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a2, %4\n\t&quot;</span>   <span class="comment">// Move args[2] to a3 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;ecall\n\t&quot;</span>       <span class="comment">// Perform syscall</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv %0, a0&quot;</span>       <span class="comment">// Move return value to &#x27;ret&#x27; variable</span></span></span><br><span class="line"><span class="params">        : <span class="string">&quot;=r&quot;</span> (ret)</span></span><br><span class="line"><span class="params">        : <span class="string">&quot;r&quot;</span> (id), <span class="string">&quot;r&quot;</span> (arg1), <span class="string">&quot;r&quot;</span> (arg2), <span class="string">&quot;r&quot;</span> (arg3)</span></span><br><span class="line"><span class="params">        : <span class="string">&quot;a7&quot;</span>, <span class="string">&quot;a0&quot;</span>, <span class="string">&quot;a1&quot;</span>, <span class="string">&quot;a2&quot;</span>, <span class="string">&quot;memory&quot;</span></span></span><br><span class="line"><span class="params">    )</span>;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">sys_wirte</span><span class="params">(<span class="type">size_t</span> fd, <span class="type">const</span> <span class="type">char</span>* buf, <span class="type">size_t</span> len)</span></span><br><span class="line">&#123;</span><br><span class="line">    syscall(__NR_write,fd,buf, len);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<blockquote>
+<p>OS&#x2F;trap.c</p>
+<p>trap_handler函数修改</p>
+<p>对系统的调用号进行分发  8 —&gt; 表示 U模式下的ecall</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">trap_Context* <span class="title function_">trap_handler</span><span class="params">(trap_Context* cx)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">reg_t</span> scause = r_scause();</span><br><span class="line">	<span class="keyword">switch</span> (scause)</span><br><span class="line">	&#123;</span><br><span class="line">	<span class="keyword">case</span> <span class="number">8</span>:</span><br><span class="line">			__SYSCALL(cx-&gt;a7,cx-&gt;a0,cx-&gt;a1,cx-&gt;a2);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">&quot;undfined scause:%d\n&quot;</span>,scause);</span><br><span class="line">			</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	cx-&gt;sepc += <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> cx;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;syscall.c 新建这个文件</p>
+<p>其定义了 __SYSCALL函数的实现 从而调用printk进行输出 </p>
+<p>syscall中对 call的id进行分发 如果是<code>__NR_write</code> 则代表 <code>__sys_write</code></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* syscall.c */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __SYSCALL(<span class="type">size_t</span> syscall_id, <span class="type">reg_t</span> arg1, <span class="type">reg_t</span> arg2, <span class="type">reg_t</span> arg3) &#123;</span><br><span class="line">        <span class="keyword">switch</span> (syscall_id)</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="keyword">case</span> __NR_write:</span><br><span class="line">            __sys_write(arg1, arg2, arg3);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            printk(<span class="string">&quot;Unsupported syscall id:%d\n&quot;</span>,syscall_id);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __sys_write(<span class="type">size_t</span> fd, <span class="type">const</span> <span class="type">char</span>* data, <span class="type">size_t</span> len)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(fd ==<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        printk(data);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        panic(<span class="string">&quot;Unsupported fd in sys_write!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;string.c</p>
+<p><code>syscall(__NR_write, *fd*, *buf*, *len*);</code> 由于最后一个<code>len</code>需要计算字符串的长度，所以还要实现<code>strlen</code>函数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* string.c */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="comment">//计算字符串的长度 </span></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">strlen</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *str)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *ptr = (<span class="type">char</span> *)str;</span><br><span class="line">    <span class="keyword">while</span> (*ptr != EOS)</span><br><span class="line">    &#123;</span><br><span class="line">        ptr++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ptr - str;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 从存储区 src 复制 n 个字节到存储区 dest。</span></span><br><span class="line"><span class="type">void</span>* <span class="title function_">memcpy</span><span class="params">(<span class="type">void</span> *dest, <span class="type">const</span> <span class="type">void</span> *src, <span class="type">size_t</span> count)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *ptr = dest;</span><br><span class="line">    <span class="keyword">while</span> (count--)</span><br><span class="line">    &#123;</span><br><span class="line">        *ptr++ = *((<span class="type">char</span> *)(src++));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> dest;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240615221400398.png" alt="image-20240615221400398"></p>
+<h1 id="2-协作式多任务调度"><a href="#2-协作式多任务调度" class="headerlink" title="2.协作式多任务调度"></a>2.协作式多任务调度</h1><h2 id="2-1switch介绍"><a href="#2-1switch介绍" class="headerlink" title="2.1switch介绍"></a>2.1switch介绍</h2><p><strong>协作式多任务调度</strong>：就是如果一个用户程序在做一些等待的事情的时候，比如等待外设响应而不需要占用cpu计算资源的时候可以让出cpu的使用权让下一个用户程序执行，当外设响应完毕后重新拿到cpu使用权继续执行，这大大的提高了cpu的执行效率。</p>
+<p><strong>任务切换</strong>：从一个任务切换到另一个任务，</p>
+<ul>
+<li>同上章节一样，当从用户态切换到内核态，需要保存上下文</li>
+<li>从一个任务切换到另一个任务也需要保存上下文，知道CPU重新拿回使用权恢复执行</li>
+</ul>
+<p><strong>实现多任务调度的关键</strong>：任务主动放弃CPU的执行权 ，在本章节中通过 调用用户态程序<code>sys_yield</code>实现（来告诉操作系统我要放弃CPU 的使用权了），然后操作系统进行任务切换。任务的切换是发生在<code>S</code>态的，任务在操作系统切换完毕后，同样通过<code>_restore</code>回到用户态执行程序，不过此时已经进行了任务切换，<strong>所以<code>_restore</code>回到的是切换后的任务</strong></p>
+<p>所以，<strong>任务切换其实是来自两个不同应用在内核中的 <code>Trap</code> 控制流之间的切换。</strong>当一个应用 Trap 到 S 模式的操作系统内核中进行进一步处理的时候，我们可以设计一个函数来给Trap 控制流调用，从而进行任务切换。这个函数我们定义为<code>__switch</code></p>
+<p>具体来说，调用 <code>__switch</code> 之后直到它返回前的这段时间，原 Trap 控制流 A 会先被暂停并被切换出去， CPU 转而运行另一个应用在内核中的 Trap 控制流 B 。然后在某个合适的时机，<strong>原 Trap 控制流 A 才会从某一条 Trap 控制流 C （很有可能不是它之前切换到的 B ）切换回来继续执行并最终返回。</strong><code>__switch</code> 函数和一个普通的函数之间的核心差别仅仅是它会 <strong>换栈</strong> 。</p>
+<p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240617152636754.png" alt="image-20240617152636754"></p>
+<blockquote>
+<p>以上参考：<a href="https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter3/2task-switching.html">任务切换 - rCore-Tutorial-Book-v3 3.6.0-alpha.1 文档 (rcore-os.cn)</a></p>
+</blockquote>
+<p>每个任务都有自己的任务上下文，<strong>每个任务也有自己的内核栈和用户栈空间，所以我们首先需要为每个任务定义内核栈和用户栈</strong>。新建一个<code>task.c</code>文件:</p>
+<blockquote>
+<p>OS&#x2F;task.c</p>
+<p>定义了内核栈空间 和 用户栈空间的大小</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USER_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERNEL_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_TASKS 10   <span class="comment">/* 操作系统支持的最大任务数量 */</span></span></span><br><span class="line"><span class="type">uint8_t</span> KernelStack[MAX_TASKS][KERNEL_STACK_SIZE]; <span class="comment">/* 任务内核栈 */</span></span><br><span class="line"><span class="type">uint8_t</span> UserStack[MAX_TASKS][USER_STACK_SIZE];    <span class="comment">/* 任务用户栈 */</span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;context.h</p>
+<p>定义 任务上下文结构体</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* s模式下的任务上下文*/</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">task_Context</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="type">reg_t</span> ra;</span><br><span class="line">	<span class="type">reg_t</span> sp;</span><br><span class="line">	<span class="type">reg_t</span> s0;</span><br><span class="line">	<span class="type">reg_t</span> s1;</span><br><span class="line">	<span class="type">reg_t</span> s2;</span><br><span class="line">	<span class="type">reg_t</span> s3;</span><br><span class="line">	<span class="type">reg_t</span> s4;</span><br><span class="line">	<span class="type">reg_t</span> s5;</span><br><span class="line">	<span class="type">reg_t</span> s6;</span><br><span class="line">	<span class="type">reg_t</span> s7;</span><br><span class="line">	<span class="type">reg_t</span> s8;</span><br><span class="line">	<span class="type">reg_t</span> s9;</span><br><span class="line">	<span class="type">reg_t</span> s10;</span><br><span class="line">	<span class="type">reg_t</span> s11;</span><br><span class="line">&#125;task_Context;</span><br></pre></td></tr></table></figure>
+
+<p><code>ra</code>寄存器，<code>sp</code>寄存器，<code>s0~s11</code>寄存器， riscv 的函数调用寄存器保存规范：</p>
+<ul>
+<li><code>ra</code>：记录了<code>__switch</code>返回后应该跳转到哪里运行</li>
+<li>对于一般的函数而言，Rust&#x2F;C 编译器会在函数的起始位置自动生成代码来保存 <code>s0~s11</code> 这些被调用者保存的寄存器。但 <code>__switch</code> 是一个用汇编代码写的特殊函数，它不会被 Rust&#x2F;C 编译器处理，所以我们需要在 <code>__switch</code> 中手动编写保存 <code>s0~s11</code> 的汇编代码。</li>
+<li>其它寄存器中，属于调用者保存的寄存器是由编译器在高级语言编写的调用函数中自动生成的代码来完成保存的；还有一些寄存器属于临时寄存器，不需要保存和恢复。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>寄存器名称</th>
+<th>寄存器别名</th>
+<th>保存约定</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>t0 - t6</td>
+<td>x5 - x7， x28 - x31</td>
+<td>调用者</td>
+<td>临时寄存器</td>
+</tr>
+<tr>
+<td>a0 - a7</td>
+<td>x10 - x17</td>
+<td>调用者</td>
+<td>参数&#x2F;返回值寄存器</td>
+</tr>
+<tr>
+<td>ra</td>
+<td>x1</td>
+<td>调用者</td>
+<td>返回地址寄存器</td>
+</tr>
+<tr>
+<td>s0 - s11</td>
+<td>x8，x9，x18 - x27</td>
+<td>被调用者</td>
+<td>保存寄存器</td>
+</tr>
+<tr>
+<td>sp</td>
+<td>x2</td>
+<td>被调用者</td>
+<td>栈指针寄存器</td>
+</tr>
+</tbody></table>
+<p>因此，在调用<code>__switch</code>函数进行任务切换时，<strong>我们需要将当前任务的这些寄存器保存，然后将下一个要切换的任务的寄存器从拿出来然后完成寄存器替换。</strong></p>
+<p>每个任务都有一个保存自己任务上下文的地方，这个地方我们定义为<code>TaskControlBlock</code>，在<code>TaskControlBlock</code>不止可以保存任务的上下文信息，还可以保存任务的运行状态</p>
+<blockquote>
+<p>OS&#x2F;task.h</p>
+<p>定义了<code>TaskControlBlock</code>来保存任务信息，一个任务信息包括这个任务的状态何任务上下文信息</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> __TASK_H__</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __TASK_H__</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> <span class="title">TaskState</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	UnInit, <span class="comment">// 未初始化</span></span><br><span class="line">    Ready, <span class="comment">// 准备运行</span></span><br><span class="line">    Running, <span class="comment">// 正在运行</span></span><br><span class="line">    Exited, <span class="comment">// 已退出</span></span><br><span class="line">&#125;TaskState;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">TaskControlBlock</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    TaskState task_state; </span><br><span class="line">    task_Context task_context; </span><br><span class="line">&#125;TaskControlBlock;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;task.c</p>
+<p>添加 一个<code>TaskControlBlock</code>类型的数组，保存每个任务的状态信息和上下文</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USER_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERNEL_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_TASKS 10   <span class="comment">/* 操作系统支持的最大任务数量 */</span></span></span><br><span class="line"><span class="type">uint8_t</span> KernelStack[MAX_TASKS][KERNEL_STACK_SIZE]; <span class="comment">/* 任务内核栈 */</span></span><br><span class="line"><span class="type">uint8_t</span> UserStack[MAX_TASKS][USER_STACK_SIZE];     <span class="comment">/* 任务用户栈 */</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TaskControlBlock</span> <span class="title">tasks</span>[<span class="title">MAX_TASKS</span>];</span>   <span class="comment">// 任务数组，保存上下文和状态</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;task.c</p>
+<p>对于当前正在执行的任务的 <code>Trap</code> 控制流，我们用一个名为 <code>current_task_cx_ptr </code>的变量来保存放置当前任务上下文的地址；而用<code>next_task_cx_ptr</code>的变量来保存放置下一个要执行任务的上下文的地址。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">TaskContext *current_task_cx_ptr = &amp;tasks[current].task_context;</span><br><span class="line">TaskContext *next_task_cx_ptr    = &amp;tasks[next].task_context;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>从栈上内容的角度看待<code>__switch</code>函数的整体流程：</strong></p>
+<p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240617152834451.png" alt="image-20240617152834451"></p>
+<p><code>Trap</code> 控制流在调用 <code>__switch</code> 之前就需要明确知道即将切换到哪一条目前正处于暂停状态的 <code>Trap</code> 控制流，因此 <code>__switch</code> 有两个参数，</p>
+<ul>
+<li>第一个参数代表它自己</li>
+<li>第二个参数则代表即将切换到的那条 <code>Trap</code> 控制流。</li>
+</ul>
+<p>这里我们用上面提到过的 <code>current_task_cx_ptr</code> 和 <code>next_task_cx_ptr</code> 作为代表。在上图中我们假设某次 <code>__switch</code> 调用要从 Trap 控制流 A 切换到 B，一共可以分为四个阶段，在每个阶段中我们都给出了 A 和 B 内核栈上的内容。</p>
+<ul>
+<li><strong>阶段 [1]：</strong>在 Trap 控制流 A 调用 <code>__switch</code> 之前，A 的内核栈上只有 Trap 上下文和 Trap 处理函数的调用栈信息，而 B 是之前被切换出去的；</li>
+<li><strong>阶段 [2]：</strong>A 在 A 任务上下文空间在里面保存 CPU 当前的寄存器快照；</li>
+<li><strong>阶段 [3]：</strong>这一步极为关键，读取 <code>next_task_cx_ptr</code> 指向的 B 任务上下文，根据 B 任务上下文保存的内容来恢复 <code>ra</code> 寄存器、<code>s0~s11</code> 寄存器以及 <code>sp</code> 寄存器。只有这一步做完后， <code>__switch</code> 才能做到一个函数跨两条控制流执行，即 <em>通过换栈也就实现了控制流的切换</em> 。</li>
+<li><strong>阶段 [4]：</strong>上一步寄存器恢复完成后，可以看到通过恢复 <code>sp</code> 寄存器换到了任务 B 的内核栈上，进而实现了控制流的切换。这就是为什么 <code>__switch</code> 能做到一个函数跨两条控制流执行。此后，当 CPU 执行 <code>ret</code> 汇编伪指令完成 <code>__switch</code> 函数返回后，任务 B 可以从调用 <code>__switch</code> 的位置继续向下执行。</li>
+</ul>
+<blockquote>
+<p>OS&#x2F;switch.S</p>
+<p>switch代码实现</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">.altmacro</span><br><span class="line">.macro SAVE_SN n</span><br><span class="line">    sd s\n, (\n+2)*8(a0)</span><br><span class="line">.endm</span><br><span class="line">.macro LOAD_SN n</span><br><span class="line">    ld s\n, (\n+2)*8(a1)</span><br><span class="line">.endm</span><br><span class="line">    .section .text</span><br><span class="line">    .globl __switch</span><br><span class="line">__switch:</span><br><span class="line"></span><br><span class="line">    # 阶段 [1]</span><br><span class="line">    # __switch(</span><br><span class="line">    #     current_task_cx_ptr: *mut TaskContext,</span><br><span class="line">    #     next_task_cx_ptr: *const TaskContext</span><br><span class="line">    # )</span><br><span class="line"></span><br><span class="line">    # 阶段 [2]</span><br><span class="line">    # save kernel stack of current task</span><br><span class="line">    sd sp, 8(a0)</span><br><span class="line">    # save ra &amp; s0~s11 of current execution</span><br><span class="line">    sd ra, 0(a0)</span><br><span class="line">    .set n, 0</span><br><span class="line">    .rept 12</span><br><span class="line">        SAVE_SN %n</span><br><span class="line">        .set n, n + 1</span><br><span class="line">    .endr</span><br><span class="line"></span><br><span class="line">    # 阶段 [3]</span><br><span class="line">    # restore ra &amp; s0~s11 of next execution</span><br><span class="line">    ld ra, 0(a1)</span><br><span class="line">    .set n, 0</span><br><span class="line">    .rept 12</span><br><span class="line">        LOAD_SN %n</span><br><span class="line">        .set n, n + 1</span><br><span class="line">    .endr</span><br><span class="line">    # restore kernel stack of next task</span><br><span class="line">    ld sp, 8(a1)</span><br><span class="line">    </span><br><span class="line">    # 阶段 [4]</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-2协作式任务调度实现"><a href="#2-2协作式任务调度实现" class="headerlink" title="2.2协作式任务调度实现"></a>2.2协作式任务调度实现</h2><blockquote>
+<p>OS&#x2F;app.c</p>
+<p>封装切换函数 <code>sys_yield()</code></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">size_t</span> <span class="title function_">sys_yield</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    syscall(__NR_sched_yield,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;syscall.c</p>
+<p>修改一下分发函数 加上<code>yeild</code>的</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* syscall.c */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __SYSCALL(<span class="type">size_t</span> syscall_id, <span class="type">reg_t</span> arg1, <span class="type">reg_t</span> arg2, <span class="type">reg_t</span> arg3) &#123;</span><br><span class="line">        <span class="keyword">switch</span> (syscall_id)</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="keyword">case</span> __NR_write:</span><br><span class="line">            __sys_write(arg1, arg2, arg3);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> __NR_sched_yield:</span><br><span class="line">            __sys_yield();</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            printk(<span class="string">&quot;Unsupported syscall id:%d\n&quot;</span>,syscall_id);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __sys_write(<span class="type">size_t</span> fd, <span class="type">const</span> <span class="type">char</span>* data, <span class="type">size_t</span> len)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(fd ==<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        printk(data);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        panic(<span class="string">&quot;Unsupported fd in sys_write!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __sys_yield() &#123;</span><br><span class="line">    schedule();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;os.h</p>
+<p>添加宏定义</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> __NR_sched_yield 124</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>task.c</code>中定义了<code>schedule</code>，</p>
+<blockquote>
+<p>OS&#x2F;task.c</p>
+<ul>
+<li>首先定义了两个变量，一个用来<strong>表示当前执行的任务号，一个用来表示用户常见的任务数量。</strong></li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">int</span> _current = <span class="number">0</span>;</span><br><span class="line"><span class="type">static</span> <span class="type">int</span> _top = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>然后定义了一个<code>task_create(void (*task_entry)(void))</code>函数来创建任务，此函数传入的参数为一个函数指针，即用户态的应用程序的地址。<ul>
+<li>在创建任务时我们首先需要为每个任务先构造该任务的<code>trap</code>上下文，包括入口地址和用户栈指针，并将其压入到内核栈顶，然后设置<code>sepc、sstatus、sp</code>寄存器的值。</li>
+<li>下一步就是需要为每一个任务构造一个初始的内核任务上下文，这里会调用一个<code>tcx_init</code>的函数，在这个函数里面我们会初始化任务的任务上下文。</li>
+<li>再完成<code>trap</code>上下文和任务上下文的构造后会将<code>_top</code>的值加一<strong>代表多了一个任务</strong></li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> _current = <span class="number">0</span>;</span><br><span class="line"><span class="type">static</span> <span class="type">int</span> _top = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TaskControlBlock</span> <span class="title">tasks</span>[<span class="title">MAX_TASKS</span>];</span>   <span class="comment">// 任务数组，保存上下文和状态</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> task_Context <span class="title function_">tcx_init</span><span class="params">(<span class="type">reg_t</span> kstack_ptr)</span> &#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">task_Context</span> <span class="title">task_ctx</span>;</span></span><br><span class="line"></span><br><span class="line">    task_ctx.ra = __restore;</span><br><span class="line">    task_ctx.sp = kstack_ptr;</span><br><span class="line">    task_ctx.s0 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s1 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s2 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s3 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s4 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s5 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s6 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s7 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s8 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s9 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s10 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s11 = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> task_ctx;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task_create</span><span class="params">(<span class="type">void</span> (*task_entry)(<span class="type">void</span>))</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(_top &lt; MAX_TASKS)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* 对于每个任务先构造该任务的trap上下文，包括入口地址和用户栈指针，并将其压入到内核栈顶*/</span></span><br><span class="line">        trap_Context* cx_ptr = &amp;KernelStack[_top] + KERNEL_STACK_SIZE - <span class="keyword">sizeof</span>(trap_Context);</span><br><span class="line">        <span class="type">reg_t</span> user_sp = &amp;UserStack[_top] + USER_STACK_SIZE;</span><br><span class="line">        <span class="type">reg_t</span> sstatus = r_sstatus();</span><br><span class="line">        <span class="comment">// 设置 sstatus 寄存器第8位即SPP位为0 表示为U模式</span></span><br><span class="line">        sstatus &amp;= (<span class="number">0U</span> &lt;&lt; <span class="number">8</span>);</span><br><span class="line">        w_sstatus(sstatus);</span><br><span class="line">        <span class="comment">/* 设置用户程序内核栈 ，填充用户栈指针*/</span></span><br><span class="line">        cx_ptr-&gt;sepc = (<span class="type">reg_t</span>)task_entry;</span><br><span class="line">        cx_ptr-&gt;sstatus = sstatus; </span><br><span class="line">        cx_ptr-&gt;sp = user_sp;</span><br><span class="line"></span><br><span class="line">       <span class="comment">/* 构造每个任务任务控制块中的任务上下文，设置 ra 寄存器为 __restore 的入口地址*/</span></span><br><span class="line">        tasks[_top].task_context = tcx_init((<span class="type">reg_t</span>)cx_ptr);</span><br><span class="line">        <span class="comment">// 初始化 TaskStatus 字段为 Ready</span></span><br><span class="line">        tasks[_top].task_state = Ready;</span><br><span class="line"></span><br><span class="line">        _top++;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>然后定义了一个<code>tcx_init</code>的函数用来初始化创建的任务的任务上下文信息，传入的参数为任务的内核栈地址，<ul>
+<li>这里把任务的<code>ra</code>寄存器的值设置为<code>__restore</code>，那是因为在应用真正跑起来之前，需要 CPU 第一次从内核态进入用户态。我们在上一篇文章中也介绍过实现方法，只需在内核栈上压入构造好的 Trap 上下文，然后 <code>__restore</code> 即可。但是现在我们是通过<code>__switch</code>来进行任务切换的，<strong>而<code>__switch</code>切换完成后会返回到<code>ra</code>的地方执行，我们这里第一次将<code>ra</code>设置为<code>__restore</code>，那么程序就可以从内核态切换回用户态执行了，为此我们需要定义一个<code>run_first_task()</code>的函数来完成第一次切换。</strong></li>
+<li>可以看见在<code>run_first_task()</code>函数中，先构造了一个<code>_unused</code>的任务上下文，然后调用<code>__switch</code>函数让切换到<code>tasks[0]</code>进行执行，用于初始化时<code>tasks[0]</code>的<code>ra</code>被设置成了<code>__restore</code>的地址，所以就能去返回用户态运行<code>task0</code>了。需要注意的是， <code>__restore</code> 的实现需要做出变化：它 不再需要 在开头 <code>mv sp, a0</code> 了。因为在 <code>__switch</code> 之后，<code>sp</code> 就已经正确指向了我们需要的 <code>Trap </code>上下文地址。</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight v"><table><tr><td class="code"><pre><span class="line"><span class="keyword">void</span> run_first_task()</span><br><span class="line">&#123;</span><br><span class="line">    tasks[<span class="number">0</span>]<span class="variable">.task_state</span> = Running;</span><br><span class="line">    <span class="keyword">struct</span> task_Context *next_task_cx_ptr = &amp;(tasks[<span class="number">0</span>]<span class="variable">.task_context</span>);</span><br><span class="line">    <span class="keyword">struct</span> task_Context _unused ;</span><br><span class="line"></span><br><span class="line">    __switch(&amp;_unused,next_task_cx_ptr);</span><br><span class="line">    panic(<span class="string">&quot;unreachable in run_first_task!&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>最后我们来看<code>schedule()</code>函数，首先判断一下创建的任务数量不为0，然后进行轮转调度，如果下一个任务的状态是<code>ready</code>，那么就切换到下一个任务执行，并且将当前任务的状态置为<code>ready</code>。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">schedule</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> (_top &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">		panic(<span class="string">&quot;Num of task should be greater than zero!\n&quot;</span>);</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 轮转调度 */</span></span><br><span class="line">    <span class="type">int</span> next = _current + <span class="number">1</span>;</span><br><span class="line">    next = next % _top;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(tasks[next].task_state == Ready)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">TaskContext</span> *<span class="title">current_task_cx_ptr</span> =</span> &amp;(tasks[_current].task_context);</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">TaskContext</span> *<span class="title">next_task_cx_ptr</span> =</span> &amp;(tasks[next].task_context);</span><br><span class="line">        tasks[next].task_state = Running;</span><br><span class="line">        tasks[_current].task_state = Ready;</span><br><span class="line">        _current = next;</span><br><span class="line">        __switch(current_task_cx_ptr,next_task_cx_ptr);  <span class="comment">// 切换</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="3-测试"><a href="#3-测试" class="headerlink" title="3.测试"></a>3.测试</h1><blockquote>
+<p>OS&#x2F;app.c</p>
+<p>新建三个task任务测试程序</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">task_delay</span><span class="params">(<span class="keyword">volatile</span> <span class="type">int</span> count)</span></span><br><span class="line">&#123;</span><br><span class="line">	count *= <span class="number">50000</span>;</span><br><span class="line">	<span class="keyword">while</span> (count--);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task1</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task1 is running!\n&quot;</span>;</span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        task_delay(<span class="number">10000</span>);</span><br><span class="line">        sys_yield();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task2</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task2 is running!\n&quot;</span>;</span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        task_delay(<span class="number">10000</span>);</span><br><span class="line">        sys_yield();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task3</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task3 is running!\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        task_delay(<span class="number">10000</span>);</span><br><span class="line">        sys_yield();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化函数</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">task_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	task_create(task1);</span><br><span class="line">	task_create(task2);</span><br><span class="line">    task_create(task3);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;main.c</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">os_main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    printk(<span class="string">&quot;hello!!!\n&quot;</span>);</span><br><span class="line">    trap_init();</span><br><span class="line">    task_init();</span><br><span class="line">    run_first_tasks();</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>sudo .&#x2F;build.sh</p>
+<p>sudo .&#x2F;run.sh</p>
+</blockquote>
+<p>报错：</p>
+<p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240618203510960.png" alt="image-20240618203510960"></p>
+<p>原因：</p>
+<blockquote>
+<p>OS&#x2F;kerneltrap.S</p>
+<p>中的<code>mv sp, a0</code>要删掉，</p>
+<ol>
+<li>正常从<code>__alltraps</code>走下来的<code>trap_handler</code>流程。如果是这种情况，<code>trap_handler</code>会在<code>a0</code>里返回之前通过<code>mv a0, sp</code>传进去的<code>&amp;mut TrapContext</code>，所以这里<code>sp</code>和<code>a0</code>相同没有必要再<code>mv sp, a0</code>重新设置一遍。</li>
+<li>app第一次被<code>__switch</code>的时候通过<code>__restore</code>开始运行。这时候<code>a0</code>是个无关的数据（指向上一个<code>TaskContext</code>的指针），这里再<code>mv sp a0</code>就不对了，而<code>__restore</code>要的<code>TrapContext</code>已经在<code>__switch</code>的恢复过程中被放在<code>sp</code>上了。（这个<code>sp</code>就是初始化时写完<code>TrapContext</code>后的内核栈顶）</li>
+<li>所以如果存在<code>mv sp, a0</code>，则会导致 访问内存异常 因为 <code>a0</code>是个无关的数据</li>
+</ol>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">__restore:</span><br><span class="line">    # case1: start running app by __restore</span><br><span class="line">    # case2: back to U after handling trap</span><br><span class="line">    # mv sp, a0</span><br><span class="line">    # now sp-&gt;kernel stack(after allocated), sscratch-&gt;user stack</span><br><span class="line">    # restore sstatus/sepc</span><br><span class="line">    ld t0, 32*8(sp)</span><br><span class="line">    ld t1, 33*8(sp)</span><br><span class="line">    ld t2, 2*8(sp)</span><br><span class="line">    csrw sstatus, t0</span><br><span class="line">    csrw sepc, t1</span><br><span class="line">    csrw sscratch, t2</span><br><span class="line">    # restore general-purpuse reg</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>重新执行</p>
+</blockquote>
+<p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240618203435306.png" alt="image-20240618203435306"></p>
+]]></content>
+      <categories>
+        <category>riscv</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+        <tag>riscv，qemu</tag>
+      </tags>
+  </entry>
 </search>

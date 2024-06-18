@@ -1,0 +1,449 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>riscv-10-多任务调度 | Sifanのblog</title><meta name="author" content="liangzhou"><meta name="copyright" content="liangzhou"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1.实现sys_write函数本小节目标：实现通过sys_write函数在 用户态的程序调用串口输出打印  OS&#x2F;app.c 删掉之前的batch.c，在app.c函数中实现用户态函数 sys_write  12345678910111213141516171819202122#include &quot;os.h&quot;size_t syscall(size_t id, reg_t">
+<meta property="og:type" content="article">
+<meta property="og:title" content="riscv-10-多任务调度">
+<meta property="og:url" content="http://liangzhouzz.github.io/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/index.html">
+<meta property="og:site_name" content="Sifanのblog">
+<meta property="og:description" content="1.实现sys_write函数本小节目标：实现通过sys_write函数在 用户态的程序调用串口输出打印  OS&#x2F;app.c 删掉之前的batch.c，在app.c函数中实现用户态函数 sys_write  12345678910111213141516171819202122#include &quot;os.h&quot;size_t syscall(size_t id, reg_t">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://liangzhouzz.github.io/img/duck.jpg">
+<meta property="article:published_time" content="2024-06-14T08:22:09.000Z">
+<meta property="article:modified_time" content="2024-06-18T12:41:25.044Z">
+<meta property="article:author" content="liangzhou">
+<meta property="article:tag" content="操作系统">
+<meta property="article:tag" content="riscv，qemu">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://liangzhouzz.github.io/img/duck.jpg"><link rel="shortcut icon" href="/img/duck.jpg"><link rel="canonical" href="http://liangzhouzz.github.io/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: {"path":"/search.xml","preload":false,"top_n_per_article":1,"unescape":false,"languages":{"hits_empty":"找不到您查询的内容：${query}","hits_stats":"共找到 ${hits} 篇文章"}},
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: {"limitCount":50,"languages":{"author":"作者: liangzhou","link":"链接: ","source":"来源: Sifanのblog","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: true,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'riscv-10-多任务调度',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-06-18 20:41:25'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+    win.getCSS = (url,id = false) => new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = url
+      if (id) link.id = id
+      link.onerror = reject
+      link.onload = link.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        link.onload = link.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(link)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 6.3.0"></head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>(()=>{
+  const $loadingBox = document.getElementById('loading-box')
+  const $body = document.body
+  const preloader = {
+    endLoading: () => {
+      $body.style.overflow = ''
+      $loadingBox.classList.add('loaded')
+    },
+    initLoading: () => {
+      $body.style.overflow = 'hidden'
+      $loadingBox.classList.remove('loaded')
+    }
+  }
+
+  preloader.initLoading()
+  window.addEventListener('load',() => { preloader.endLoading() })
+
+  if (false) {
+    document.addEventListener('pjax:send', () => { preloader.initLoading() })
+    document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+  }
+})()</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/duck.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">30</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><hr class="custom-hr"/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 链接</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/cloud.jpg')"><nav id="nav"><span id="blog-info"><a href="/" title="Sifanのblog"><span class="site-name">Sifanのblog</span></a></span><div id="menus"><div id="search-button"><a class="site-page social-icon search" href="javascript:void(0);"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 链接</span></a></div></div><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">riscv-10-多任务调度</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2024-06-14T08:22:09.000Z" title="发表于 2024-06-14 16:22:09">2024-06-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2024-06-18T12:41:25.044Z" title="更新于 2024-06-18 20:41:25">2024-06-18</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/riscv/">riscv</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="riscv-10-多任务调度"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h1 id="1-实现sys-write函数"><a href="#1-实现sys-write函数" class="headerlink" title="1.实现sys_write函数"></a>1.实现sys_write函数</h1><p><strong>本小节目标：</strong>实现通过<code>sys_write</code>函数在 用户态的程序调用串口输出打印</p>
+<blockquote>
+<p>OS&#x2F;app.c</p>
+<p>删掉之前的<code>batch.c</code>，在<code>app.c</code>函数中实现用户态函数 <code>sys_write</code></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">syscall</span><span class="params">(<span class="type">size_t</span> id, <span class="type">reg_t</span> arg1, <span class="type">reg_t</span> arg2, <span class="type">reg_t</span> arg3)</span> &#123;</span><br><span class="line">    <span class="type">long</span> ret;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span> <span class="params">(</span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a7, %1\n\t&quot;</span>   <span class="comment">// Move syscall id to a7 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a0, %2\n\t&quot;</span>   <span class="comment">// Move args[0] to a1 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a1, %3\n\t&quot;</span>   <span class="comment">// Move args[1] to a2 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv a2, %4\n\t&quot;</span>   <span class="comment">// Move args[2] to a3 register</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;ecall\n\t&quot;</span>       <span class="comment">// Perform syscall</span></span></span><br><span class="line"><span class="params">        <span class="string">&quot;mv %0, a0&quot;</span>       <span class="comment">// Move return value to &#x27;ret&#x27; variable</span></span></span><br><span class="line"><span class="params">        : <span class="string">&quot;=r&quot;</span> (ret)</span></span><br><span class="line"><span class="params">        : <span class="string">&quot;r&quot;</span> (id), <span class="string">&quot;r&quot;</span> (arg1), <span class="string">&quot;r&quot;</span> (arg2), <span class="string">&quot;r&quot;</span> (arg3)</span></span><br><span class="line"><span class="params">        : <span class="string">&quot;a7&quot;</span>, <span class="string">&quot;a0&quot;</span>, <span class="string">&quot;a1&quot;</span>, <span class="string">&quot;a2&quot;</span>, <span class="string">&quot;memory&quot;</span></span></span><br><span class="line"><span class="params">    )</span>;</span><br><span class="line">    <span class="keyword">return</span> ret;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">sys_wirte</span><span class="params">(<span class="type">size_t</span> fd, <span class="type">const</span> <span class="type">char</span>* buf, <span class="type">size_t</span> len)</span></span><br><span class="line">&#123;</span><br><span class="line">    syscall(__NR_write,fd,buf, len);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<blockquote>
+<p>OS&#x2F;trap.c</p>
+<p>trap_handler函数修改</p>
+<p>对系统的调用号进行分发  8 —&gt; 表示 U模式下的ecall</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">trap_Context* <span class="title function_">trap_handler</span><span class="params">(trap_Context* cx)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">reg_t</span> scause = r_scause();</span><br><span class="line">	<span class="keyword">switch</span> (scause)</span><br><span class="line">	&#123;</span><br><span class="line">	<span class="keyword">case</span> <span class="number">8</span>:</span><br><span class="line">			__SYSCALL(cx-&gt;a7,cx-&gt;a0,cx-&gt;a1,cx-&gt;a2);</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	<span class="keyword">default</span>:</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">&quot;undfined scause:%d\n&quot;</span>,scause);</span><br><span class="line">			</span><br><span class="line">		<span class="keyword">break</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	cx-&gt;sepc += <span class="number">8</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> cx;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;syscall.c 新建这个文件</p>
+<p>其定义了 __SYSCALL函数的实现 从而调用printk进行输出 </p>
+<p>syscall中对 call的id进行分发 如果是<code>__NR_write</code> 则代表 <code>__sys_write</code></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* syscall.c */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __SYSCALL(<span class="type">size_t</span> syscall_id, <span class="type">reg_t</span> arg1, <span class="type">reg_t</span> arg2, <span class="type">reg_t</span> arg3) &#123;</span><br><span class="line">        <span class="keyword">switch</span> (syscall_id)</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="keyword">case</span> __NR_write:</span><br><span class="line">            __sys_write(arg1, arg2, arg3);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            printk(<span class="string">&quot;Unsupported syscall id:%d\n&quot;</span>,syscall_id);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __sys_write(<span class="type">size_t</span> fd, <span class="type">const</span> <span class="type">char</span>* data, <span class="type">size_t</span> len)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(fd ==<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        printk(data);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        panic(<span class="string">&quot;Unsupported fd in sys_write!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;string.c</p>
+<p><code>syscall(__NR_write, *fd*, *buf*, *len*);</code> 由于最后一个<code>len</code>需要计算字符串的长度，所以还要实现<code>strlen</code>函数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* string.c */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="comment">//计算字符串的长度 </span></span><br><span class="line"><span class="type">size_t</span> <span class="title function_">strlen</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *str)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *ptr = (<span class="type">char</span> *)str;</span><br><span class="line">    <span class="keyword">while</span> (*ptr != EOS)</span><br><span class="line">    &#123;</span><br><span class="line">        ptr++;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ptr - str;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 从存储区 src 复制 n 个字节到存储区 dest。</span></span><br><span class="line"><span class="type">void</span>* <span class="title function_">memcpy</span><span class="params">(<span class="type">void</span> *dest, <span class="type">const</span> <span class="type">void</span> *src, <span class="type">size_t</span> count)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> *ptr = dest;</span><br><span class="line">    <span class="keyword">while</span> (count--)</span><br><span class="line">    &#123;</span><br><span class="line">        *ptr++ = *((<span class="type">char</span> *)(src++));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> dest;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h2><p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240615221400398.png" alt="image-20240615221400398"></p>
+<h1 id="2-协作式多任务调度"><a href="#2-协作式多任务调度" class="headerlink" title="2.协作式多任务调度"></a>2.协作式多任务调度</h1><h2 id="2-1switch介绍"><a href="#2-1switch介绍" class="headerlink" title="2.1switch介绍"></a>2.1switch介绍</h2><p><strong>协作式多任务调度</strong>：就是如果一个用户程序在做一些等待的事情的时候，比如等待外设响应而不需要占用cpu计算资源的时候可以让出cpu的使用权让下一个用户程序执行，当外设响应完毕后重新拿到cpu使用权继续执行，这大大的提高了cpu的执行效率。</p>
+<p><strong>任务切换</strong>：从一个任务切换到另一个任务，</p>
+<ul>
+<li>同上章节一样，当从用户态切换到内核态，需要保存上下文</li>
+<li>从一个任务切换到另一个任务也需要保存上下文，知道CPU重新拿回使用权恢复执行</li>
+</ul>
+<p><strong>实现多任务调度的关键</strong>：任务主动放弃CPU的执行权 ，在本章节中通过 调用用户态程序<code>sys_yield</code>实现（来告诉操作系统我要放弃CPU 的使用权了），然后操作系统进行任务切换。任务的切换是发生在<code>S</code>态的，任务在操作系统切换完毕后，同样通过<code>_restore</code>回到用户态执行程序，不过此时已经进行了任务切换，<strong>所以<code>_restore</code>回到的是切换后的任务</strong></p>
+<p>所以，<strong>任务切换其实是来自两个不同应用在内核中的 <code>Trap</code> 控制流之间的切换。</strong>当一个应用 Trap 到 S 模式的操作系统内核中进行进一步处理的时候，我们可以设计一个函数来给Trap 控制流调用，从而进行任务切换。这个函数我们定义为<code>__switch</code></p>
+<p>具体来说，调用 <code>__switch</code> 之后直到它返回前的这段时间，原 Trap 控制流 A 会先被暂停并被切换出去， CPU 转而运行另一个应用在内核中的 Trap 控制流 B 。然后在某个合适的时机，<strong>原 Trap 控制流 A 才会从某一条 Trap 控制流 C （很有可能不是它之前切换到的 B ）切换回来继续执行并最终返回。</strong><code>__switch</code> 函数和一个普通的函数之间的核心差别仅仅是它会 <strong>换栈</strong> 。</p>
+<p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240617152636754.png" alt="image-20240617152636754"></p>
+<blockquote>
+<p>以上参考：<a target="_blank" rel="noopener" href="https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter3/2task-switching.html">任务切换 - rCore-Tutorial-Book-v3 3.6.0-alpha.1 文档 (rcore-os.cn)</a></p>
+</blockquote>
+<p>每个任务都有自己的任务上下文，<strong>每个任务也有自己的内核栈和用户栈空间，所以我们首先需要为每个任务定义内核栈和用户栈</strong>。新建一个<code>task.c</code>文件:</p>
+<blockquote>
+<p>OS&#x2F;task.c</p>
+<p>定义了内核栈空间 和 用户栈空间的大小</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USER_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERNEL_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_TASKS 10   <span class="comment">/* 操作系统支持的最大任务数量 */</span></span></span><br><span class="line"><span class="type">uint8_t</span> KernelStack[MAX_TASKS][KERNEL_STACK_SIZE]; <span class="comment">/* 任务内核栈 */</span></span><br><span class="line"><span class="type">uint8_t</span> UserStack[MAX_TASKS][USER_STACK_SIZE];    <span class="comment">/* 任务用户栈 */</span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;context.h</p>
+<p>定义 任务上下文结构体</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* s模式下的任务上下文*/</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">task_Context</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	<span class="type">reg_t</span> ra;</span><br><span class="line">	<span class="type">reg_t</span> sp;</span><br><span class="line">	<span class="type">reg_t</span> s0;</span><br><span class="line">	<span class="type">reg_t</span> s1;</span><br><span class="line">	<span class="type">reg_t</span> s2;</span><br><span class="line">	<span class="type">reg_t</span> s3;</span><br><span class="line">	<span class="type">reg_t</span> s4;</span><br><span class="line">	<span class="type">reg_t</span> s5;</span><br><span class="line">	<span class="type">reg_t</span> s6;</span><br><span class="line">	<span class="type">reg_t</span> s7;</span><br><span class="line">	<span class="type">reg_t</span> s8;</span><br><span class="line">	<span class="type">reg_t</span> s9;</span><br><span class="line">	<span class="type">reg_t</span> s10;</span><br><span class="line">	<span class="type">reg_t</span> s11;</span><br><span class="line">&#125;task_Context;</span><br></pre></td></tr></table></figure>
+
+<p><code>ra</code>寄存器，<code>sp</code>寄存器，<code>s0~s11</code>寄存器， riscv 的函数调用寄存器保存规范：</p>
+<ul>
+<li><code>ra</code>：记录了<code>__switch</code>返回后应该跳转到哪里运行</li>
+<li>对于一般的函数而言，Rust&#x2F;C 编译器会在函数的起始位置自动生成代码来保存 <code>s0~s11</code> 这些被调用者保存的寄存器。但 <code>__switch</code> 是一个用汇编代码写的特殊函数，它不会被 Rust&#x2F;C 编译器处理，所以我们需要在 <code>__switch</code> 中手动编写保存 <code>s0~s11</code> 的汇编代码。</li>
+<li>其它寄存器中，属于调用者保存的寄存器是由编译器在高级语言编写的调用函数中自动生成的代码来完成保存的；还有一些寄存器属于临时寄存器，不需要保存和恢复。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>寄存器名称</th>
+<th>寄存器别名</th>
+<th>保存约定</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>t0 - t6</td>
+<td>x5 - x7， x28 - x31</td>
+<td>调用者</td>
+<td>临时寄存器</td>
+</tr>
+<tr>
+<td>a0 - a7</td>
+<td>x10 - x17</td>
+<td>调用者</td>
+<td>参数&#x2F;返回值寄存器</td>
+</tr>
+<tr>
+<td>ra</td>
+<td>x1</td>
+<td>调用者</td>
+<td>返回地址寄存器</td>
+</tr>
+<tr>
+<td>s0 - s11</td>
+<td>x8，x9，x18 - x27</td>
+<td>被调用者</td>
+<td>保存寄存器</td>
+</tr>
+<tr>
+<td>sp</td>
+<td>x2</td>
+<td>被调用者</td>
+<td>栈指针寄存器</td>
+</tr>
+</tbody></table>
+<p>因此，在调用<code>__switch</code>函数进行任务切换时，<strong>我们需要将当前任务的这些寄存器保存，然后将下一个要切换的任务的寄存器从拿出来然后完成寄存器替换。</strong></p>
+<p>每个任务都有一个保存自己任务上下文的地方，这个地方我们定义为<code>TaskControlBlock</code>，在<code>TaskControlBlock</code>不止可以保存任务的上下文信息，还可以保存任务的运行状态</p>
+<blockquote>
+<p>OS&#x2F;task.h</p>
+<p>定义了<code>TaskControlBlock</code>来保存任务信息，一个任务信息包括这个任务的状态何任务上下文信息</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> __TASK_H__</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __TASK_H__</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">enum</span> <span class="title">TaskState</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">	UnInit, <span class="comment">// 未初始化</span></span><br><span class="line">    Ready, <span class="comment">// 准备运行</span></span><br><span class="line">    Running, <span class="comment">// 正在运行</span></span><br><span class="line">    Exited, <span class="comment">// 已退出</span></span><br><span class="line">&#125;TaskState;</span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">TaskControlBlock</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    TaskState task_state; </span><br><span class="line">    task_Context task_context; </span><br><span class="line">&#125;TaskControlBlock;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;task.c</p>
+<p>添加 一个<code>TaskControlBlock</code>类型的数组，保存每个任务的状态信息和上下文</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> USER_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> KERNEL_STACK_SIZE (4096 * 2)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_TASKS 10   <span class="comment">/* 操作系统支持的最大任务数量 */</span></span></span><br><span class="line"><span class="type">uint8_t</span> KernelStack[MAX_TASKS][KERNEL_STACK_SIZE]; <span class="comment">/* 任务内核栈 */</span></span><br><span class="line"><span class="type">uint8_t</span> UserStack[MAX_TASKS][USER_STACK_SIZE];     <span class="comment">/* 任务用户栈 */</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TaskControlBlock</span> <span class="title">tasks</span>[<span class="title">MAX_TASKS</span>];</span>   <span class="comment">// 任务数组，保存上下文和状态</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;task.c</p>
+<p>对于当前正在执行的任务的 <code>Trap</code> 控制流，我们用一个名为 <code>current_task_cx_ptr </code>的变量来保存放置当前任务上下文的地址；而用<code>next_task_cx_ptr</code>的变量来保存放置下一个要执行任务的上下文的地址。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">TaskContext *current_task_cx_ptr = &amp;tasks[current].task_context;</span><br><span class="line">TaskContext *next_task_cx_ptr    = &amp;tasks[next].task_context;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>从栈上内容的角度看待<code>__switch</code>函数的整体流程：</strong></p>
+<p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240617152834451.png" alt="image-20240617152834451"></p>
+<p><code>Trap</code> 控制流在调用 <code>__switch</code> 之前就需要明确知道即将切换到哪一条目前正处于暂停状态的 <code>Trap</code> 控制流，因此 <code>__switch</code> 有两个参数，</p>
+<ul>
+<li>第一个参数代表它自己</li>
+<li>第二个参数则代表即将切换到的那条 <code>Trap</code> 控制流。</li>
+</ul>
+<p>这里我们用上面提到过的 <code>current_task_cx_ptr</code> 和 <code>next_task_cx_ptr</code> 作为代表。在上图中我们假设某次 <code>__switch</code> 调用要从 Trap 控制流 A 切换到 B，一共可以分为四个阶段，在每个阶段中我们都给出了 A 和 B 内核栈上的内容。</p>
+<ul>
+<li><strong>阶段 [1]：</strong>在 Trap 控制流 A 调用 <code>__switch</code> 之前，A 的内核栈上只有 Trap 上下文和 Trap 处理函数的调用栈信息，而 B 是之前被切换出去的；</li>
+<li><strong>阶段 [2]：</strong>A 在 A 任务上下文空间在里面保存 CPU 当前的寄存器快照；</li>
+<li><strong>阶段 [3]：</strong>这一步极为关键，读取 <code>next_task_cx_ptr</code> 指向的 B 任务上下文，根据 B 任务上下文保存的内容来恢复 <code>ra</code> 寄存器、<code>s0~s11</code> 寄存器以及 <code>sp</code> 寄存器。只有这一步做完后， <code>__switch</code> 才能做到一个函数跨两条控制流执行，即 <em>通过换栈也就实现了控制流的切换</em> 。</li>
+<li><strong>阶段 [4]：</strong>上一步寄存器恢复完成后，可以看到通过恢复 <code>sp</code> 寄存器换到了任务 B 的内核栈上，进而实现了控制流的切换。这就是为什么 <code>__switch</code> 能做到一个函数跨两条控制流执行。此后，当 CPU 执行 <code>ret</code> 汇编伪指令完成 <code>__switch</code> 函数返回后，任务 B 可以从调用 <code>__switch</code> 的位置继续向下执行。</li>
+</ul>
+<blockquote>
+<p>OS&#x2F;switch.S</p>
+<p>switch代码实现</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">.altmacro</span><br><span class="line">.macro SAVE_SN n</span><br><span class="line">    sd s\n, (\n+2)*8(a0)</span><br><span class="line">.endm</span><br><span class="line">.macro LOAD_SN n</span><br><span class="line">    ld s\n, (\n+2)*8(a1)</span><br><span class="line">.endm</span><br><span class="line">    .section .text</span><br><span class="line">    .globl __switch</span><br><span class="line">__switch:</span><br><span class="line"></span><br><span class="line">    # 阶段 [1]</span><br><span class="line">    # __switch(</span><br><span class="line">    #     current_task_cx_ptr: *mut TaskContext,</span><br><span class="line">    #     next_task_cx_ptr: *const TaskContext</span><br><span class="line">    # )</span><br><span class="line"></span><br><span class="line">    # 阶段 [2]</span><br><span class="line">    # save kernel stack of current task</span><br><span class="line">    sd sp, 8(a0)</span><br><span class="line">    # save ra &amp; s0~s11 of current execution</span><br><span class="line">    sd ra, 0(a0)</span><br><span class="line">    .set n, 0</span><br><span class="line">    .rept 12</span><br><span class="line">        SAVE_SN %n</span><br><span class="line">        .set n, n + 1</span><br><span class="line">    .endr</span><br><span class="line"></span><br><span class="line">    # 阶段 [3]</span><br><span class="line">    # restore ra &amp; s0~s11 of next execution</span><br><span class="line">    ld ra, 0(a1)</span><br><span class="line">    .set n, 0</span><br><span class="line">    .rept 12</span><br><span class="line">        LOAD_SN %n</span><br><span class="line">        .set n, n + 1</span><br><span class="line">    .endr</span><br><span class="line">    # restore kernel stack of next task</span><br><span class="line">    ld sp, 8(a1)</span><br><span class="line">    </span><br><span class="line">    # 阶段 [4]</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-2协作式任务调度实现"><a href="#2-2协作式任务调度实现" class="headerlink" title="2.2协作式任务调度实现"></a>2.2协作式任务调度实现</h2><blockquote>
+<p>OS&#x2F;app.c</p>
+<p>封装切换函数 <code>sys_yield()</code></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">size_t</span> <span class="title function_">sys_yield</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    syscall(__NR_sched_yield,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;syscall.c</p>
+<p>修改一下分发函数 加上<code>yeild</code>的</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* syscall.c */</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __SYSCALL(<span class="type">size_t</span> syscall_id, <span class="type">reg_t</span> arg1, <span class="type">reg_t</span> arg2, <span class="type">reg_t</span> arg3) &#123;</span><br><span class="line">        <span class="keyword">switch</span> (syscall_id)</span><br><span class="line">        &#123;</span><br><span class="line">        <span class="keyword">case</span> __NR_write:</span><br><span class="line">            __sys_write(arg1, arg2, arg3);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">case</span> __NR_sched_yield:</span><br><span class="line">            __sys_yield();</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="keyword">default</span>:</span><br><span class="line">            printk(<span class="string">&quot;Unsupported syscall id:%d\n&quot;</span>,syscall_id);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __sys_write(<span class="type">size_t</span> fd, <span class="type">const</span> <span class="type">char</span>* data, <span class="type">size_t</span> len)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(fd ==<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        printk(data);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        panic(<span class="string">&quot;Unsupported fd in sys_write!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> __sys_yield() &#123;</span><br><span class="line">    schedule();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;os.h</p>
+<p>添加宏定义</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> __NR_sched_yield 124</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>task.c</code>中定义了<code>schedule</code>，</p>
+<blockquote>
+<p>OS&#x2F;task.c</p>
+<ul>
+<li>首先定义了两个变量，一个用来<strong>表示当前执行的任务号，一个用来表示用户常见的任务数量。</strong></li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">int</span> _current = <span class="number">0</span>;</span><br><span class="line"><span class="type">static</span> <span class="type">int</span> _top = <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>然后定义了一个<code>task_create(void (*task_entry)(void))</code>函数来创建任务，此函数传入的参数为一个函数指针，即用户态的应用程序的地址。<ul>
+<li>在创建任务时我们首先需要为每个任务先构造该任务的<code>trap</code>上下文，包括入口地址和用户栈指针，并将其压入到内核栈顶，然后设置<code>sepc、sstatus、sp</code>寄存器的值。</li>
+<li>下一步就是需要为每一个任务构造一个初始的内核任务上下文，这里会调用一个<code>tcx_init</code>的函数，在这个函数里面我们会初始化任务的任务上下文。</li>
+<li>再完成<code>trap</code>上下文和任务上下文的构造后会将<code>_top</code>的值加一<strong>代表多了一个任务</strong></li>
+</ul>
+</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="type">int</span> _current = <span class="number">0</span>;</span><br><span class="line"><span class="type">static</span> <span class="type">int</span> _top = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TaskControlBlock</span> <span class="title">tasks</span>[<span class="title">MAX_TASKS</span>];</span>   <span class="comment">// 任务数组，保存上下文和状态</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> task_Context <span class="title function_">tcx_init</span><span class="params">(<span class="type">reg_t</span> kstack_ptr)</span> &#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">task_Context</span> <span class="title">task_ctx</span>;</span></span><br><span class="line"></span><br><span class="line">    task_ctx.ra = __restore;</span><br><span class="line">    task_ctx.sp = kstack_ptr;</span><br><span class="line">    task_ctx.s0 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s1 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s2 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s3 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s4 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s5 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s6 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s7 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s8 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s9 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s10 = <span class="number">0</span>;</span><br><span class="line">    task_ctx.s11 = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> task_ctx;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task_create</span><span class="params">(<span class="type">void</span> (*task_entry)(<span class="type">void</span>))</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(_top &lt; MAX_TASKS)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* 对于每个任务先构造该任务的trap上下文，包括入口地址和用户栈指针，并将其压入到内核栈顶*/</span></span><br><span class="line">        trap_Context* cx_ptr = &amp;KernelStack[_top] + KERNEL_STACK_SIZE - <span class="keyword">sizeof</span>(trap_Context);</span><br><span class="line">        <span class="type">reg_t</span> user_sp = &amp;UserStack[_top] + USER_STACK_SIZE;</span><br><span class="line">        <span class="type">reg_t</span> sstatus = r_sstatus();</span><br><span class="line">        <span class="comment">// 设置 sstatus 寄存器第8位即SPP位为0 表示为U模式</span></span><br><span class="line">        sstatus &amp;= (<span class="number">0U</span> &lt;&lt; <span class="number">8</span>);</span><br><span class="line">        w_sstatus(sstatus);</span><br><span class="line">        <span class="comment">/* 设置用户程序内核栈 ，填充用户栈指针*/</span></span><br><span class="line">        cx_ptr-&gt;sepc = (<span class="type">reg_t</span>)task_entry;</span><br><span class="line">        cx_ptr-&gt;sstatus = sstatus; </span><br><span class="line">        cx_ptr-&gt;sp = user_sp;</span><br><span class="line"></span><br><span class="line">       <span class="comment">/* 构造每个任务任务控制块中的任务上下文，设置 ra 寄存器为 __restore 的入口地址*/</span></span><br><span class="line">        tasks[_top].task_context = tcx_init((<span class="type">reg_t</span>)cx_ptr);</span><br><span class="line">        <span class="comment">// 初始化 TaskStatus 字段为 Ready</span></span><br><span class="line">        tasks[_top].task_state = Ready;</span><br><span class="line"></span><br><span class="line">        _top++;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>然后定义了一个<code>tcx_init</code>的函数用来初始化创建的任务的任务上下文信息，传入的参数为任务的内核栈地址，<ul>
+<li>这里把任务的<code>ra</code>寄存器的值设置为<code>__restore</code>，那是因为在应用真正跑起来之前，需要 CPU 第一次从内核态进入用户态。我们在上一篇文章中也介绍过实现方法，只需在内核栈上压入构造好的 Trap 上下文，然后 <code>__restore</code> 即可。但是现在我们是通过<code>__switch</code>来进行任务切换的，<strong>而<code>__switch</code>切换完成后会返回到<code>ra</code>的地方执行，我们这里第一次将<code>ra</code>设置为<code>__restore</code>，那么程序就可以从内核态切换回用户态执行了，为此我们需要定义一个<code>run_first_task()</code>的函数来完成第一次切换。</strong></li>
+<li>可以看见在<code>run_first_task()</code>函数中，先构造了一个<code>_unused</code>的任务上下文，然后调用<code>__switch</code>函数让切换到<code>tasks[0]</code>进行执行，用于初始化时<code>tasks[0]</code>的<code>ra</code>被设置成了<code>__restore</code>的地址，所以就能去返回用户态运行<code>task0</code>了。需要注意的是， <code>__restore</code> 的实现需要做出变化：它 不再需要 在开头 <code>mv sp, a0</code> 了。因为在 <code>__switch</code> 之后，<code>sp</code> 就已经正确指向了我们需要的 <code>Trap </code>上下文地址。</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight v"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> run_first_task()</span><br><span class="line">&#123;</span><br><span class="line">    tasks[<span class="number">0</span>]<span class="variable">.task_state</span> = Running;</span><br><span class="line">    <span class="keyword">struct</span> task_Context *next_task_cx_ptr = &amp;(tasks[<span class="number">0</span>]<span class="variable">.task_context</span>);</span><br><span class="line">    <span class="keyword">struct</span> task_Context _unused ;</span><br><span class="line"></span><br><span class="line">    __switch(&amp;_unused,next_task_cx_ptr);</span><br><span class="line">    panic(<span class="string">&quot;unreachable in run_first_task!&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>最后我们来看<code>schedule()</code>函数，首先判断一下创建的任务数量不为0，然后进行轮转调度，如果下一个任务的状态是<code>ready</code>，那么就切换到下一个任务执行，并且将当前任务的状态置为<code>ready</code>。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">schedule</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">if</span> (_top &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">		panic(<span class="string">&quot;Num of task should be greater than zero!\n&quot;</span>);</span><br><span class="line">		<span class="keyword">return</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 轮转调度 */</span></span><br><span class="line">    <span class="type">int</span> next = _current + <span class="number">1</span>;</span><br><span class="line">    next = next % _top;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(tasks[next].task_state == Ready)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">TaskContext</span> *<span class="title">current_task_cx_ptr</span> =</span> &amp;(tasks[_current].task_context);</span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">TaskContext</span> *<span class="title">next_task_cx_ptr</span> =</span> &amp;(tasks[next].task_context);</span><br><span class="line">        tasks[next].task_state = Running;</span><br><span class="line">        tasks[_current].task_state = Ready;</span><br><span class="line">        _current = next;</span><br><span class="line">        __switch(current_task_cx_ptr,next_task_cx_ptr);  <span class="comment">// 切换</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="3-测试"><a href="#3-测试" class="headerlink" title="3.测试"></a>3.测试</h1><blockquote>
+<p>OS&#x2F;app.c</p>
+<p>新建三个task任务测试程序</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">task_delay</span><span class="params">(<span class="keyword">volatile</span> <span class="type">int</span> count)</span></span><br><span class="line">&#123;</span><br><span class="line">	count *= <span class="number">50000</span>;</span><br><span class="line">	<span class="keyword">while</span> (count--);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task1</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task1 is running!\n&quot;</span>;</span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        task_delay(<span class="number">10000</span>);</span><br><span class="line">        sys_yield();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task2</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task2 is running!\n&quot;</span>;</span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        task_delay(<span class="number">10000</span>);</span><br><span class="line">        sys_yield();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task3</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task3 is running!\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        task_delay(<span class="number">10000</span>);</span><br><span class="line">        sys_yield();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 初始化函数</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">task_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	task_create(task1);</span><br><span class="line">	task_create(task2);</span><br><span class="line">    task_create(task3);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;main.c</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">os_main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    printk(<span class="string">&quot;hello!!!\n&quot;</span>);</span><br><span class="line">    trap_init();</span><br><span class="line">    task_init();</span><br><span class="line">    run_first_tasks();</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>sudo .&#x2F;build.sh</p>
+<p>sudo .&#x2F;run.sh</p>
+</blockquote>
+<p>报错：</p>
+<p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240618203510960.png" alt="image-20240618203510960"></p>
+<p>原因：</p>
+<blockquote>
+<p>OS&#x2F;kerneltrap.S</p>
+<p>中的<code>mv sp, a0</code>要删掉，</p>
+<ol>
+<li>正常从<code>__alltraps</code>走下来的<code>trap_handler</code>流程。如果是这种情况，<code>trap_handler</code>会在<code>a0</code>里返回之前通过<code>mv a0, sp</code>传进去的<code>&amp;mut TrapContext</code>，所以这里<code>sp</code>和<code>a0</code>相同没有必要再<code>mv sp, a0</code>重新设置一遍。</li>
+<li>app第一次被<code>__switch</code>的时候通过<code>__restore</code>开始运行。这时候<code>a0</code>是个无关的数据（指向上一个<code>TaskContext</code>的指针），这里再<code>mv sp a0</code>就不对了，而<code>__restore</code>要的<code>TrapContext</code>已经在<code>__switch</code>的恢复过程中被放在<code>sp</code>上了。（这个<code>sp</code>就是初始化时写完<code>TrapContext</code>后的内核栈顶）</li>
+<li>所以如果存在<code>mv sp, a0</code>，则会导致 访问内存异常 因为 <code>a0</code>是个无关的数据</li>
+</ol>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">__restore:</span><br><span class="line">    # case1: start running app by __restore</span><br><span class="line">    # case2: back to U after handling trap</span><br><span class="line">    # mv sp, a0</span><br><span class="line">    # now sp-&gt;kernel stack(after allocated), sscratch-&gt;user stack</span><br><span class="line">    # restore sstatus/sepc</span><br><span class="line">    ld t0, 32*8(sp)</span><br><span class="line">    ld t1, 33*8(sp)</span><br><span class="line">    ld t2, 2*8(sp)</span><br><span class="line">    csrw sstatus, t0</span><br><span class="line">    csrw sepc, t1</span><br><span class="line">    csrw sscratch, t2</span><br><span class="line">    # restore general-purpuse reg</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>重新执行</p>
+</blockquote>
+<p><img src="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/image-20240618203435306.png" alt="image-20240618203435306"></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="http://liangzhouzz.github.io">liangzhou</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://liangzhouzz.github.io/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/">http://liangzhouzz.github.io/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://liangzhouzz.github.io" target="_blank">Sifanのblog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a><a class="post-meta__tags" href="/tags/riscv%EF%BC%8Cqemu/">riscv，qemu</a></div><div class="post_share"><div class="social-share" data-image="/img/duck.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/" title="riscv-9-u模式的trap机制"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">riscv-9-u模式的trap机制</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2024/03/25/%E5%9F%BA%E4%BA%8Eqemu-riscv%E6%9E%84%E4%BB%B6%E5%B5%8C%E5%85%A5%E5%BC%8F%E7%B3%BB%E7%BB%9F/" title="基于qemu-riscv构建嵌入式系统"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-03-25</div><div class="title">基于qemu-riscv构建嵌入式系统</div></div></a></div><div><a href="/2024/06/02/qemu-riscv-add-flash-itr-gpio/" title="riscv-2-flash-itr-gpio"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-02</div><div class="title">riscv-2-flash-itr-gpio</div></div></a></div><div><a href="/2024/06/04/riscv-3-%E6%B5%8B%E8%AF%95%E4%B8%B2%E5%8F%A3%E6%89%93%E5%8D%B0/" title="riscv-3-测试串口打印"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-04</div><div class="title">riscv-3-测试串口打印</div></div></a></div><div><a href="/2024/06/06/riscv-4-opensbi/" title="riscv-4-opensbi"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-06</div><div class="title">riscv-4-opensbi</div></div></a></div><div><a href="/2024/06/08/riscv-5-%E8%AE%BE%E5%A4%87%E6%A0%91/" title="riscv-5-设备树"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-08</div><div class="title">riscv-5-设备树</div></div></a></div><div><a href="/2024/06/09/riscv-6-domain%E6%9C%BA%E5%88%B6/" title="riscv-6-domain"><div class="cover" style="background: var(--default-bg-color)"></div><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2024-06-09</div><div class="title">riscv-6-domain</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/duck.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">liangzhou</div><div class="author-info__description">要努力，不要急！</div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">30</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/liangzhouzz/"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">This is my Blog!</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E5%AE%9E%E7%8E%B0sys-write%E5%87%BD%E6%95%B0"><span class="toc-number">1.</span> <span class="toc-text">1.实现sys_write函数</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C"><span class="toc-number">1.1.</span> <span class="toc-text">结果</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E5%8D%8F%E4%BD%9C%E5%BC%8F%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6"><span class="toc-number">2.</span> <span class="toc-text">2.协作式多任务调度</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1switch%E4%BB%8B%E7%BB%8D"><span class="toc-number">2.1.</span> <span class="toc-text">2.1switch介绍</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2%E5%8D%8F%E4%BD%9C%E5%BC%8F%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.2.</span> <span class="toc-text">2.2协作式任务调度实现</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%B5%8B%E8%AF%95"><span class="toc-number">3.</span> <span class="toc-text">3.测试</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/14/riscv-10-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" title="riscv-10-多任务调度">riscv-10-多任务调度</a><time datetime="2024-06-14T08:22:09.000Z" title="发表于 2024-06-14 16:22:09">2024-06-14</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/12/riscv-9-u%E6%A8%A1%E5%BC%8F%E7%9A%84trap%E6%9C%BA%E5%88%B6/" title="riscv-9-u模式的trap机制">riscv-9-u模式的trap机制</a><time datetime="2024-06-12T03:01:49.000Z" title="发表于 2024-06-12 11:01:49">2024-06-12</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/11/riscv-9-prink%E5%86%85%E6%A0%B8%E7%BA%A7%E6%89%93%E5%8D%B0%E5%87%BD%E6%95%B0/" title="riscv-8-printk内核级打印函数">riscv-8-printk内核级打印函数</a><time datetime="2024-06-11T13:20:59.000Z" title="发表于 2024-06-11 21:20:59">2024-06-11</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/10/riscv-7-opensbi%E6%8E%A7%E5%88%B6%E5%8F%B0%E8%BE%93%E5%87%BA%E4%BB%A5%E5%8F%8A%E6%89%8B%E5%86%99%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" title="riscv-7-opensbi控制台输出以及手写操作系统">riscv-7-opensbi控制台输出以及手写操作系统</a><time datetime="2024-06-10T09:07:48.000Z" title="发表于 2024-06-10 17:07:48">2024-06-10</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/06/09/riscv-6-domain%E6%9C%BA%E5%88%B6/" title="riscv-6-domain">riscv-6-domain</a><time datetime="2024-06-09T08:13:59.000Z" title="发表于 2024-06-09 16:13:59">2024-06-09</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url('/img/footer.jpg')"><div id="footer-wrap"><div class="copyright">&copy;2023 - 2024 By liangzhou</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div><div class="footer_custom_text">Hi!!!!!!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><div class="js-pjax"></div><canvas class="fireworks" mobile="false"></canvas><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/fireworks.min.js"></script><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><div id="local-search"><div class="search-dialog"><nav class="search-nav"><span class="search-dialog-title">搜索</span><span id="loading-status"></span><button class="search-close-button"><i class="fas fa-times"></i></button></nav><div class="is-center" id="loading-database"><i class="fas fa-spinner fa-pulse"></i><span>  数据库加载中</span></div><div class="search-wrap"><div id="local-search-input"><div class="local-search-box"><input class="local-search-box--input" placeholder="搜索文章" type="text"/></div></div><hr/><div class="no-result" id="local-search-results"></div><div id="local-search-stats-wrap"></div></div></div><div id="search-mask"></div><script src="/js/search/local-search.js"></script></div></div></body></html>
