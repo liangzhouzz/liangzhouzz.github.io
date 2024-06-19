@@ -4962,4 +4962,167 @@ fa 18 40 00 00 00 00 00
         <tag>riscv，qemu</tag>
       </tags>
   </entry>
+  <entry>
+    <title>riscv-11-分时多任务与抢占式调度策略实现</title>
+    <url>/2024/06/18/riscv-11-%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="1-分时多任务系统"><a href="#1-分时多任务系统" class="headerlink" title="1.分时多任务系统"></a>1.分时多任务系统</h1><p><strong>分时多任务系统：</strong>任务的切换不是通过用户程序来自行放弃cpu的使用权作为前提的，而是内核自己来决定何时切换任务，这个<strong>切换的原则就是每个任务一次只能运行一段时间，时间一到就会被操作系统强制切换到下一个任务执行</strong></p>
+<p><strong>因此需要定时器来实现时钟中断</strong></p>
+<h2 id="riscv的时钟中断"><a href="#riscv的时钟中断" class="headerlink" title="riscv的时钟中断"></a>riscv的时钟中断</h2><p>中断可以分为三类：</p>
+<ul>
+<li><strong>软件中断：</strong>由软件控制放出的中断</li>
+<li><strong>时钟中断：</strong>由时钟电路发出的中断</li>
+<li><strong>外部中断：</strong>由外设发出的中断</li>
+</ul>
+<p>当<code>scause</code>的最高位为<code>1</code>时代表此次触发的异常为中断类型：</p>
+<table>
+<thead>
+<tr>
+<th align="center">Interrupt</th>
+<th align="center">Exception Code</th>
+<th align="center">Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">Supervisor software interrupt （S模式下软件中断）</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">3</td>
+<td align="center">Machine software interrupt（M模式下软件中断）</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">5</td>
+<td align="center">Supervisor timer interrupt（S模式下时钟中断）</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">7</td>
+<td align="center">Machine timer interrupt（M模式下时钟中断）</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">9</td>
+<td align="center">Supervisor external interrupt （S模式下外部中断）</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">11</td>
+<td align="center">Machine external interrupt（M模式下外部中断）</td>
+</tr>
+</tbody></table>
+<p>可以看到这三种中断每一个都有 <code>M/S 特权级</code>两个版本。中断的特权级可以决定该中断是否会被屏蔽，以及需要 <code>Trap</code> 到 <code>CPU</code> 的哪个特权级进行处理。我们的目标是在<code>S</code>态使用时钟中断，这涉及到两个个在<code>S</code>态控制中断的寄存器<code>sstatus</code>,<code>sie</code></p>
+<blockquote>
+<p><code>sstatus</code>的<code>bit[2]</code>用来使能<code>S</code>态模式下的所有中断</p>
+</blockquote>
+<p><img src="/2024/06/18/riscv-11-%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5%E5%AE%9E%E7%8E%B0/image-20240619151405654.png" alt="image-20240619151405654"></p>
+<blockquote>
+<p><code>sie</code>的<code>bit[5]</code>用来专门使能<code>S</code>态的时钟中断</p>
+<ul>
+<li>当<code>STIE</code>的<code>bit[5]</code>用来专门使能<code>S</code>态的时钟中断</li>
+<li>它的三个字段 <code>ssie/stie/seie</code> 分别控制 S 特权级的软件中断、时钟中断和外部中断的中断使能</li>
+</ul>
+</blockquote>
+<p><img src="/2024/06/18/riscv-11-%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5%E5%AE%9E%E7%8E%B0/image-20240619151533223.png" alt="image-20240619151533223"></p>
+<p>比如对于 S 态时钟中断来说，如果 CPU 不高于 S 特权级，需要 <code>sstatus.sie</code> 和 <code>sie.stie</code> 均为 1 该中断才不会被屏蔽；<strong>如果 CPU 当前特权级高于 S 特权级，则该中断一定会被屏蔽。</strong> —- <strong>例如当前CPU特权级为M模式</strong></p>
+<p><strong>计时器：</strong></p>
+<ul>
+<li>RISC-V 64 架构上，该计数器保存在一个 64 位的 CSR <code>mtime</code> 中，我们无需担心它的溢出问题，在内核运行全程可以认为它是一直递增的。这个计数器一般我们叫做<code>RTC</code>。</li>
+<li>另外一个 64 位的 CSR <code>mtimecmp</code> 的作用是：<strong>一旦计数器 <code>mtime</code> 的值超过了 <code>mtimecmp</code>，就会触发一次时钟中断。</strong></li>
+</ul>
+<blockquote>
+<p>OS&#x2F;timer.c</p>
+<p>在<code>timer_init()</code>函数中，分别将<code>sstatus.sie</code> 置 1 和<code>sie.stie</code> ，操作<code>sie</code>寄存器的代码放在<code>riscv.h</code>中</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CLOCK_FREQ 10000000 </span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> TICKS_PER_SEC 500</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 设置下次时钟中断的cnt值 */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">set_next_trigger</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    sbi_set_timer(r_mtime() + CLOCK_FREQ / TICKS_PER_SEC); <span class="comment">// 计算下一次中断的时间（当前时间 + 每秒的时钟频率除以每秒的时钟滴答数）</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 开启S模式下的时钟中断 */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">timer_init</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">   <span class="type">reg_t</span> sstatus =r_sstatus();</span><br><span class="line">   sstatus |= (<span class="number">1L</span> &lt;&lt; <span class="number">1</span>) ; <span class="comment">// 设置sie 为1</span></span><br><span class="line">   w_sstatus(sstatus);</span><br><span class="line">   <span class="type">reg_t</span> sie = r_sie();</span><br><span class="line">   sie |= SIE_STIE;    <span class="comment">// 设置stie为1</span></span><br><span class="line">   w_sie(sie);</span><br><span class="line">   set_next_trigger();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/* 以us为单位返回时间 */</span></span><br><span class="line"><span class="comment">/* 以us为单位返回时间 */</span></span><br><span class="line"><span class="type">uint64_t</span> <span class="title function_">get_time_us</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">reg_t</span> time =  r_mtime() / (CLOCK_FREQ / TICKS_PER_SEC); <span class="comment">// 除以每秒的时钟频率除以每秒的时钟滴答数，以微秒为单位返回当前时间。</span></span><br><span class="line">    <span class="keyword">return</span> time;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;riscv.h</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* Supervisor Interrupt Enable*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SIE_SEIE (1L &lt;&lt; 9) <span class="comment">// external</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SIE_STIE (1L &lt;&lt; 5) <span class="comment">// timer</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SIE_SSIE (1L &lt;&lt; 1) <span class="comment">// software</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_sie</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, sie&quot;</span> : <span class="string">&quot;=r&quot;</span> (x) )</span>;</span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">w_sie</span><span class="params">(<span class="type">reg_t</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrw sie, %0&quot;</span> : : <span class="string">&quot;r&quot;</span> (x))</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 获取mtime*/</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_mtime</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;rdtime %0&quot;</span> : <span class="string">&quot;=r&quot;</span>(x))</span>;</span><br><span class="line">  <span class="comment">// asm volatime(&quot;csrr %0, 0x0C01&quot; : &quot;=r&quot; (x) )</span></span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>获取mtime的值：</strong></p>
+<ul>
+<li>为了设置时钟中断的频率我们需要先读到<code>mtime</code>的值，然后设置<code>mtimecmp</code> ，这两个寄存器都是<code>M</code>模式下的，在<code>S</code>模式下不能直接访问</li>
+<li>第一种是使用<code>rdtime</code>这个伪指令，这里是在哪里找的呢，在<code>opensbi</code>的源码中，在<code>lib/sbi/sbi_timer.c</code></li>
+<li>第二种方式是<code>asm volatime(&quot;csrr %0, 0x0C01&quot; : &quot;=r&quot; (x) )</code>来读取，<code>mtime</code>这个寄存器通过<code>MMIO</code>映射到了一个确定的地址，这个地址和平台有关，在<code>opensbi</code>源码的<code>sbi_emulate_csr.c</code>中，<code>opensbi</code>将<code>mtime</code>的值映射到了<code>0xc01</code>的地方，这是<code>opensbi</code>做了二次映射，用于S态的程序来读取，实际<code>mtime</code>的映射地址应该由<code>qemu</code>来做的</li>
+</ul>
+<blockquote>
+<p>OS&#x2F;sbi.c</p>
+<p><code>mtimecmp</code>的值可以通过<code>opensbi</code>提供的接口来设置</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * sbi_set_timer() - Program the timer for next timer event.</span></span><br><span class="line"><span class="comment"> * @stime_value: The value after which next timer event should fire.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * Return: None</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">sbi_set_timer</span><span class="params">(<span class="type">uint64_t</span> stime_value)</span></span><br><span class="line">&#123;</span><br><span class="line">	sbi_ecall(SBI_EXT_TIME, SBI_FID_SET_TIMER, stime_value,</span><br><span class="line">		  <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;sbi.h</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">sbi_ext_time_fid</span> &#123;</span></span><br><span class="line">	SBI_EXT_TIME_SET_TIMER = <span class="number">0</span>,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SBI_FID_SET_TIMER		SBI_EXT_TIME_SET_TIMER</span></span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>在<code>qemu</code>中<code>rtc</code>的频率为<code>10mhz</code>，即<code>10^7</code></li>
+<li>在上面的代码中，我将1s分成了1000个时间片，即每隔1us触发一次时钟中断，因此每次触发时钟中断设置的<code>mtimecmp</code>值为：<code>r_mtime() + CLOCK_FREQ / TICKS_PER_SEC</code></li>
+</ul>
+<h1 id="2-实现"><a href="#2-实现" class="headerlink" title="2.实现"></a>2.实现</h1><blockquote>
+<p>OS&#x2F;trap.c</p>
+<p>修改：只需要在时钟中断到来时，设置下一次时钟中断的<code>mtimecmp</code>的值，并切换一次任务</p>
+<ul>
+<li><code>scause</code>最高位为<code>1</code>时代表为中断则进入中断的判断分支，否则进入异常的处理分支。</li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">trap_Context* <span class="title function_">trap_handler</span><span class="params">(trap_Context* cx)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">reg_t</span> scause = r_scause();</span><br><span class="line"></span><br><span class="line">	<span class="type">reg_t</span> cause_code = scause &amp; <span class="number">0xfff</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="comment">// 1 &lt;&lt; 63 = 0x8000000000000000</span></span><br><span class="line">	<span class="keyword">if</span> (scause &amp; <span class="number">0x8000000000000000</span>)&#123;</span><br><span class="line">		<span class="comment">// 中断模式</span></span><br><span class="line">		<span class="keyword">switch</span> (cause_code)</span><br><span class="line">		&#123;</span><br><span class="line">		<span class="comment">/* rtc 中断*/</span></span><br><span class="line">		<span class="keyword">case</span> <span class="number">5</span>:</span><br><span class="line">			set_next_trigger();</span><br><span class="line">			schedule();</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			printk(<span class="string">&quot;undfined interrrupt scause:%x\n&quot;</span>, scause);</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		<span class="comment">// 异常模式</span></span><br><span class="line">		<span class="keyword">switch</span> (cause_code)</span><br><span class="line">		&#123;</span><br><span class="line">		<span class="comment">/* U模式下的syscall */</span></span><br><span class="line">		<span class="keyword">case</span> <span class="number">8</span>:</span><br><span class="line">			cx-&gt;a0 = __SYSCALL(cx-&gt;a7,cx-&gt;a0,cx-&gt;a1,cx-&gt;a2);</span><br><span class="line">			cx-&gt;sepc += <span class="number">8</span>;</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		<span class="keyword">default</span>:</span><br><span class="line">			printk(<span class="string">&quot;undfined exception scause:%x\n&quot;</span>,scause);</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line"></span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> cx;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="3-测试"><a href="#3-测试" class="headerlink" title="3.测试"></a>3.测试</h1><blockquote>
+<p>OS&#x2F;app.c</p>
+<ul>
+<li>注释掉<code>yield</code> 然后让任务自主根据定时器切换</li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">uint64_t</span> <span class="title function_">sys_gettime</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> syscall(__NR_gettimeofday,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task1</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task1 is running!\n&quot;</span>;</span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task2</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task2 is running!\n&quot;</span>;</span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        </span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task3</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span> *message = <span class="string">&quot;task3 is running!\n&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> len = <span class="built_in">strlen</span>(message);</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        sys_wirte(<span class="number">1</span>,message, len);</span><br><span class="line">        <span class="comment">//task_delay(10000);</span></span><br><span class="line">        <span class="comment">//sys_yield();</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">task_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">	task_create(task1);</span><br><span class="line">	task_create(task2);</span><br><span class="line">    task_create(task3);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>OS&#x2F;main.c</p>
+<p>添加时钟初始化</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;os.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">os_main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    printk(<span class="string">&quot;hello!!!\n&quot;</span>);</span><br><span class="line">    trap_init();</span><br><span class="line">    task_init();</span><br><span class="line">    timer_init(); <span class="comment">// 时钟初始化</span></span><br><span class="line">    run_first_task();</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>总结：</strong></p>
+<p><strong>其余的修改见commit</strong>，主要就是添加了<code>timer.c</code>文件 已经修改 中断与异常分发，区分中断与异常 为1则为中断，以及配置相应的时钟，获取RTL时间。</p>
+<ul>
+<li>RISC-V 64 架构上，该计数器保存在一个 64 位的 CSR <code>mtime</code> 中，我们无需担心它的溢出问题，在内核运行全程可以认为它是一直递增的。这个计数器一般我们叫做<code>RTC</code>。</li>
+<li>另外一个 64 位的 CSR <code>mtimecmp</code> 的作用是：<strong>一旦计数器 <code>mtime</code> 的值超过了 <code>mtimecmp</code>，就会触发一次时钟中断。</strong></li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 关键代码*/</span></span><br><span class="line"><span class="keyword">case</span> <span class="number">5</span>:</span><br><span class="line">			set_next_trigger();</span><br><span class="line">			schedule();</span><br><span class="line">			<span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<blockquote>
+<p>sudo .&#x2F;build.sh</p>
+<p>sudo .&#x2F;run.sh</p>
+</blockquote>
+<p><img src="/2024/06/18/riscv-11-%E5%88%86%E6%97%B6%E5%A4%9A%E4%BB%BB%E5%8A%A1%E4%B8%8E%E6%8A%A2%E5%8D%A0%E5%BC%8F%E8%B0%83%E5%BA%A6%E7%AD%96%E7%95%A5%E5%AE%9E%E7%8E%B0/image-20240619170728006.png" alt="image-20240619170728006"></p>
+]]></content>
+      <categories>
+        <category>riscv</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+        <tag>riscv，qemu</tag>
+      </tags>
+  </entry>
 </search>
