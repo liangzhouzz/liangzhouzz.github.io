@@ -5197,7 +5197,7 @@ fa 18 40 00 00 00 00 00
       </tags>
   </entry>
   <entry>
-    <title>riscv-13-物理内存管理与分页机制介绍</title>
+    <title>riscv-13-物理内存管理与分页机制介绍14</title>
     <url>/2024/06/20/riscv-13-%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6/</url>
     <content><![CDATA[<h1 id="导读"><a href="#导读" class="headerlink" title="导读"></a>导读</h1><blockquote>
 <p>参考：</p>
@@ -5437,7 +5437,7 @@ fa 18 40 00 00 00 00 00
 <p><img src="/2024/06/20/riscv-13-%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6/image-20240621154445235.png" alt="image-20240621154445235"></p>
 <h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><img src="/2024/06/20/riscv-13-%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E4%B8%8E%E5%88%86%E9%A1%B5%E6%9C%BA%E5%88%B6/image-20240621160558362.png" alt="image-20240621160558362" style="zoom:80%;">
 
-<p>本节新增了以上的文件：</p>
+<p><strong>本节新增了以上的文件</strong>：</p>
 <ul>
 <li>在<code>stack</code>中实现了栈这个数据结构，因为后续的内存管理需要用到栈。<ul>
 <li>实现了栈的常用接口<code>push</code>，<code>pop</code>，<code>top</code>等</li>
@@ -5451,6 +5451,231 @@ fa 18 40 00 00 00 00 00
 <li>对物理页分配进行了测试，测试了<code>new</code> <code>alloc</code>，<code>dealloc</code></li>
 </ul>
 </li>
+</ul>
+]]></content>
+      <categories>
+        <category>riscv</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+        <tag>riscv，qemu</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>riscv-14-内存映射机制实现</title>
+    <url>/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/</url>
+    <content><![CDATA[<h1 id="1-页表操作"><a href="#1-页表操作" class="headerlink" title="1.页表操作"></a>1.页表操作</h1><h2 id="1-1页表项定义"><a href="#1-1页表项定义" class="headerlink" title="1.1页表项定义"></a>1.1页表项定义</h2><p><img src="/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/image-20240624160044495.png" alt="image-20240624160044495"></p>
+<p>64<strong>位页表项布局</strong>：</p>
+<ul>
+<li>低10位：存储下级物理页的属性标志位</li>
+<li>10-54位：存储下级页表的物理页号</li>
+</ul>
+<blockquote>
+<p>address.h</p>
+<p>定义页表项结构体64位以及0-9的标记位</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 定义页表项 */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span>  </span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    <span class="type">uint64_t</span> bits;</span><br><span class="line">&#125;PageTableEntry;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义位掩码常量</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PTE_V (1 &lt;&lt; 0)   <span class="comment">//有效位</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PTE_R (1 &lt;&lt; 1)   <span class="comment">//可读属性</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PTE_W (1 &lt;&lt; 2)   <span class="comment">//可写属性</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PTE_X (1 &lt;&lt; 3)   <span class="comment">//可执行属性</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PTE_U (1 &lt;&lt; 4)   <span class="comment">//用户访问模式</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PTE_G (1 &lt;&lt; 5)   <span class="comment">//全局映射</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PTE_A (1 &lt;&lt; 6)   <span class="comment">//访问标志位</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PTE_D (1 &lt;&lt; 7)   <span class="comment">//脏位</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>address.c</p>
+<p>定义一些操作PTE的函数</p>
+<p>通过一些移位的操作进行判断</p>
+<p>**<code>ppn.value = (entry-&gt;bits &gt;&gt; 10) &amp; ((1ul &lt;&lt; 44) - 1)</code>**：</p>
+<ul>
+<li><code>entry-&gt;bits &gt;&gt; 10</code>：将页表条目的 <code>bits</code> 字段右移10位，去掉低10位的标志位，得到物理页号部分。</li>
+<li><code>((1ul &lt;&lt; 44) - 1)</code>：生成一个44位的掩码（0xFFFFFFFFFFF），用于提取物理页号部分。这个掩码确保物理页号部分的最高44位保留，而低位的标志位被清除。</li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 新建一个页表项*/</span></span><br><span class="line">PageTableEntry <span class="title function_">PageTableEntry_new</span><span class="params">(PhysPageNum ppn, <span class="type">uint8_t</span> PTEFlags)</span> &#123;</span><br><span class="line">    PageTableEntry entry;</span><br><span class="line">    entry.bits = (ppn.value &lt;&lt; <span class="number">10</span>) | PTEFlags;</span><br><span class="line">    <span class="keyword">return</span> entry;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 判断页表项是否为空*/</span></span><br><span class="line">PageTableEntry <span class="title function_">PageTableEntry_empty</span><span class="params">()</span> &#123;</span><br><span class="line">    PageTableEntry entry;</span><br><span class="line">    entry.bits = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">return</span> entry;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 获取下级页表的PPN*/</span></span><br><span class="line">PhysPageNum <span class="title function_">PageTableEntry_ppn</span><span class="params">(PageTableEntry *entry)</span> &#123;</span><br><span class="line">    PhysPageNum ppn;</span><br><span class="line">    ppn.value = (entry-&gt;bits &gt;&gt; <span class="number">10</span>) &amp; ((<span class="number">1ul</span> &lt;&lt; <span class="number">44</span>) - <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">return</span> ppn;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 获取标志位*/</span></span><br><span class="line"><span class="type">uint8_t</span> <span class="title function_">PageTableEntry_flags</span><span class="params">(PageTableEntry *entry)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> entry-&gt;bits &amp; <span class="number">0xFF</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 判断页表项是否有效*/</span></span><br><span class="line"><span class="type">bool</span> <span class="title function_">PageTableEntry_is_valid</span><span class="params">(PageTableEntry *entry)</span> &#123;</span><br><span class="line">    <span class="type">uint8_t</span> entryFlags = PageTableEntry_flags(entry);</span><br><span class="line">    <span class="keyword">return</span> (entryFlags &amp; PTE_V) != <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="1-2物理页帧获取"><a href="#1-2物理页帧获取" class="headerlink" title="1.2物理页帧获取"></a>1.2物理页帧获取</h2><p><strong>虚拟地址向物理地址转换过程</strong></p>
+<img src="/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/image-20240620172006572.png" alt="image-20240620172006572" style="zoom:80%;">
+
+<ul>
+<li>PTE存放是的可能下一级的PTE 以及最终的 物理地址的PPN，需要访问物理页号对应的物理帧的内存数据，定义了两个辅助函数</li>
+<li>将PPN转化为物理地址，并返回该地址对应的字节数组指针</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">uint8_t</span>* <span class="title function_">get_bytes_array</span><span class="params">(PhysPageNum ppn)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 先从物理页号转换为物理地址</span></span><br><span class="line">    PhysAddr addr = phys_addr_from_phys_page_num(ppn);</span><br><span class="line">    <span class="keyword">return</span> (<span class="type">uint8_t</span>*) addr.value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>转换为PTE</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">PageTableEntry* <span class="title function_">get_pte_array</span><span class="params">(PhysPageNum ppn)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 先从物理页号转换为物理地址</span></span><br><span class="line">    PhysAddr addr = phys_addr_from_phys_page_num(ppn);</span><br><span class="line">    <span class="keyword">return</span> (PageTableEntry*) addr.value;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-3-PT与PTE"><a href="#1-3-PT与PTE" class="headerlink" title="1.3 PT与PTE"></a>1.3 PT与PTE</h3><ul>
+<li><strong>PT：</strong>页表是一个<strong>包含多个 PTE 的数据结构</strong>，用于存储虚拟地址到物理地址的映射。</li>
+<li><strong>PTE：</strong>页表条目<strong>是页表中的一个条目</strong>，表示具体的虚拟地址到物理地址的映射关系。</li>
+</ul>
+<h1 id="2-虚实地址映射"><a href="#2-虚实地址映射" class="headerlink" title="2.虚实地址映射"></a>2.虚实地址映射</h1><p><code>rcore</code><strong>的内存映射实现如下</strong></p>
+<img src="/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/image-20240624165741735.png" alt="image-20240624165741735" style="zoom:67%;">
+
+<p>同前面提到的差不多</p>
+<ul>
+<li><p>首先通过VPN[2]结合SATP拿到第三级的PTE 然后不断结合VPN 得到最后的物理地址</p>
+</li>
+<li><p>首先通过辅助函数拿到虚拟地址的三级VPN</p>
+</li>
+</ul>
+<blockquote>
+<p>address.c</p>
+<p>获取虚拟页表的三级索引</p>
+<p>从 <code>vpn.value</code> 中提取三级索引：</p>
+<ul>
+<li>使用 <code>&amp; 0x1ff</code> 提取低9位（1_1111_1111），这是每级索引的范围（512个条目）。</li>
+<li>右移9位，准备提取下一个索引。</li>
+<li>从高到低（i &#x3D; 2, 1, 0）提取三级索引。</li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 拿到虚拟页号的三级索引，按照从高到低的顺序返回 */</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">indexes</span><span class="params">(VirtPageNum vpn, <span class="type">size_t</span>* result)</span> </span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">size_t</span> idx[<span class="number">3</span>];</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">2</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">        idx[i] = vpn.value &amp; <span class="number">0x1ff</span>;   <span class="comment">// 1_1111_1111 = 0x1ff</span></span><br><span class="line">        vpn.value &gt;&gt;= <span class="number">9</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) &#123;</span><br><span class="line">        result[i] = idx[i];</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>有了<code>PTE</code>，还需要一个<code>PT</code> 对<code>PTE</code> 进行管理。因此 <code>PageTable</code> 要保存它根节点的物理页号 <code>root_ppn</code> 作为页表唯一的区分标志。</li>
+</ul>
+<blockquote>
+<p>address.h</p>
+<p>PT实现</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 定义页表 */</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    PhysPageNum root_ppn; <span class="comment">//根节点</span></span><br><span class="line">&#125;PageTable;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>现在已经有了页表项<code>PT</code>，如何在PT中查找<code>PTE</code>，</li>
+<li>传入一个<code>PageTable</code>，根据此页表的根节点开始遍历，根节点的物理页号是保存在<code>satp</code>寄存器中的，从页表中根据虚拟地址的页表项索引来取出具体的页表项，如果此页表项为空，则分配一页内存，然后新建一个页表项进行填充。直到三级页表索引完毕，会返回虚拟地址最终对应的三级页表的页表项，此时三级页表的页表项是空的，在进行map时只需要对此页表项赋值就行。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/* 查找PTE 若没有则新建一个*/</span></span><br><span class="line">PageTableEntry* <span class="title function_">find_pte_create</span><span class="params">(PageTable* pt,VirtPageNum vpn)</span></span><br><span class="line">&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 拿到虚拟页号的三级索引，保存到idx数组中</span></span><br><span class="line">    <span class="type">size_t</span> idx[<span class="number">3</span>];</span><br><span class="line">    indexes(vpn, idx); </span><br><span class="line">    <span class="comment">//根节点</span></span><br><span class="line">    PhysPageNum ppn = pt-&gt;root_ppn;</span><br><span class="line">    <span class="comment">//从根节点开始遍历，如果没有pte，就分配一页内存，然后创建一个</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) </span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//拿到具体的页表项</span></span><br><span class="line">        PageTableEntry* pte =  &amp;get_pte_array(ppn)[idx[i]];</span><br><span class="line">            <span class="keyword">if</span> (i == <span class="number">2</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> pte;</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="comment">//如果此项页表为空</span></span><br><span class="line">            <span class="keyword">if</span> (!PageTableEntry_is_valid(pte)) &#123;</span><br><span class="line">                <span class="comment">//分配一页物理内存</span></span><br><span class="line">                PhysPageNum frame =  StackFrameAllocator_alloc(&amp;FrameAllocatorImpl);</span><br><span class="line">               <span class="comment">//新建一个页表项</span></span><br><span class="line">               *pte =  PageTableEntry_new(frame,PTE_V);</span><br><span class="line">               <span class="comment">//压入栈中</span></span><br><span class="line">               <span class="comment">// push(&amp;pt-&gt;frames,frame.value);</span></span><br><span class="line">            &#125;</span><br><span class="line">        <span class="comment">//取出进入下级页表的物理页号</span></span><br><span class="line">        ppn = PageTableEntry_ppn(pte);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><code>find_pte</code>只查找页表项不创建</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">PageTableEntry* <span class="title function_">find_pte</span><span class="params">(PageTable* pt, VirtPageNum vpn)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 拿到虚拟页号的三级索引，保存到idx数组中</span></span><br><span class="line">    <span class="type">size_t</span> idx[<span class="number">3</span>];</span><br><span class="line">    indexes(vpn, idx); </span><br><span class="line">    <span class="comment">//根节点</span></span><br><span class="line">    PhysPageNum ppn = pt-&gt;root_ppn;</span><br><span class="line">    <span class="comment">//从根节点开始遍历，如果没有pte，就分配一页内存，然后创建一个</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) </span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//拿到具体的页表项</span></span><br><span class="line">        PageTableEntry* pte =  &amp;get_pte_array(ppn)[idx[i]];</span><br><span class="line">            <span class="keyword">if</span> (i == <span class="number">2</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> pte;</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="comment">//如果此项页表为空</span></span><br><span class="line">            <span class="keyword">if</span> (!PageTableEntry_is_valid(pte)) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        <span class="comment">//取出进入下级页表的物理页号</span></span><br><span class="line">        ppn = PageTableEntry_ppn(pte);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>有了<code>PTE</code>以及<code>VPN</code>还有<code>PT</code>，那么就可以建立虚拟地址与物理地址的之间的映射关系了：只需要将映射的物理页号与虚拟地址通过三级页表中的页表项对应起即可</li>
+<li>该函数会根据指定的大小，将连续的虚拟地址映射到连续的物理地址。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">PageTable_map</span><span class="params">(PageTable* pt,VirtAddr va, PhysAddr pa, u64 size ,<span class="type">uint8_t</span> pteflgs)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span>(size == <span class="number">0</span>)</span><br><span class="line">        panic(<span class="string">&quot;mappages: size&quot;</span>);</span><br><span class="line"></span><br><span class="line">    PhysPageNum ppn = floor_phys(pa);</span><br><span class="line">    VirtPageNum vpn = floor_virts(va);</span><br><span class="line">    u64 last = (va.value + size - <span class="number">1</span>) / PAGE_SIZE;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//printk(&quot;ppn:%d\n&quot;,ppn.value);</span></span><br><span class="line">    <span class="keyword">for</span>(;;)</span><br><span class="line">    &#123;</span><br><span class="line">        PageTableEntry* pte = find_pte_create(pt,vpn);</span><br><span class="line"></span><br><span class="line">        assert(!PageTableEntry_is_valid(pte));</span><br><span class="line">        *pte = PageTableEntry_new(ppn,PTE_V | pteflgs);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>( vpn.value == last )</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        <span class="comment">// 一页一页映射</span></span><br><span class="line">        vpn.value+=<span class="number">1</span>;</span><br><span class="line">        ppn.value+=<span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>取消映射关系</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">PageTable_unmap</span><span class="params">(PageTable* pt, VirtPageNum vpn)</span></span><br><span class="line">&#123;</span><br><span class="line">    PageTableEntry* pte = find_pte(pt,vpn);</span><br><span class="line">    assert(!PageTableEntry_is_valid(pte));</span><br><span class="line">    *pte = PageTableEntry_empty();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="3-开启MMU"><a href="#3-开启MMU" class="headerlink" title="3.开启MMU"></a>3.开启MMU</h1><h2 id="3-1内存初始化"><a href="#3-1内存初始化" class="headerlink" title="3.1内存初始化"></a>3.1内存初始化</h2><img src="/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/image-20240624202737775.png" alt="image-20240624202737775" style="zoom:80%;">
+
+<ul>
+<li>上图所示，内存由高到低排列，定义内核起始地址为<code>KERNBASE = 0x80200000</code>，</li>
+<li>内核的代码被编译器编译后是由代码段和数据段组成的，可以在<code>os.map</code>中看见各段的地址空间，</li>
+<li>代码段结束的地址设定为<code>etext</code>，数据段结束的地址设定为<code>kernelend</code>。</li>
+<li>然后指定从内核结束后向上<code>128M</code>的空间为空闲内存，可以给应用使用的。</li>
+</ul>
+<blockquote>
+<p>os.ld</p>
+<ul>
+<li>对链接文件进行修改，指定了链接脚本结束后按照页对齐</li>
+<li>定义了两个符号：<code>PROVIDE(etext = .);</code>，<code>PROVIDE(kernelend = .);</code>，<code>etext</code>就代表了内核代码段结束的地址，<code>kernelend</code>就代表了内核结束的地址。</li>
+</ul>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">OUTPUT_ARCH(riscv)</span><br><span class="line">ENTRY(_start)</span><br><span class="line"></span><br><span class="line">MEMORY</span><br><span class="line">&#123; </span><br><span class="line">	ram (rxai!w) : ORIGIN = 0x80200000, LENGTH = 128M</span><br><span class="line">&#125;</span><br><span class="line">SECTIONS</span><br><span class="line">&#123;</span><br><span class="line">	skernel = .; /* 定义内核起始内存地址 */</span><br><span class="line">	.text : &#123;</span><br><span class="line">		*(.text .text.*)</span><br><span class="line">	. = ALIGN(0x1000);    /* text结束的地址按照页对齐 */</span><br><span class="line">    PROVIDE(etext = .);</span><br><span class="line">	&#125; &gt;ram</span><br><span class="line"></span><br><span class="line">	.rodata : &#123;</span><br><span class="line">		*(.rodata .rodata.*)</span><br><span class="line">	&#125; &gt;ram</span><br><span class="line"></span><br><span class="line">	.data : &#123;</span><br><span class="line">		. = ALIGN(4096);</span><br><span class="line">		*(.sdata .sdata.*)</span><br><span class="line">		*(.data .data.*)</span><br><span class="line">		PROVIDE(_data_end = .);</span><br><span class="line">	&#125; &gt;ram</span><br><span class="line"></span><br><span class="line">	.bss :&#123;</span><br><span class="line">		*(.sbss .sbss.*)</span><br><span class="line">		*(.bss .bss.*)</span><br><span class="line">		*(COMMON)</span><br><span class="line">	&#125; &gt;ram</span><br><span class="line">	PROVIDE(kernelend = .);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p><strong>初始化：</strong></p>
+<p><strong>U模式下可用的内存是从<code>kernelend</code>开始到 <code>PHYSTOP</code>结束</strong></p>
+<p>&#96;&#96;PHYSTOP<code>的定义为 </code>#define PHYSTOP (KERNBASE + 128<em>1024</em>1024)&#96; 即128M空间的大小</p>
+<blockquote>
+<p>address.c</p>
+<p><code>PGROUNDDOWN</code> 宏：将地址向下取整到页边界。</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">StackFrameAllocator FrameAllocatorImpl;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">char</span> kernelend[];</span><br><span class="line"><span class="meta">#<span class="keyword">define</span> PGROUNDDOWN(a) (((a)) &amp; ~(PAGE_SIZE-1))</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">frame_alloctor_init</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 初始化时 kernelend 需向上取整</span></span><br><span class="line">    StackFrameAllocator_new(&amp;FrameAllocatorImpl);</span><br><span class="line">    StackFrameAllocator_init(&amp;FrameAllocatorImpl, \</span><br><span class="line">            ceil_phys(<span class="type">phys_addr_from_size_t</span>(kernelend)), \</span><br><span class="line">            ceil_phys(<span class="type">phys_addr_from_size_t</span>(PHYSTOP)));</span><br><span class="line">    printk(<span class="string">&quot;Memoery start:%p\n&quot;</span>,kernelend);</span><br><span class="line">    printk(<span class="string">&quot;Memoery end:%p\n&quot;</span>,PHYSTOP);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3-2-内存映射"><a href="#3-2-内存映射" class="headerlink" title="3.2 内存映射"></a>3.2 内存映射</h2><p>采用恒等映射：虚拟地址映射后的物理地址是相同的，这样在启用<code>mmu</code>后，原先的代码执行逻辑不变。 虚拟内存和物理内存恒等映射</p>
+<p><img src="/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/image-20240624205428785.png" alt="虚拟内存和物理内存恒等映射"></p>
+<blockquote>
+<p>address.c</p>
+<ul>
+<li><code>kvmmake</code> 函数用于构建内核的页表，映射内核代码段和数据段到物理内存。<code>kvminit</code> 函数用于初始化内核页表。</li>
+<li></li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="type">char</span> etext[];</span><br><span class="line"></span><br><span class="line">PageTable <span class="title function_">kvmmake</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    PageTable pt;</span><br><span class="line">    PhysPageNum root_ppn =  StackFrameAllocator_alloc(&amp;FrameAllocatorImpl);</span><br><span class="line">    pt.root_ppn = root_ppn;</span><br><span class="line">    printk(<span class="string">&quot;root_ppn:%p\n&quot;</span>,phys_addr_from_phys_page_num(root_ppn));</span><br><span class="line"></span><br><span class="line">    printk(<span class="string">&quot;etext:%p\n&quot;</span>,(u64)etext);</span><br><span class="line">    <span class="comment">// // map kernel text executable and read-only.</span></span><br><span class="line">    PageTable_map(&amp;pt,<span class="type">virt_addr_from_size_t</span>(KERNBASE),<span class="type">phys_addr_from_size_t</span>(KERNBASE), \</span><br><span class="line">                    (u64)etext-KERNBASE , PTE_R | PTE_X | PTE_U) ;</span><br><span class="line">    printk(<span class="string">&quot;finish kernel text map!\n&quot;</span>);</span><br><span class="line">    <span class="comment">// map kernel data and the physical RAM we&#x27;ll make use of. </span></span><br><span class="line">    PageTable_map(&amp;pt,<span class="type">virt_addr_from_size_t</span>((u64)etext),<span class="type">phys_addr_from_size_t</span>((u64)etext ), \</span><br><span class="line">                    PHYSTOP - (u64)etext , PTE_R | PTE_W | PTE_U) ;</span><br><span class="line">    printk(<span class="string">&quot;finish kernel data and physical RAM map!\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> pt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">PageTable kernel_pagetable;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">kvminit</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  	kernel_pagetable = kvmmake();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>首先建立一个根页表，从空闲内存中拿出一页，然后映射内核代码段，再映射数据段，</strong>代码段的属性是可执行可读的，数据段的属性是可读可写的，且U模式不可访问。</li>
+<li>由于我们现在是将U模式的应用和内核代码一起打包了，所以肯定U模式下的代码肯定是执行不了的，需要<strong>后面实现一个读取应用的模块来加载app</strong>。</li>
+<li>然后是内核的映射表建立：<strong>内核的代码段只占两页内存： <code>0x80200000</code>,<code>0x80201000</code>，</strong>内核根页表放在<code>0x80250000</code>即空闲内存开始的第一页。虚拟地址<code>0x80200000</code>的三级页号的索引为 <strong>2 1 0</strong>，<code>0x80201000</code>的三级页号的索引为 <strong>2 1 1</strong>,</li>
+<li>通过下图的三次查表就对应上了具体的物理内存</li>
+</ul>
+<p><img src="/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/image-20240624205704543.png" alt="image-20240624205704543"></p>
+<h2 id="3-3-开启Sv39分页模式"><a href="#3-3-开启Sv39分页模式" class="headerlink" title="3.3 开启Sv39分页模式"></a>3.3 开启Sv39分页模式</h2><p>要开启<code>Sv39</code>的分页模式，只需要去写<code>satp</code>的值就行了：设置为<code>Sv39</code>分页模式，然后将<code>root_ppn</code>的值写入。这里有一个刷新<code>TLB</code>的操作。</p>
+<p><strong>快表</strong> (TLB, Translation Lookaside Buffer) ， 它维护了部分虚拟页号到页表项的键值对。当 MMU 进行地址转换的时候，首先会到快表中看看是否匹配，如果匹配的话直接取出页表项完成地址转换而无需访存；否则再去查页表并将键值对保存在快表中。一旦我们修改 satp 就会切换地址空间，快表中的键值对就会失效（因为快表保存着老地址空间的映射关系，切换到新地址空间后，老的映射关系就没用了）。为了确保 MMU 的地址转换能够及时与 satp 的修改同步，我们需要立即使用 <code>sfence.vma</code> 指令将快表清空，这样 MMU 就不会看到快表中已经过期的键值对了。</p>
+<blockquote>
+<p>address.c</p>
+<p>开启分页模式</p>
+<p><code>kvminithart</code> 函数用于初始化当前 CPU 核心的页表。它会设置页表寄存器 <code>satp</code>，并刷新 TLB（Translation Lookaside Buffer），确保新页表的生效。</p>
+<p><strong>宏定义</strong>：</p>
+<ul>
+<li><code>SATP_SV39</code>：表示 SV39 模式的 <code>satp</code> 值，高 4 位为 1000。</li>
+<li><code>MAKE_SATP(pagetable)</code>：将页表地址与 <code>SATP_SV39</code> 组合成 <code>satp</code> 寄存器的值。</li>
+</ul>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> SATP_SV39 (8L &lt;&lt; 60)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAKE_SATP(pagetable) (SATP_SV39 | (((u64)pagetable)))</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">kvminithart</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// wait for any previous writes to the page table memory to finish.</span></span><br><span class="line">  printk(<span class="string">&quot;satp:%lx\n&quot;</span>,MAKE_SATP(kernel_pagetable.root_ppn.value));</span><br><span class="line">  sfence_vma();</span><br><span class="line"></span><br><span class="line">  w_satp(MAKE_SATP(kernel_pagetable.root_ppn.value));</span><br><span class="line"></span><br><span class="line">  <span class="comment">// flush stale entries from the TLB.</span></span><br><span class="line">  sfence_vma();</span><br><span class="line">  <span class="type">reg_t</span> satp = r_satp();</span><br><span class="line"></span><br><span class="line">  printk(<span class="string">&quot;satp:%lx\n&quot;</span>,satp);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>riscv.h</p>
+<p>定义sfence和satp 两个函数</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// supervisor address translation and protection;</span></span><br><span class="line"><span class="comment">// holds the address of the page table.</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">w_satp</span><span class="params">(<span class="type">reg_t</span> x)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrw satp, %0&quot;</span> : : <span class="string">&quot;r&quot;</span> (x))</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">reg_t</span> <span class="title function_">r_satp</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="type">reg_t</span> x;</span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;csrr %0, satp&quot;</span> : <span class="string">&quot;=r&quot;</span> (x) )</span>;</span><br><span class="line">  <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 刷新 TLB.</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">sfence_vma</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">// the zero, zero means flush all TLB entries.</span></span><br><span class="line">  <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sfence.vma zero, zero&quot;</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="4-测试"><a href="#4-测试" class="headerlink" title="4.测试"></a>4.测试</h1><blockquote>
+<p>main.c</p>
+<p>修改</p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">frame_alloctor_init</span><span class="params">()</span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">kvminit</span><span class="params">()</span>;</span><br><span class="line"><span class="keyword">extern</span> <span class="type">void</span> <span class="title function_">kvminithart</span><span class="params">()</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">os_main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">   printk(<span class="string">&quot;hello timer os!\n&quot;</span>);</span><br><span class="line"></span><br><span class="line">   <span class="comment">// 内存分配器初始化</span></span><br><span class="line">   frame_alloctor_init();</span><br><span class="line">   </span><br><span class="line">   <span class="comment">//初始化内存</span></span><br><span class="line">   kvminit();</span><br><span class="line"></span><br><span class="line">   <span class="comment">//映射内核</span></span><br><span class="line">   kvminithart();</span><br><span class="line"></span><br><span class="line">   <span class="comment">//trap初始化</span></span><br><span class="line">   trap_init();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">   <span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">   &#123;</span><br><span class="line">      <span class="comment">/* code */</span></span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   <span class="comment">// task_init();</span></span><br><span class="line"></span><br><span class="line">   <span class="comment">// timer_init();</span></span><br><span class="line"></span><br><span class="line">   </span><br><span class="line">   <span class="comment">// run_first_task();</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<blockquote>
+<p>测试</p>
+</blockquote>
+<p>可见：</p>
+<ul>
+<li><code>root_ppn</code>：对齐到了<code>0x80250000</code> </li>
+<li><code>etext</code>：对齐到了<code>0x80202000</code>  代码段</li>
+</ul>
+<p><img src="/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/ZL\source_posts\riscv-14-内存映射机制实现\image-20240624211356863.png" alt="image-20240624211356863"></p>
+<h2 id="本节工作总结："><a href="#本节工作总结：" class="headerlink" title="本节工作总结："></a><strong>本节工作总结：</strong></h2><ul>
+<li>首先对<code>PTE</code>和<code>PT</code>进行了定义，并且实现了将<code>PPN</code>转化为物理地址的函数</li>
+<li>仿照<code>rcore</code>，实现了内存映射，即由<code>VPN</code>通过三级页表向<code>PPN</code>转换 目标是最终获取物理地址</li>
+<li>然后，对内存进行了初始化，定义应用程序的内存空间，按照页对齐的方式对齐了<code>etext</code>代码段数据和 向下取整的方式对齐数据段<code>data</code>并且定义了内存初始化函数<code>frame_allocator_init()</code></li>
+<li>采用恒等映射的方式，将虚拟地址映射到物理地址上去</li>
+<li>最后设置<code>SATP</code>开启<code>Sv39</code>分页模式</li>
 </ul>
 ]]></content>
       <categories>
