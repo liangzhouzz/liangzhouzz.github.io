@@ -5686,16 +5686,4 @@ fa 18 40 00 00 00 00 00
         <tag>riscv，qemu</tag>
       </tags>
   </entry>
-  <entry>
-    <title>riscv-15-应用程序的加载</title>
-    <url>/2024/06/24/riscv-15-%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E5%8A%A0%E8%BD%BD/</url>
-    <content><![CDATA[<h1 id="1"><a href="#1" class="headerlink" title="1."></a>1.</h1>]]></content>
-      <categories>
-        <category>riscv</category>
-      </categories>
-      <tags>
-        <tag>操作系统</tag>
-        <tag>riscv，qemu</tag>
-      </tags>
-  </entry>
 </search>
