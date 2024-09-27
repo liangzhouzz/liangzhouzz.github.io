@@ -5669,7 +5669,7 @@ fa 18 40 00 00 00 00 00
 <li><code>root_ppn</code>：对齐到了<code>0x80250000</code> </li>
 <li><code>etext</code>：对齐到了<code>0x80202000</code>  代码段</li>
 </ul>
-<p><img src="/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/ZL\source_posts\riscv-14-内存映射机制实现\image-20240624211356863.png" alt="image-20240624211356863"></p>
+<p><img src="/2024/06/21/riscv-14-%E5%86%85%E5%AD%98%E6%98%A0%E5%B0%84%E6%9C%BA%E5%88%B6%E5%AE%9E%E7%8E%B0/image-20240624211356863.png" alt="image-20240624211356863"></p>
 <h2 id="本节工作总结："><a href="#本节工作总结：" class="headerlink" title="本节工作总结："></a><strong>本节工作总结：</strong></h2><ul>
 <li>首先对<code>PTE</code>和<code>PT</code>进行了定义，并且实现了将<code>PPN</code>转化为物理地址的函数</li>
 <li>仿照<code>rcore</code>，实现了内存映射，即由<code>VPN</code>通过三级页表向<code>PPN</code>转换 目标是最终获取物理地址</li>
@@ -5678,6 +5678,18 @@ fa 18 40 00 00 00 00 00
 <li>最后设置<code>SATP</code>开启<code>Sv39</code>分页模式</li>
 </ul>
 ]]></content>
+      <categories>
+        <category>riscv</category>
+      </categories>
+      <tags>
+        <tag>操作系统</tag>
+        <tag>riscv，qemu</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>riscv-15-应用程序的加载</title>
+    <url>/2024/06/24/riscv-15-%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%9A%84%E5%8A%A0%E8%BD%BD/</url>
+    <content><![CDATA[<h1 id="1"><a href="#1" class="headerlink" title="1."></a>1.</h1>]]></content>
       <categories>
         <category>riscv</category>
       </categories>
